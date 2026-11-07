@@ -107,6 +107,12 @@ class Inversor(BaseModel):
     tensao_saida_v: float = 220
     microinversor: bool = False
     certificado_inmetro: str | None = None  # número do registro, se houver
+    # Restrições do manual do fabricante (cadastro do inversor); None = manual não informa
+    disjuntor_max_a: float | None = None  # maior disjuntor CA permitido pelo manual
+    fator_min_disjuntor: float | None = None  # ex.: 1.25 -> In >= 1,25 x Ib
+    cabo_min_mm2: float | None = None  # seção mínima do cabo CA no manual
+    terminal_ca_min_mm2: float | None = None  # faixa de seção aceita pelos bornes CA
+    terminal_ca_max_mm2: float | None = None
 
 
 class StringFV(BaseModel):
@@ -148,11 +154,30 @@ class DadosVisita(BaseModel):
     bitola_ca_mm2: float | None = None
     disjuntor_ca_a: float | None = None  # selecionado pela tabela
     relacao_cargas: list[Carga] = []
+    # Trecho CA inversor-quadro (R02). Ausente -> premissa assumida e declarada.
+    metodo_instalacao: Literal["A1", "A2", "B1", "B2", "C"] | None = None  # NBR 5410 Tab. 33
+    isolacao: Literal["PVC", "XLPE"] | None = None
+    ambiente_cabo: Literal["interno", "exposto"] | None = None  # exposto = sol ou forro
+    circuitos_agrupados: int | None = None
+    icc_ka: float | None = None  # corrente de curto no ponto, se o integrador informar
+    # Área de concessão para a temperatura mínima (R03): "ceara", "sao_paulo",
+    # "rj_serra", "rj_sul_fluminense", "rj_demais"
+    area_concessao: str | None = None
 
 
 # ---------------------------------------------------------------------------
 # Conferência e perguntas
 # ---------------------------------------------------------------------------
+
+
+class Evidencia(BaseModel):
+    """Prova usada por uma regra: consulta, cadastro verificado ou datasheet."""
+
+    descricao: str  # ex.: "Registro INMETRO 005485/2023: Ativo, modelo listado"
+    fonte: str  # ex.: "INMETRO (consulta automática)", "catálogo verificado", "datasheet"
+    url: str | None = None
+    consultado_em: datetime | None = None
+    trecho: str | None = None  # texto lido, para a tela de revisão
 
 
 class ResultadoRegra(BaseModel):
@@ -164,6 +189,12 @@ class ResultadoRegra(BaseModel):
     mensagem: str  # ex.: "Corrente máxima de saída (52,8 A) acima do disjuntor de 50 A."
     fonte_norma: str  # ex.: "NBR 5410"
     a_validar: bool = False  # True para critérios ainda não validados por engenheiro
+    alertas: list[str] = []  # não reprovam; aparecem na revisão
+    premissas: list[str] = []  # dado não informado e valor assumido ("método B2 assumido")
+    evidencias: list[Evidencia] = []
+    # Confirmação do engenheiro numa regra INCERTA que ele assume (ex.: R05 passo 3)
+    confirmado_por: str | None = None
+    confirmado_em: datetime | None = None
 
 
 class Pergunta(BaseModel):
