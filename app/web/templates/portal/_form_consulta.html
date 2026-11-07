@@ -1,0 +1,15 @@
+<form class="form" method="get" action="/portal-gd/consulta">
+  <div class="campo">
+    <label for="uc">Código da UC</label>
+    <input id="uc" name="uc" type="text" inputmode="numeric" autocomplete="off" value="{{ uc|default('') }}" required>
+  </div>
+  <div class="campo">
+    <label for="email">E-mail</label>
+    <input id="email" name="email" type="email" autocomplete="off" value="{{ email|default('') }}" required>
+  </div>
+  <div class="campo">
+    <label for="numero">Número da solicitação</label>
+    <input id="numero" name="numero" type="text" autocomplete="off" value="{{ numero|default('') }}" required>
+  </div>
+  <button type="submit">Consultar solicitação</button>
+</form>

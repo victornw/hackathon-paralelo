@@ -1,0 +1,107 @@
+*, *::before, *::after { box-sizing: border-box; }
+/* Portal GD simulado: aparência própria e neutra, sem marca de distribuidora. */
+.portal, .operador {
+  --p-texto: #222; --p-suave: #555; --p-linha: #c8c8c8; --p-fundo: #fff;
+  --p-acento: #1a4f7a; --p-ok: #2f6f3e; --p-erro: #9b1c1c; --p-aviso: #fff3cd;
+}
+body.portal {
+  margin: 0; background: #f3f3f3; color: var(--p-texto);
+  font: 16px/1.5 Arial, Helvetica, sans-serif;
+}
+.aviso-simulado {
+  margin: 0; padding: 8px 16px; text-align: center; font-weight: 700; font-size: 14px;
+  background: var(--p-aviso); color: #4a3b00; border-bottom: 2px solid #d9b92e;
+}
+.cabeca-portal {
+  display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline;
+  padding: 14px 16px; background: #fff; border-bottom: 1px solid var(--p-linha);
+}
+.nome-portal { font-size: 20px; font-weight: 700; color: var(--p-texto); text-decoration: none; }
+.cabeca-portal nav { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.portal a, .operador a { color: var(--p-acento); }
+.portal a:focus-visible, .operador a:focus-visible,
+.portal button:focus-visible, .operador button:focus-visible,
+.portal input:focus-visible, .portal textarea:focus-visible {
+  outline: 3px solid #f08c00; outline-offset: 2px;
+}
+.miolo { max-width: 860px; margin: 0 auto; padding: 16px; }
+.portal h1, .operador h1 { font-size: 24px; margin: 8px 0 16px; }
+.portal h2, .operador h2 { font-size: 18px; margin: 0 0 8px; }
+.bloco {
+  background: #fff; border: 1px solid var(--p-linha); padding: 16px; margin: 0 0 16px;
+}
+.etapa-atual { font-size: 18px; }
+.nota { color: var(--p-suave); }
+.passos-novos { padding-left: 22px; }
+
+.form { display: grid; gap: 12px; max-width: 480px; }
+.campo { display: grid; gap: 4px; }
+.campo label { font-weight: 700; }
+.campo input, .campo textarea {
+  font: inherit; padding: 8px; border: 1px solid #777; border-radius: 2px; width: 100%;
+}
+.portal button, .operador button {
+  font: inherit; font-weight: 700; padding: 9px 16px; cursor: pointer;
+  background: var(--p-acento); color: #fff; border: 1px solid var(--p-acento); border-radius: 2px;
+  justify-self: start;
+}
+.portal button:hover, .operador button:hover { filter: brightness(1.15); }
+.botoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.erro {
+  margin: 0 0 12px; padding: 10px 12px; color: var(--p-erro);
+  background: #fdeeee; border-left: 4px solid var(--p-erro); font-weight: 700;
+}
+.erro[hidden] { display: none; }
+
+.stepper {
+  list-style: none; margin: 0 0 16px; padding: 12px; display: flex; gap: 4px;
+  overflow-x: auto; background: #fff; border: 1px solid var(--p-linha);
+}
+.passo {
+  flex: 1 0 84px; display: grid; justify-items: center; gap: 4px; text-align: center;
+  font-size: 13px; color: var(--p-suave); padding-top: 4px; border-top: 4px solid var(--p-linha);
+}
+.marca-passo {
+  display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  border: 2px solid var(--p-linha); background: #fff; font-weight: 700;
+}
+.passo.feito { border-top-color: var(--p-ok); color: var(--p-ok); }
+.passo.feito .marca-passo { background: var(--p-ok); border-color: var(--p-ok); color: #fff; }
+.passo.atual { border-top-color: var(--p-acento); color: var(--p-texto); font-weight: 700; }
+.passo.atual .marca-passo { background: var(--p-acento); border-color: var(--p-acento); color: #fff; }
+.so-leitor {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.passo { position: relative; }
+
+.historico { list-style: none; margin: 0; padding: 0; }
+.historico li { padding: 8px 0; border-bottom: 1px solid #e4e4e4; }
+.historico p { margin: 0; }
+.linha-evento time { color: var(--p-suave); margin-right: 8px; }
+blockquote {
+  margin: 8px 0 0; padding: 8px 12px; border-left: 4px solid #d9b92e; background: #fffbea;
+}
+.rotulo-citacao { font-size: 13px; color: var(--p-suave); margin: 0 0 2px; }
+
+.definicoes { margin: 0; display: grid; gap: 0; }
+.definicoes > div {
+  display: grid; grid-template-columns: minmax(150px, 40%) 1fr; gap: 8px;
+  padding: 6px 0; border-bottom: 1px solid #e4e4e4;
+}
+.definicoes dt { font-weight: 700; color: var(--p-suave); }
+.definicoes dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) {
+  .definicoes > div { grid-template-columns: 1fr; gap: 0; }
+}
+
+.operador { max-width: 1100px; margin: 0 auto; }
+.rolagem { overflow-x: auto; }
+.tabela { border-collapse: collapse; width: 100%; font-size: 14px; }
+.tabela th, .tabela td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; vertical-align: top; }
+.tabela form { margin: 0; }
+.operador .bloco { background: #fff; }
+.ok {
+  color: #1f6b3f;
+  font-weight: 600;
+}
+.aguarda { color: #5b6670; font-size: 0.95em; }

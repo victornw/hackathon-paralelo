@@ -15,7 +15,9 @@ from __future__ import annotations
 import re
 import unicodedata
 
-from app.tracing import registrar_uso, trace
+from pydantic import BaseModel
+
+from app.tracing import carregar_prompt, registrar_uso, trace
 
 CATEGORIAS: dict[str, dict] = {
     "unifilar_inconsistente": {
@@ -116,9 +118,55 @@ def correcao(categoria: str) -> str:
     return CATEGORIAS[categoria]["correcao"]
 
 
+class _Classificacao(BaseModel):
+    categoria: str
+    justificativa: str
+
+
+def _mensagem_usuario(texto: str) -> str:
+    categorias = "\n".join(
+        f"- {nome}: {cat['descricao']}" for nome, cat in CATEGORIAS.items()
+    )
+    return f"Categorias possíveis:\n{categorias}\n\nTexto da pendência:\n{texto}"
+
+
+def _classificar_por_llm(texto: str) -> tuple[str | None, bool]:
+    """(categoria do LLM ou None, se o LLM foi tentado)."""
+    from app.core import llm  # import tardio: este módulo importa mesmo sem app.core
+
+    if not llm.disponivel("pendencia"):
+        return None, False
+    prompt = carregar_prompt("classificar_pendencia")
+    try:
+        resposta = llm.completar_json(
+            "pendencia", prompt.texto, _mensagem_usuario(texto), _Classificacao
+        )
+    except (llm.LLMIndisponivel, llm.LLMErro):
+        registrar_uso(prompt=prompt)
+        return None, True
+    categoria = resposta.categoria.strip()
+    if categoria not in CATEGORIAS:
+        registrar_uso(prompt=prompt)
+        return None, True
+    registrar_uso(
+        prompt=prompt,
+        decisao=f"Pendência classificada como {categoria} pelo LLM: {resposta.justificativa}",
+    )
+    return categoria, True
+
+
 @trace("classificar_pendencia")
 def classificar_pendencia(texto: str) -> tuple[str, str]:
     """Classifica o motivo de pendência e devolve (categoria, correcao_proposta)."""
-    categoria = classificar_por_palavras(texto)
-    registrar_uso(decisao=f"Pendência classificada como {categoria} (palavras-chave).")
+    categoria, tentou_llm = _classificar_por_llm(texto)
+    if categoria is None:
+        categoria = classificar_por_palavras(texto)
+        if tentou_llm:
+            registrar_uso(
+                decisao=f"LLM falhou; classificada como {categoria} por palavras-chave."
+            )
+        else:
+            registrar_uso(
+                decisao=f"Pendência classificada como {categoria} (palavras-chave)."
+            )
     return categoria, correcao(categoria)

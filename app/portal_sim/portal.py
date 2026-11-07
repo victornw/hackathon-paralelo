@@ -18,6 +18,7 @@ perguntas: Pergunta.campo igual à chave do formulário e Pergunta.resposta pree
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from datetime import date
 
 from pydantic import BaseModel
@@ -271,6 +272,22 @@ _DISTRIBUIDORA: dict[Etapa, tuple[Etapa, str]] = {
 }
 
 
+_VEZ_DO_INTEGRADOR = {
+    Etapa.PENDENCIA,
+    Etapa.ORCAMENTO_EMITIDO,
+    Etapa.ORCAMENTO_APROVADO,
+}
+
+
+def vez_de(etapa: Etapa) -> str | None:
+    """Quem precisa agir agora: "distribuidora", "integrador" ou None (concluído)."""
+    if etapa in _VEZ_DO_INTEGRADOR:
+        return "integrador"
+    if etapa == Etapa.PROTOCOLADO or etapa in _DISTRIBUIDORA:
+        return "distribuidora"
+    return None
+
+
 def avancar_distribuidora(numero: str) -> EventoPortal:
     """Próximo passo da distribuidora no roteiro. No primeiro protocolo de um
     roteiro com pendência, a distribuidora aponta a pendência roteirizada."""
@@ -291,3 +308,51 @@ def avancar_distribuidora(numero: str) -> EventoPortal:
         raise PortalErro(f"Aguardando o integrador (etapa {atual.value}).")
     _salvar_eventos(numero, [*eventos, ev])
     return ev
+
+
+# --- leitura para as telas do portal ---------------------------------------------
+
+
+@dataclass
+class ResumoSolicitacao:
+    numero: str
+    uc: str
+    email: str
+    titular: str
+    etapa: Etapa
+    ultima_data: date
+
+
+def listar_solicitacoes() -> list[ResumoSolicitacao]:
+    """Todas as solicitações, da mais recente para a mais antiga."""
+    with _con() as con:
+        linhas = con.execute(
+            "SELECT numero, uc, email, formulario, eventos FROM portal_solicitacoes"
+        ).fetchall()
+    resumos = []
+    for numero, uc, email, formulario, eventos in linhas:
+        evs = [EventoPortal.model_validate(e) for e in json.loads(eventos)]
+        resumos.append(
+            ResumoSolicitacao(
+                numero=numero,
+                uc=uc,
+                email=email,
+                titular=json.loads(formulario).get("titular", ""),
+                etapa=_etapa_atual(evs),
+                ultima_data=evs[-1].data,
+            )
+        )
+    resumos.sort(key=lambda r: (r.ultima_data, r.numero), reverse=True)
+    return resumos
+
+
+def formulario(numero: str) -> FormularioBasico:
+    """Formulário básico enviado na solicitação."""
+    with _con() as con:
+        linha = con.execute(
+            "SELECT formulario FROM portal_solicitacoes WHERE numero = ?",
+            (numero.strip(),),
+        ).fetchone()
+    if linha is None:
+        raise SolicitacaoNaoEncontrada("Solicitação não encontrada.")
+    return FormularioBasico.model_validate_json(linha[0])

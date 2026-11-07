@@ -31,3 +31,18 @@ def test_timeline_com_prazo_e_eventos(cliente):
 
 def test_timeline_inexistente(cliente):
     assert cliente.get("/processos/nao-existe/timeline").status_code == 404
+
+
+def test_timeline_mostra_prompt_usado(cliente):
+    from app.tracing import carregar_prompt, processo_atual, registrar_uso, trace
+
+    prompt = carregar_prompt("classificar_pendencia")
+
+    @trace("classificar_pendencia")
+    def passo():
+        registrar_uso(prompt=prompt, decisao="ok")
+
+    with processo_atual("proc-demo-006"):
+        passo()
+    r = cliente.get("/processos/proc-demo-006/timeline")
+    assert f"Prompt: classificar_pendencia v1 ({prompt.hash})" in r.text

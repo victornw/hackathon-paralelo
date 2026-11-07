@@ -3,6 +3,14 @@
 Uso no main.py:  app.include_router(painel.router); app.mount("/static", ...)
 Os processos vêm da tabela `processos(id, json)` quando ela existir; antes disso,
 de fixtures/carteira_demo.json.
+
+Bloco "Documentos gerados" (para a tela do engenheiro, Dev A). Duas formas:
+1. Include server-side, usando o mesmo diretório de templates (app/web/templates):
+       {% include "_documentos.html" %}
+   com o contexto de `contexto_documentos(processo)` mesclado ao da página, ou
+   seja `{**seu_contexto, **contexto_documentos(p)}`.
+2. HTMX, sem tocar no contexto:
+       <div hx-get="/processos/{{ p.id }}/documentos" hx-trigger="load"></div>
 """
 
 from __future__ import annotations
@@ -14,12 +22,13 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
 from app.portal_sim.prazos import calcular_prazos, situacao
 from app.portal_sim.relogio import hoje
 from app.schemas import Etapa, Prazo, Processo
-from app.tracing import listar_passos, resumo_custo
+from app.tracing import listar_passos_detalhados, resumo_custo
 from app.tracing.db import conectar
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -102,6 +111,11 @@ def _cartao(p: Processo, dia: date) -> dict:
     }
 
 
+def contexto_documentos(processo: Processo) -> dict:
+    """Contexto do parcial `_documentos.html` (para quem faz o include)."""
+    return {"processo_id": processo.id, "documentos": processo.documentos}
+
+
 @router.get("/painel")
 def painel(request: Request):
     dia = hoje()
@@ -143,8 +157,14 @@ def timeline(request: Request, processo_id: str):
         {"quando": ev.data, "tipo": "portal", "titulo": ROTULOS[ev.etapa], "ev": ev}
         for ev in proc.eventos
     ] + [
-        {"quando": ps.em.date(), "tipo": "agente", "titulo": ps.passo, "passo": ps}
-        for ps in listar_passos(processo_id)
+        {
+            "quando": ps.passo.em.date(),
+            "tipo": "agente",
+            "titulo": ps.passo.passo,
+            "passo": ps.passo,
+            "prompts": ps.prompts,
+        }
+        for ps in listar_passos_detalhados(processo_id)
     ]
     itens.sort(key=lambda i: (i["quando"], i["tipo"] == "portal"))
     return templates.TemplateResponse(
@@ -156,5 +176,45 @@ def timeline(request: Request, processo_id: str):
             "resumo": resumo_custo(processo_id),
             "hoje": dia,
             "rotulos": ROTULOS,
+            **contexto_documentos(proc),
         },
     )
+
+
+@router.get("/processos/{processo_id}/documentos/{nome}/ver")
+def ver_documento(processo_id: str, nome: str):
+    """Abre o PDF ou SVG no navegador (inline), em vez de baixar."""
+    proc = next((p for p in carregar_processos() if p.id == processo_id), None)
+    doc = (
+        next((d for d in proc.documentos if d.nome_arquivo == nome), None)
+        if proc
+        else None
+    )
+    if doc is None or not Path(doc.caminho).is_file():
+        raise HTTPException(404, "Documento não encontrado.")
+    tipo = "application/pdf" if doc.formato == "pdf" else "image/svg+xml"
+    return FileResponse(
+        doc.caminho,
+        media_type=tipo,
+        filename=doc.nome_arquivo,
+        content_disposition_type="inline",
+    )
+
+
+@router.get("/processos/{processo_id}/documentos")
+def documentos(request: Request, processo_id: str):
+    proc = next((p for p in carregar_processos() if p.id == processo_id), None)
+    if proc is None:
+        raise HTTPException(404, "Processo não encontrado.")
+    return templates.TemplateResponse(
+        request, "_documentos.html", contexto_documentos(proc)
+    )
+
+
+from app.portal_sim.rotas import router as _portal_router
+
+router.include_router(_portal_router)
+
+from app.web.chat import router as _chat_router
+
+router.include_router(_chat_router)

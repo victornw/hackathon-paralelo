@@ -2,7 +2,7 @@
 {% block titulo %}{{ c.titular }}: timeline{% endblock %}
 {% block conteudo %}
 <section class="cabeca">
-  <p><a href="/painel">Voltar à carteira</a></p>
+  <p><a href="/painel">Voltar à carteira</a> · <a href="/processos/{{ c.p.id }}/chat">Mensagens</a></p>
   <h1>{{ c.titular }}</h1>
   <p class="resumo">UC {{ c.uc }}{% if c.kwp %}, {{ '%.2f'|format(c.kwp)|replace('.', ',') }} kWp{% endif %}. Etapa atual: <strong>{{ rotulos[c.p.etapa] }}</strong>{% if c.p.numero_solicitacao %}. Solicitação {{ c.p.numero_solicitacao }}{% endif %}.</p>
 </section>
@@ -27,6 +27,7 @@
           {% if i.passo.decisao %}<p>{{ i.passo.decisao }}</p>{% endif %}
           {% if i.passo.erro %}<p class="falha">Falhou: {{ i.passo.erro }}</p>{% endif %}
           <p class="custo">{{ i.passo.ms }} ms, {{ i.passo.tokens_entrada + i.passo.tokens_saida }} tokens, R$ {{ '%.4f'|format(i.passo.custo_brl)|replace('.', ',') }}</p>
+          {% for p in i.prompts %}<p class="custo prompt">Prompt: {{ p.split('@v')[0] }} v{{ p.split('@v')[1].split('#')[0] }} ({{ p.split('#')[1] }})</p>{% endfor %}
         {% endif %}
       </li>
       {% endfor %}
@@ -37,6 +38,8 @@
   </section>
 
   <aside>
+    {% include "_documentos.html" %}
+
     <h2>Prazos correndo</h2>
     {% for x in c.prazos %}
     <div class="prazo {{ x.situacao }} {{ x.prazo.conta_contra }}">

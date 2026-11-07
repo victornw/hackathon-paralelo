@@ -14,7 +14,8 @@ _ESQUEMA = """
 CREATE TABLE IF NOT EXISTS passos_trace (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     processo_id TEXT NOT NULL,
-    json TEXT NOT NULL
+    json TEXT NOT NULL,
+    prompts TEXT NOT NULL DEFAULT '[]'
 );
 CREATE INDEX IF NOT EXISTS ix_passos_trace_processo ON passos_trace(processo_id);
 CREATE TABLE IF NOT EXISTS relogio (
@@ -33,4 +34,10 @@ def conectar() -> sqlite3.Connection:
     caminho.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(caminho)
     con.executescript(_ESQUEMA)
+    colunas = {linha[1] for linha in con.execute("PRAGMA table_info(passos_trace)")}
+    if "prompts" not in colunas:  # banco local criado antes dos prompts versionados
+        con.execute(
+            "ALTER TABLE passos_trace ADD COLUMN prompts TEXT NOT NULL DEFAULT '[]'"
+        )
+        con.commit()
     return con
