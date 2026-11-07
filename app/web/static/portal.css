@@ -100,3 +100,7 @@ blockquote {
 .tabela th, .tabela td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; vertical-align: top; }
 .tabela form { margin: 0; }
 .operador .bloco { background: #fff; }
+.ok {
+  color: #1f6b3f;
+  font-weight: 600;
+}

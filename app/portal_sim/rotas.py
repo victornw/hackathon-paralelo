@@ -251,7 +251,7 @@ def acao(
 
 
 @router.get("/operador")
-def operador(request: Request, aguardando: str = ""):
+def operador(request: Request, aguardando: str = "", reiniciado: str = ""):
     linhas = [
         {"r": r, "url": _url_consulta(r.uc, r.email, r.numero)}
         for r in portal.listar_solicitacoes()
@@ -264,8 +264,25 @@ def operador(request: Request, aguardando: str = ""):
             "linhas": linhas,
             "rotulos": ROTULOS,
             "aguardando": aguardando,
+            "reiniciado": reiniciado,
+            "data_demo": _data_demo(),
         },
     )
+
+
+def _data_demo():
+    from app.portal_sim.demo import data_demo
+
+    return data_demo()
+
+
+@router.post("/operador/reiniciar")
+def reiniciar():
+    """Recria os casos da demonstração e volta o relógio para a data da demo."""
+    from app.portal_sim.demo import reiniciar_demo
+
+    reiniciar_demo()
+    return RedirectResponse("/portal-gd/operador?reiniciado=1", status_code=303)
 
 
 @router.post("/operador/{numero}/avancar")

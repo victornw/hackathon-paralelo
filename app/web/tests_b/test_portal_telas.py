@@ -252,3 +252,14 @@ def test_regua_depois_do_reenvio_mostra_em_analise():
         ("Reenviado, em análise", "atual"),
         ("Orçamento emitido", "futuro"),
     ]
+
+
+def test_botao_reiniciar_demonstracao(cliente, tmp_path, monkeypatch):
+    monkeypatch.setenv("DOCS_DIR", str(tmp_path / "docs"))
+    pagina = cliente.get("/portal-gd/operador")
+    assert "Reiniciar demonstração" in pagina.text
+    r = cliente.post("/portal-gd/operador/reiniciar", follow_redirects=False)
+    assert r.status_code == 303
+    depois = cliente.get(r.headers["location"])
+    assert "Demonstração reiniciada" in depois.text
+    assert depois.text.count("Próximo passo da distribuidora") == 3
