@@ -55,9 +55,7 @@ def campo_conta(processo: Processo, chave: str) -> str:
     return valor_campo(processo.campos.get(chave))
 
 
-def com_unidade(
-    valor: float | None, unidade: str, casas: int | None = None
-) -> str:
+def com_unidade(valor: float | None, unidade: str, casas: int | None = None) -> str:
     return A_INFORMAR if valor is None else f"{num(valor, casas)} {unidade}"
 
 
