@@ -80,6 +80,17 @@ def criar_pdf(caminho: Path, linhas: list[str], imagem: Path | None = None) -> P
     return caminho
 
 
+@pytest.fixture
+def conta_fora_do_layout(tmp_path) -> Path:
+    """Conta 1 com outro layout: o leitor sem LLM não fecha e a extração vai ao LLM."""
+    from pypdf import PdfReader
+
+    texto = PdfReader(FIXTURES / "cliente_1_conta.pdf").pages[0].extract_text()
+    return criar_pdf(
+        tmp_path / "conta_outro_layout.pdf", [f"> {ln}" for ln in texto.splitlines()]
+    )
+
+
 def criar_png(caminho: Path) -> Path:
     Image.new("RGB", (40, 40), "white").save(caminho)
     return caminho
@@ -106,39 +117,39 @@ def test_conta_sintetica_vira_campos_com_confianca_no_teto(monkeypatch, n):
         assert not campo.incerto
 
 
-def test_trecho_inventado_limita_a_confianca_a_0_5(monkeypatch):
+def test_trecho_inventado_limita_a_confianca_a_0_5(monkeypatch, conta_fora_do_layout):
     resposta = resposta_conta(1)
     resposta["uc"]["trecho"] = "Código da UC: 99999999"
     resposta["uc"]["valor"] = "99999999"
     LLMFalso(monkeypatch, resposta)
-    campos = extrair_conta(FIXTURES / "cliente_1_conta.pdf")
+    campos = extrair_conta(conta_fora_do_layout)
     assert campos["uc"].confianca <= 0.5
     assert campos["uc"].incerto
     assert campos["titular"].confianca == 0.95
 
 
-def test_valor_que_nao_sai_do_trecho_limita_a_0_5(monkeypatch):
+def test_valor_que_nao_sai_do_trecho_limita_a_0_5(monkeypatch, conta_fora_do_layout):
     resposta = resposta_conta(1)
     resposta["uc"]["valor"] = "87654321"
     LLMFalso(monkeypatch, resposta)
-    campo = extrair_conta(FIXTURES / "cliente_1_conta.pdf")["uc"]
+    campo = extrair_conta(conta_fora_do_layout)["uc"]
     assert campo.valor == "87654321"
     assert campo.confianca <= 0.5
 
 
-def test_campo_sem_trecho_limita_a_0_5(monkeypatch):
+def test_campo_sem_trecho_limita_a_0_5(monkeypatch, conta_fora_do_layout):
     resposta = resposta_conta(1)
     resposta["cidade"]["trecho"] = None
     LLMFalso(monkeypatch, resposta)
-    assert extrair_conta(FIXTURES / "cliente_1_conta.pdf")["cidade"].confianca <= 0.5
+    assert extrair_conta(conta_fora_do_layout)["cidade"].confianca <= 0.5
 
 
-def test_campo_ilegivel_volta_none_e_confianca_zero(monkeypatch):
+def test_campo_ilegivel_volta_none_e_confianca_zero(monkeypatch, conta_fora_do_layout):
     resposta = resposta_conta(1)
     resposta["cpf_cnpj"] = {"valor": None, "confianca": 0.9, "trecho": None}
     del resposta["classe"]
     LLMFalso(monkeypatch, resposta)
-    campos = extrair_conta(FIXTURES / "cliente_1_conta.pdf")
+    campos = extrair_conta(conta_fora_do_layout)
     for chave in ("cpf_cnpj", "classe"):
         assert campos[chave].valor is None
         assert campos[chave].confianca == 0
@@ -251,10 +262,10 @@ def test_passo_gravado_no_trace_com_decisao(monkeypatch):
     assert passo.erro is None
 
 
-def test_falha_do_llm_propaga_e_fica_no_trace(monkeypatch):
+def test_falha_do_llm_propaga_e_fica_no_trace(monkeypatch, conta_fora_do_layout):
     LLMFalso(monkeypatch, LLMErro("fora do esquema"))
     with processo_atual("proc-erro"), pytest.raises(LLMErro):
-        extrair_conta(FIXTURES / "cliente_1_conta.pdf")
+        extrair_conta(conta_fora_do_layout)
     assert "LLMErro" in listar_passos("proc-erro")[0].erro
 
 
@@ -455,3 +466,38 @@ def test_padrao_ilegivel_volta_none(monkeypatch, tmp_path):
     visita = extrair_padrao(criar_png(tmp_path / "padrao.png"))
     assert visita.polos_padrao.valor is None
     assert visita.polos_padrao.confianca == 0
+
+
+@pytest.mark.parametrize("n", CLIENTES)
+def test_conta_no_layout_da_enel_e_lida_sem_chamar_o_llm(monkeypatch, n):
+    llm = LLMFalso(monkeypatch, LLMErro("não devia ser chamado"))
+    with processo_atual(f"proc-leitor-{n}"):
+        campos = extrair_conta(FIXTURES / f"cliente_{n}_conta.pdf")
+    assert llm.chamadas == []
+    for chave, c in gabarito(n)["campos"].items():
+        assert campos[chave].valor == c["valor"], chave
+        assert campos[chave].confianca == 0.95, chave
+    (passo,) = listar_passos(f"proc-leitor-{n}")
+    assert "sem LLM" in passo.decisao and passo.tokens_entrada == 0
+
+
+def test_layout_desconhecido_sem_llm_usa_o_que_o_leitor_achou(
+    monkeypatch, conta_fora_do_layout
+):
+    monkeypatch.setattr(extracao, "disponivel", lambda papel: False)
+    campos = extrair_conta(conta_fora_do_layout)
+    assert campos["uc"].valor == "12345678"
+    assert campos["titular"].valor is None and campos["titular"].incerto
+
+
+def test_layout_desconhecido_com_llm_usa_extracao_por_texto(
+    monkeypatch, conta_fora_do_layout
+):
+    llm = LLMFalso(monkeypatch, resposta_conta(1))
+    campos = extrair_conta(conta_fora_do_layout)
+    assert len(llm.chamadas) == 1
+    assert llm.chamadas[0][0] == "extracao"
+    assert llm.chamadas[0][2] == []
+    for chave, c in gabarito(1)["campos"].items():
+        assert campos[chave].valor == c["valor"], chave
+        assert campos[chave].confianca == 0.95, chave

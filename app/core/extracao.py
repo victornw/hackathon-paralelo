@@ -352,6 +352,42 @@ _SISTEMA_CONTA = (
 )
 
 
+# Leitor sem LLM para o layout da conta da Enel: zero token e milissegundos.
+# Só é usado sozinho quando acha todos os campos; o valor passa pelas mesmas
+# normalizações e tetos de confiança da extração por LLM.
+_ROTULOS_CONTA: dict[str, re.Pattern[str]] = {
+    "uc": re.compile(r"C[óo]digo da UC:\s*(\S+)", re.IGNORECASE),
+    "titular": re.compile(r"^Nome:\s*(.+)$", re.IGNORECASE),
+    "cpf_cnpj": re.compile(r"^(?:CPF|CNPJ)(?:/CNPJ)?:\s*(\S+)", re.IGNORECASE),
+    "endereco": re.compile(r"^Endere[çc]o:\s*(.+)$", re.IGNORECASE),
+    "cidade": re.compile(r"^Cidade:\s*(.+?)(?:\s*-\s*[A-Z]{2})?\s*$", re.IGNORECASE),
+    "classe": re.compile(r"^Classe:\s*(.+)$", re.IGNORECASE),
+    "subgrupo": re.compile(r"^Subgrupo:\s*(\S+)", re.IGNORECASE),
+    "tipo_ligacao": re.compile(r"^Tipo de liga[çc][ãa]o:\s*(.+)$", re.IGNORECASE),
+    "tensao_atendimento_v": re.compile(
+        r"^Tens[ãa]o de atendimento:\s*([\d.,]+)", re.IGNORECASE
+    ),
+    "consumo_medio_kwh": re.compile(
+        r"^Consumo m[ée]dio[^:]*:\s*([\d.,]+)\s*kWh", re.IGNORECASE
+    ),
+}
+
+
+def _ler_por_rotulos(paginas: list[str]) -> BaseModel:
+    lidos: dict[str, _CampoLLM] = {}
+    for linha in (ln.strip() for p in paginas for ln in p.splitlines()):
+        for chave, padrao in _ROTULOS_CONTA.items():
+            if chave not in lidos and (m := padrao.search(linha)):
+                lidos[chave] = _CampoLLM(
+                    valor=m.group(1).strip(), confianca=TETO, trecho=linha
+                )
+    return _ContaLLM(**lidos)
+
+
+def _completo(leitura: BaseModel) -> bool:
+    return all(getattr(leitura, c).valor is not None for c in CHAVES_CONTA)
+
+
 def _vazio(documento: str, motivo: str) -> dict[str, CampoExtraido]:
     return {
         c: CampoExtraido(
@@ -382,13 +418,17 @@ def extrair_conta(arquivo: Path) -> dict[str, CampoExtraido]:
 
     paginas = _paginas_pdf(arquivo) if sufixo == ".pdf" else []
     if sum(len(p.strip()) for p in paginas) >= MIN_CARACTERES_TEXTO:
-        resposta = completar_json(
-            "extracao", _SISTEMA_CONTA, _texto_para_prompt(paginas), _ContaLLM
-        )
+        leitura = _ler_por_rotulos(paginas)
+        if _completo(leitura) or not disponivel("extracao"):
+            resposta, via = leitura, "leitor determinístico (sem LLM)"
+        else:
+            resposta = completar_json(
+                "extracao", _SISTEMA_CONTA, _texto_para_prompt(paginas), _ContaLLM
+            )
+            via = "texto"
         campos = _montar_conta(
             resposta, arquivo.name, [_compacto(p) for p in paginas], False
         )
-        via = "texto"
     else:
         imagens = _imagens_pdf(arquivo) if sufixo == ".pdf" else [arquivo.read_bytes()]
         if imagens and disponivel("visao"):
