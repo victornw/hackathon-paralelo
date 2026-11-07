@@ -55,6 +55,7 @@ O que já está sustentado (anexo prova-de-custo):
 |---|---|---|
 | Preço de tabela publicado, até 10 kWp (conferido em 08/11/2026) | Raio: a partir de R$ 450, TRT incluso; Solardesc: R$ 490 (1 a 3 kWp), R$ 590 (3,1 a 5), R$ 690 (5,1 a 10). Só essas duas vendem homologação a integradores; a Raio também é integradora e vende software, a Solardesc é empresa de engenharia e homologação | raiosolucoes.com/homologacao; solardesc.com/homologacao |
 | Preço com assinatura | Raio: R$ 250 a 400 por homologação para assinantes | raiosolucoes.com/homologacao |
+| Outras homologadoras | Spinatec a partir de R$ 459/projeto; Tellar R$ 2 mil por 5 projetos | ver seção 3b |
 | Taxa de ART, contrato até R$ 15 mil | R$ 108,39 (16% a 24% do preço) | Tabela CREA-MT 2026 |
 | Engenheiro eletricista | R$ 11.265/mês de média | Salario.com.br sobre CAGED, 05/11/2026 |
 | Técnico de projeto eletrotécnico | R$ 3.599/mês de média | Salario.com.br sobre CAGED |
@@ -71,6 +72,27 @@ O que ainda não está sustentado: horas de trabalho poupadas. Só sai de mediç
 Frases que os dados sustentam hoje: "empresas que vendem homologação a integradores cobram de R$ 450 a R$ 690 por processo residencial até 10 kWp, e de R$ 250 a 400 em plano de assinatura"; "o custo de modelo por execução é de centavos". Frases que não sustentam: "de uma semana para minutos", "economizamos R$ N por processo" sem a medição, "substitui o engenheiro".
 
 **Risco no Featherless:** o plano de assinatura fixa proíbe uso por agentes e API de produção; o plano permitido cobra por token e não publica a tarifa (anexo prova-de-custo, item 4). Confirmar o plano contratado antes de dizer "custo zero".
+
+## 3b. As homologadoras: tamanho, preço e prazo
+
+Levantamento de 08/11/2026. Relatório completo, com CNPJ e fontes, em `anexos/homologadoras.md`. Os números de Spinatec, GSH, Tellar e Techmax foram reabertos na fonte antes de entrar aqui. Faturamento de empresa fechada não é público: só a Tellar declarou receita à imprensa. Para as outras, o registro na Receita dá apenas o porte, que é um teto legal (ME até R$ 360 mil/ano, EPP até R$ 4,8 mi/ano), não o faturamento real. O porte não bate com o volume declarado (a Tellar é ME e declara R$ 3 mi), então não usar o porte como receita.
+
+| Empresa | Tipo | Onde | Faturamento ou porte | Volume declarado | Preço por homologação | Prazo de preparo |
+|---|---|---|---|---|---|---|
+| **Tellar** | Engenharia só para integradores (B2B) | Sobral e Fortaleza (CE) | **R$ 3 mi em 2024**, meta de R$ 12 mi em 2025; cerca de R$ 200 mil/mês recorrente; **30 pessoas, 14 engenheiros** (pv magazine, 26/11/2024) | **cerca de 350 projetos/mês**; "+5 mil projetos" (2024), "+9Mil" (site hoje) | Pacote Prime: a partir de R$ 2 mil por 5 projetos (R$ 400 cada) | "média de sete dias para o projeto e dois dias para homologação" (pv magazine); "entre 5 e 7 dias" (site) |
+| **Spinatec** | Homologação e CRM para integradores | Santana de Parnaíba (SP) | ME; capital R$ 23 mil; CNPJ aberto em 2024 | "mais de 6 mil homologações", "+90% de taxa de aprovação" | **a partir de R$ 459/projeto**; paga "somente após o parecer aprovado" | protocolo "em até 3 dias úteis" |
+| **GSH Engenharia** | Homologação e média tensão | Bauru (SP) | ME; capital R$ 40 mil; fundada em 2017 | "mais de 17.000 projetos" | não publica | protocolo "em até 3 dias úteis" |
+| **Techmax Solar** | Engenharia terceirizada para integradores | não informa | não confirmado (CNPJ candidato é EPP) | "9 mil projetos", "150MW", "600 empresas parceiras" | assinatura "R$250 /mês", tabela por potência não publicada | "Prazo Garantido de 15 Dias" (sem dizer se é preparo ou aprovação) |
+| **Raio Soluções** | Integradora que também vende homologação e software | Senador Canedo (GO) | ME; capital R$ 2 mil | "+1.800" projetos (incluem instalação) | a partir de R$ 450 com TRT; assinantes R$ 250 a 400 | protocolo em 2 dias úteis |
+| **Solardesc** | Engenharia e homologação, também atende cliente final | BH/Contagem (MG) | ME; capital R$ 100 mil | não informa | R$ 490 a 690 até 10 kWp | 3 a 5 dias úteis |
+| Homolog Solar | Homologação, foco no Nordeste | PE (inferido pelo DDD) | CNPJ não localizado | "+4.000 projetos aprovados" | não publica | "até 15 dias" (aprovação) |
+
+O que isso mostra:
+
+- **O mercado de homologação terceirizada existe e tem escala.** Quatro empresas declaram, somadas, dezenas de milhares de projetos. A Tellar, no Ceará, fatura milhões só com engenharia para integradores.
+- **O preço por processo fica entre R$ 400 e R$ 690**, e cai para R$ 250 a 400 em assinatura. Esse é o teto contra o qual competimos.
+- **O preparo já leva de 2 a 7 dias nas especializadas.** Confirma que velocidade de preparo não diferencia.
+- **A unidade econômica da Tellar dá a referência de custo humano.** Com 14 engenheiros e cerca de 350 projetos por mês, são uns 25 projetos por engenheiro por mês, pouco mais de 1 por dia útil. A receita de cerca de R$ 200 mil por mês dá uns R$ 570 por projeto (INFERRED, conta nossa sobre números declarados). Se o agente deixa um engenheiro revisar e assinar vários projetos por dia, em vez de montar um, o custo por processo cai na mesma proporção. Esse é o argumento de "menos engenheiros por processo", e o número que falta é a nossa medição do tempo de revisão.
 
 ## 4. Outras formas de o tempo valer dinheiro
 
