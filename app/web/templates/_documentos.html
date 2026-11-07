@@ -20,7 +20,8 @@
       {% if docs %}
       <div class="doc-links">
         {% for d in docs|sort(attribute="formato") %}
-        <a href="/api/processos/{{ processo_id }}/documentos/{{ d.nome_arquivo|urlencode }}"{% if d.formato == "pdf" %} target="_blank" rel="noopener"{% endif %}>{{ d.formato|upper }}</a>
+        <a href="/processos/{{ processo_id }}/documentos/{{ d.nome_arquivo|urlencode }}/ver" target="_blank" rel="noopener">Ver {{ d.formato|upper }}</a>
+        <a href="/api/processos/{{ processo_id }}/documentos/{{ d.nome_arquivo|urlencode }}" download>Baixar {{ d.formato|upper }}</a>
         {% endfor %}
       </div>
       {% else %}

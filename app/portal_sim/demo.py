@@ -95,14 +95,24 @@ def _base(pid: str, titular: str, uc: str, inicio: date) -> Processo:
     p.prazos = []
     # Dados do formulário do Portal GD que não vêm da conta nem do kit
     p.perguntas = [
-        _respondida("telefone", "Telefone do titular?", "(00) 90000-0000", inicio),
+        _respondida(
+            "telefone",
+            "O formulário do Portal GD pede um telefone de contato do titular. Qual é?",
+            "(00) 90000-0000",
+            inicio,
+        ),
         _respondida(
             "modalidade_compensacao",
-            "Modalidade de compensação?",
+            "Como os créditos de energia serão usados? O Portal GD pede a modalidade de compensação (por exemplo, autoconsumo local, só nesta casa).",
             "Autoconsumo local",
             inicio,
         ),
-        _respondida("qtd_ucs_credito", "Quantas UCs recebem crédito?", "1", inicio),
+        _respondida(
+            "qtd_ucs_credito",
+            "Quantas unidades consumidoras vão receber os créditos? Se for só esta casa, a resposta é 1.",
+            "1",
+            inicio,
+        ),
     ]
     return p
 

@@ -46,9 +46,15 @@
         <td>{{ l.r.ultima_data.strftime('%d/%m/%Y') }}</td>
         <td><a href="{{ l.url }}">Abrir consulta</a></td>
         <td>
+          {% if l.vez == "distribuidora" %}
           <form method="post" action="/portal-gd/operador/{{ l.r.numero }}/avancar">
             <button type="submit">Próximo passo da distribuidora</button>
           </form>
+          {% elif l.vez == "integrador" %}
+          <span class="aguarda">Aguardando o integrador</span>
+          {% else %}
+          <span class="aguarda">Concluído</span>
+          {% endif %}
         </td>
       </tr>
     {% endfor %}

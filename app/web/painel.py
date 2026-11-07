@@ -22,6 +22,7 @@ from datetime import date
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
 from app.portal_sim.prazos import calcular_prazos, situacao
@@ -177,6 +178,26 @@ def timeline(request: Request, processo_id: str):
             "rotulos": ROTULOS,
             **contexto_documentos(proc),
         },
+    )
+
+
+@router.get("/processos/{processo_id}/documentos/{nome}/ver")
+def ver_documento(processo_id: str, nome: str):
+    """Abre o PDF ou SVG no navegador (inline), em vez de baixar."""
+    proc = next((p for p in carregar_processos() if p.id == processo_id), None)
+    doc = (
+        next((d for d in proc.documentos if d.nome_arquivo == nome), None)
+        if proc
+        else None
+    )
+    if doc is None or not Path(doc.caminho).is_file():
+        raise HTTPException(404, "Documento não encontrado.")
+    tipo = "application/pdf" if doc.formato == "pdf" else "image/svg+xml"
+    return FileResponse(
+        doc.caminho,
+        media_type=tipo,
+        filename=doc.nome_arquivo,
+        content_disposition_type="inline",
     )
 
 

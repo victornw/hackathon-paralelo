@@ -253,7 +253,11 @@ def acao(
 @router.get("/operador")
 def operador(request: Request, aguardando: str = "", reiniciado: str = ""):
     linhas = [
-        {"r": r, "url": _url_consulta(r.uc, r.email, r.numero)}
+        {
+            "r": r,
+            "url": _url_consulta(r.uc, r.email, r.numero),
+            "vez": portal.vez_de(r.etapa),
+        }
         for r in portal.listar_solicitacoes()
     ]
     return templates.TemplateResponse(

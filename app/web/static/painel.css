@@ -157,3 +157,5 @@ blockquote { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--at
   .chat-colunas { grid-template-columns: 1fr; }
   .bolha { max-width: 96%; }
 }
+.chat-legenda { color: var(--tinta-2); font-size: 14px; margin: -6px 0 10px; max-width: 60ch; }
+.bolha .autor { font-weight: 600; color: var(--tinta); }

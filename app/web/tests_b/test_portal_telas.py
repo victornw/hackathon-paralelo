@@ -262,4 +262,35 @@ def test_botao_reiniciar_demonstracao(cliente, tmp_path, monkeypatch):
     assert r.status_code == 303
     depois = cliente.get(r.headers["location"])
     assert "Demonstração reiniciada" in depois.text
-    assert depois.text.count("Próximo passo da distribuidora") == 3
+    # pendência e orçamento emitido esperam o integrador; o outro está concluído
+    assert "Próximo passo da distribuidora" not in depois.text
+    assert depois.text.count("Aguardando o integrador</span>") == 2
+    assert "Concluído</span>" in depois.text
+
+
+def test_vez_de_quem():
+    from app.portal_sim.portal import vez_de
+    from app.schemas import Etapa
+
+    assert vez_de(Etapa.PROTOCOLADO) == "distribuidora"
+    assert vez_de(Etapa.VISTORIA_SOLICITADA) == "distribuidora"
+    assert vez_de(Etapa.MEDIDOR) == "distribuidora"
+    assert vez_de(Etapa.PENDENCIA) == "integrador"
+    assert vez_de(Etapa.ORCAMENTO_EMITIDO) == "integrador"
+    assert vez_de(Etapa.ORCAMENTO_APROVADO) == "integrador"
+    assert vez_de(Etapa.CONCLUIDO) is None
+
+
+def test_documento_abre_no_navegador(cliente, tmp_path, monkeypatch):
+    monkeypatch.setenv("DOCS_DIR", str(tmp_path / "docs"))
+    cliente.post("/portal-gd/operador/reiniciar")
+    bloco = cliente.get("/processos/demo-01/documentos").text
+    assert "/ver" in bloco and "Baixar PDF" in bloco
+    from app.core import repositorio as repo
+
+    doc = next(d for d in repo.carregar("demo-01").documentos if d.formato == "pdf")
+    r = cliente.get(f"/processos/demo-01/documentos/{doc.nome_arquivo}/ver")
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "application/pdf"
+    assert r.headers["content-disposition"].startswith("inline")
+    assert cliente.get("/processos/demo-01/documentos/nao.pdf/ver").status_code == 404

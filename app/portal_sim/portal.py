@@ -272,6 +272,22 @@ _DISTRIBUIDORA: dict[Etapa, tuple[Etapa, str]] = {
 }
 
 
+_VEZ_DO_INTEGRADOR = {
+    Etapa.PENDENCIA,
+    Etapa.ORCAMENTO_EMITIDO,
+    Etapa.ORCAMENTO_APROVADO,
+}
+
+
+def vez_de(etapa: Etapa) -> str | None:
+    """Quem precisa agir agora: "distribuidora", "integrador" ou None (concluído)."""
+    if etapa in _VEZ_DO_INTEGRADOR:
+        return "integrador"
+    if etapa == Etapa.PROTOCOLADO or etapa in _DISTRIBUIDORA:
+        return "distribuidora"
+    return None
+
+
 def avancar_distribuidora(numero: str) -> EventoPortal:
     """Próximo passo da distribuidora no roteiro. No primeiro protocolo de um
     roteiro com pendência, a distribuidora aponta a pendência roteirizada."""
