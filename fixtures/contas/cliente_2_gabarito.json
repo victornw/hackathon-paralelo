@@ -1,0 +1,50 @@
+{
+  "campos": {
+    "uc": {
+      "valor": "7654321",
+      "trecho": "Código da UC: 7654321"
+    },
+    "titular": {
+      "valor": "JOÃO PEDRO ALBUQUERQUE",
+      "trecho": "Nome: JOÃO PEDRO ALBUQUERQUE"
+    },
+    "cpf_cnpj": {
+      "valor": "987.654.321-00",
+      "trecho": "CPF: 987.654.321-00"
+    },
+    "endereco": {
+      "valor": "AV. DOM ALMEIDA LUSTOSA, 45 - CENTRO",
+      "trecho": "Endereço: AV. DOM ALMEIDA LUSTOSA, 45 - CENTRO"
+    },
+    "cidade": {
+      "valor": "CAUCAIA",
+      "trecho": "Cidade: CAUCAIA - CE"
+    },
+    "classe": {
+      "valor": "Residencial",
+      "trecho": "Classe: Residencial"
+    },
+    "subgrupo": {
+      "valor": "B1",
+      "trecho": "Subgrupo: B1"
+    },
+    "tipo_ligacao": {
+      "valor": "bifasico",
+      "trecho": "Tipo de ligação: BIFÁSICO"
+    },
+    "tensao_atendimento_v": {
+      "valor": 220,
+      "trecho": "Tensão de atendimento: 220 V"
+    },
+    "consumo_medio_kwh": {
+      "valor": 289.5,
+      "trecho": "Consumo médio dos últimos 6 meses: 289,5 kWh"
+    }
+  },
+  "kit": {
+    "modelo_modulo": "NF-600HC",
+    "qtd_modulos": 4,
+    "modelo_inversor": "MV-2000",
+    "strings": []
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "campos": {
+    "uc": {
+      "valor": "23456789",
+      "trecho": "Código da UC: 23456789"
+    },
+    "titular": {
+      "valor": "ANA BEATRIZ CAVALCANTE",
+      "trecho": "Nome: ANA BEATRIZ CAVALCANTE"
+    },
+    "cpf_cnpj": {
+      "valor": "111.222.333-44",
+      "trecho": "CPF: 111.222.333-44"
+    },
+    "endereco": {
+      "valor": "RUA DOS IPÊS, 800 - PRAIA DO FUTURO",
+      "trecho": "Endereço: RUA DOS IPÊS, 800 - PRAIA DO FUTURO"
+    },
+    "cidade": {
+      "valor": "EUSÉBIO",
+      "trecho": "Cidade: EUSÉBIO - CE"
+    },
+    "classe": {
+      "valor": "Residencial",
+      "trecho": "Classe: Residencial"
+    },
+    "subgrupo": {
+      "valor": "B1",
+      "trecho": "Subgrupo: B1"
+    },
+    "tipo_ligacao": {
+      "valor": "monofasico",
+      "trecho": "Tipo de ligação: MONOFÁSICO"
+    },
+    "tensao_atendimento_v": {
+      "valor": 220,
+      "trecho": "Tensão de atendimento: 220 V"
+    },
+    "consumo_medio_kwh": {
+      "valor": 1250,
+      "trecho": "Consumo médio dos últimos 6 meses: 1.250 kWh"
+    }
+  },
+  "kit": {
+    "modelo_modulo": "AE-610TB",
+    "qtd_modulos": 14,
+    "modelo_inversor": "SI-8000",
+    "strings": [
+      {
+        "mppt": 1,
+        "modulos_em_serie": 7
+      },
+      {
+        "mppt": 2,
+        "modulos_em_serie": 7
+      }
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "aviso": "Catálogo sintético para a demo: nomes e valores plausíveis de mercado, não de produtos reais.",
+  "modulos": [
+    {
+      "fabricante": "Helios Solar (sintético)",
+      "modelo": "HS-550M",
+      "potencia_wp": 550,
+      "voc_v": 49.8,
+      "isc_a": 13.98,
+      "vmp_v": 41.6,
+      "imp_a": 13.22,
+      "coef_temp_voc_pct_c": -0.27
+    },
+    {
+      "fabricante": "Helios Solar (sintético)",
+      "modelo": "HS-580M",
+      "potencia_wp": 580,
+      "voc_v": 51.4,
+      "isc_a": 14.12,
+      "vmp_v": 43.1,
+      "imp_a": 13.46,
+      "coef_temp_voc_pct_c": -0.27
+    },
+    {
+      "fabricante": "Norte FV (sintético)",
+      "modelo": "NF-600HC",
+      "potencia_wp": 600,
+      "voc_v": 53.1,
+      "isc_a": 14.2,
+      "vmp_v": 44.4,
+      "imp_a": 13.52,
+      "coef_temp_voc_pct_c": -0.28
+    },
+    {
+      "fabricante": "Aurora Energia (sintético)",
+      "modelo": "AE-610TB",
+      "potencia_wp": 610,
+      "voc_v": 54.2,
+      "isc_a": 14.35,
+      "vmp_v": 45.3,
+      "imp_a": 13.47,
+      "coef_temp_voc_pct_c": -0.26
+    }
+  ],
+  "inversores": [
+    {
+      "fabricante": "Solaris Inversores (sintético)",
+      "modelo": "SI-3000",
+      "potencia_nominal_w": 3000,
+      "potencia_max_cc_w": 4500,
+      "tensao_max_cc_v": 600,
+      "mppt_min_v": 80,
+      "mppt_max_v": 550,
+      "num_mppt": 1,
+      "corrente_max_entrada_a": 16,
+      "corrente_max_saida_a": 13.6,
+      "tensao_saida_v": 220,
+      "microinversor": false,
+      "certificado_inmetro": "SIM-004311/2024"
+    },
+    {
+      "fabricante": "Solaris Inversores (sintético)",
+      "modelo": "SI-5000",
+      "potencia_nominal_w": 5000,
+      "potencia_max_cc_w": 7500,
+      "tensao_max_cc_v": 600,
+      "mppt_min_v": 90,
+      "mppt_max_v": 550,
+      "num_mppt": 2,
+      "corrente_max_entrada_a": 16,
+      "corrente_max_saida_a": 22.7,
+      "tensao_saida_v": 220,
+      "microinversor": false,
+      "certificado_inmetro": "SIM-004312/2024"
+    },
+    {
+      "fabricante": "Solaris Inversores (sintético)",
+      "modelo": "SI-8000",
+      "potencia_nominal_w": 8000,
+      "potencia_max_cc_w": 12000,
+      "tensao_max_cc_v": 1000,
+      "mppt_min_v": 140,
+      "mppt_max_v": 850,
+      "num_mppt": 2,
+      "corrente_max_entrada_a": 16,
+      "corrente_max_saida_a": 36.4,
+      "tensao_saida_v": 220,
+      "microinversor": false,
+      "certificado_inmetro": null
+    },
+    {
+      "fabricante": "Micro Volt (sintético)",
+      "modelo": "MV-2000",
+      "potencia_nominal_w": 2000,
+      "potencia_max_cc_w": 2800,
+      "tensao_max_cc_v": 80,
+      "mppt_min_v": 28,
+      "mppt_max_v": 64,
+      "num_mppt": 4,
+      "corrente_max_entrada_a": 20,
+      "corrente_max_saida_a": 9.1,
+      "tensao_saida_v": 220,
+      "microinversor": true,
+      "certificado_inmetro": "SIM-004313/2024"
+    }
+  ]
+}
