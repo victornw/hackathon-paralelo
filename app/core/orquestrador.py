@@ -34,6 +34,7 @@ from pydantic import BaseModel
 from app.core import ai_sdk, arranjo, extracao, llm, perguntas
 from app.core import regras as conferidor
 from app.core import repositorio as repo
+from app.core.aprovacao import REGRAS_OBRIGATORIAS, bloqueios_regras
 from app.docs import gerar as gerador
 from app.portal_sim import pendencias, portal, prazos
 from app.portal_sim.relogio import hoje
@@ -53,7 +54,6 @@ from app.tracing.trace import custo_por_tokens, gravar_passo
 MAX_PASSOS = 30
 TENTATIVAS = 3
 FONTE_RESPOSTA = "resposta_integrador"
-REGRAS_OBRIGATORIAS = frozenset({"R01", "R02", "R03", "R04", "R05"})
 PREFIXOS_PROPRIOS = ("falha:", "kit:", "pendencia:", "lembrete:")
 
 
@@ -245,6 +245,8 @@ def _entrada_protocolar(e: Estado) -> str | None:
     p = e.processo
     if p.etapa != Etapa.EM_REVISAO or not p.revisado_por or p.numero_solicitacao:
         return None
+    if bloqueios_regras(p):
+        return None
     return _hash(p.revisado_por, p.revisado_em)
 
 
@@ -274,6 +276,8 @@ def _entrada_reenviar(e: Estado) -> str | None:
     if p.etapa != Etapa.PENDENCIA or not p.revisado_por or not p.numero_solicitacao:
         return None
     if ev is None or not ev.categoria_pendencia:
+        return None
+    if bloqueios_regras(p):
         return None
     return _hash(ev.data, ev.motivo_pendencia, p.revisado_em)
 

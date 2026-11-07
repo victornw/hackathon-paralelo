@@ -8,7 +8,8 @@ ausente, valor sugerido pelo agente ou erro interno é o motor, não a regra:
 1. regra sem função (fora do MVP) -> NAO_VERIFICADA;
 2. entrada ausente -> INCERTA, e a função nem roda;
 3. entrada sugerida e veredito APROVADA -> INCERTA;
-4. função que levanta exceção -> INCERTA, nunca APROVADA.
+4. função que levanta exceção -> INCERTA, nunca APROVADA;
+5. critério marcado a_validar -> INCERTA mesmo com cálculo favorável.
 
 NAO_VERIFICADA não é expressável por uma função de regra.
 """
@@ -403,9 +404,10 @@ def _inmetro(v: dict[str, Any]) -> Veredito:
             f"Inversor de {br(potencia)} W acima de 75 kW: fora do critério de "
             "inversor com certificado INMETRO das Tabelas 10 e 11."
         )
-    return aprovada(
+    return incerta(
         f"Certificado INMETRO informado ({v['certificado_inmetro']}). Só a presença foi "
-        "conferida; o número não foi checado no registro do INMETRO."
+        "conferida; o número não foi checado no registro do INMETRO, nem a correspondência "
+        "com modelo e tensão. Anexe e valide a comprovação antes de aprovar."
     )
 
 
@@ -458,7 +460,7 @@ REGRAS: tuple[Regra, ...] = (
         "R05",
         "Inversor até 75 kW com certificado INMETRO",
         Camada.DISTRIBUIDORA,
-        "Norma Enel, Tabelas 10 e 11; Portaria INMETRO 140/2022",
+        "Norma Enel v05, Tabelas 10 e 11 e 7.6.1.4; Portarias INMETRO 140/2022 e 515/2023",
         False,
         ("potencia_nominal_w", "certificado_inmetro"),
         _inmetro,
@@ -521,6 +523,12 @@ _validar_registro()
 def _resultado(
     regra: Regra, veredito: Veredito, usados: dict[str, float | str]
 ) -> ResultadoRegra:
+    if regra.a_validar and veredito.status == StatusRegra.APROVADA:
+        veredito = incerta(
+            "Cálculo favorável, mas o critério técnico ainda precisa de validação. "
+            + veredito.mensagem,
+            **veredito.valores,
+        )
     return ResultadoRegra(
         regra_id=regra.id,
         descricao=regra.descricao,

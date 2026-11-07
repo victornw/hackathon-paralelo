@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from app.core import extracao
+from app.core import extracao, regras
 from app.core import repositorio as repo
 from app.main import app
 from app.schemas import (
@@ -22,6 +22,7 @@ from app.schemas import (
     ResultadoRegra,
     StatusRegra,
 )
+from app.tracing import trace as registrar_trace
 
 FIXTURES = Path(__file__).resolve().parents[3] / "fixtures"
 
@@ -413,9 +414,19 @@ def regra(status):
     )
 
 
-def test_revisao_grava_engenheiro_e_data(cliente):
+def regras_simuladas_aprovadas():
+    """Só para isolar os testes de revisão e portal da validação técnica."""
+    return [
+        regra(StatusRegra.APROVADA).model_copy(update={"regra_id": f"R0{i}"})
+        for i in range(1, 6)
+    ]
+
+
+def test_revisao_grava_engenheiro_e_data(cliente, monkeypatch):
+    monkeypatch.setattr(regras, "conferir", lambda p: regras_simuladas_aprovadas())
     pid = cliente.post("/api/processos").json()["id"]
     repo.atualizar(pid, lambda q: setattr(q, "etapa", Etapa.EM_REVISAO))
+    repo.atualizar(pid, lambda q: setattr(q, "regras", regras_simuladas_aprovadas()))
     p = cliente.post(
         f"/api/processos/{pid}/revisao", json={"engenheiro": " Eng. Ana "}
     ).json()
@@ -546,7 +557,7 @@ RESPOSTAS_DO_INTEGRADOR = {
 }
 
 
-def test_homologacao_de_ponta_a_ponta(cliente, extracao_falsa):
+def preparar_ate_revisao(cliente):
     pid = cliente.post(
         "/api/processos", json={"email_contato": "integrador@exemplo.com"}
     ).json()["id"]
@@ -569,6 +580,40 @@ def test_homologacao_de_ponta_a_ponta(cliente, extracao_falsa):
     p = cliente.post(f"/api/processos/{pid}/respostas", json=corpo).json()
     p = cliente.get(f"/api/processos/{pid}").json()
     assert p["etapa"] == "em_revisao"
+    return pid, p
+
+
+def test_pacote_com_premissas_e_inmetro_pendentes_nao_protocola(
+    cliente, extracao_falsa
+):
+    pid, p = preparar_ate_revisao(cliente)
+    assert {
+        r["regra_id"]: r["status"] for r in p["regras"] if r["regra_id"] <= "R05"
+    } == {
+        "R01": "aprovada",
+        "R02": "incerta",
+        "R03": "incerta",
+        "R04": "aprovada",
+        "R05": "incerta",
+    }
+    resposta = cliente.post(
+        f"/api/processos/{pid}/revisao", json={"engenheiro": "Eng. Teste"}
+    )
+    assert resposta.status_code == 409
+    assert all(id_ in resposta.json()["detail"] for id_ in ("R02", "R03", "R05"))
+    atual = repo.carregar(pid)
+    assert atual.revisado_por is None and atual.numero_solicitacao is None
+
+
+def test_fluxo_portal_com_conferencia_simulada(cliente, extracao_falsa, monkeypatch):
+    # Valida apenas transições do portal. Conformidade real é testada acima,
+    # onde o mesmo pacote é bloqueado em vez de receber uma aprovação artificial.
+    @registrar_trace("conferir")
+    def conferencia_simulada(p):
+        return regras_simuladas_aprovadas()
+
+    monkeypatch.setattr(regras, "conferir", conferencia_simulada)
+    pid, p = preparar_ate_revisao(cliente)
     assert {
         r["regra_id"]: r["status"] for r in p["regras"] if r["regra_id"] <= "R05"
     } == {f"R0{i}": "aprovada" for i in range(1, 6)}
@@ -650,3 +695,43 @@ def test_concluido_nao_e_tocado_pelo_relogio(cliente):
     repo.atualizar(pid, lambda q: setattr(q, "etapa", Etapa.CONCLUIDO))
     cliente.post("/api/relogio/avancar", json={"dias": 5})
     assert repo.carregar(pid).etapa == Etapa.CONCLUIDO
+
+
+@pytest.mark.parametrize(
+    "problema", ["ausente", "incerta", "nao_verificada", "a_validar", "duplicada"]
+)
+def test_api_nao_aprova_regra_obrigatoria_sem_conclusao(cliente, problema):
+    pid = cliente.post("/api/processos").json()["id"]
+
+    def preparar(p):
+        p.etapa = Etapa.EM_REVISAO
+        p.regras = regras_simuladas_aprovadas()
+        if problema == "ausente":
+            p.regras.pop()
+        elif problema == "a_validar":
+            p.regras[-1].a_validar = True
+        elif problema == "duplicada":
+            p.regras.append(p.regras[-1].model_copy())
+        else:
+            p.regras[-1].status = StatusRegra(problema)
+
+    repo.atualizar(pid, preparar)
+    r = cliente.post(f"/api/processos/{pid}/revisao", json={"engenheiro": "Eng. Teste"})
+    assert r.status_code == 409 and "R05" in r.json()["detail"]
+    assert repo.carregar(pid).revisado_por is None
+    assert repo.carregar(pid).numero_solicitacao is None
+
+
+def test_aprovacao_refaz_conferencia_e_nao_confia_em_resultados_antigos(cliente):
+    pid = cliente.post("/api/processos").json()["id"]
+
+    def preparar(p):
+        p.etapa = Etapa.EM_REVISAO
+        p.regras = regras_simuladas_aprovadas()
+
+    repo.atualizar(pid, preparar)
+    r = cliente.post(f"/api/processos/{pid}/revisao", json={"engenheiro": "Eng. Teste"})
+    assert r.status_code == 409
+    atual = repo.carregar(pid)
+    assert atual.revisado_por is None and atual.numero_solicitacao is None
+    assert any(x.status == StatusRegra.INCERTA for x in atual.regras)

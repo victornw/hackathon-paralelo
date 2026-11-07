@@ -65,11 +65,27 @@ calling, sua latência ou qualidade; isso exige teste separado com tokens reais.
 
 ## Deploy
 
-O runtime agora precisa de Node **e** Python. Um serviço Render configurado como
-Python apenas precisa migrar para Docker, usando o `Dockerfile` incluído. O build
-instala `npm ci` e as dependências Python. Mantenha as mesmas variáveis de ambiente
-e persistência já usadas. A API e a interface continuam no mesmo processo web;
-não há servidor Node público adicional. O worker Node é iniciado por execução.
+O runtime precisa de Node **e** Python. O runtime nativo Python do Render já
+inclui Node e npm: Docker é opcional, não é requisito da migração.
+
+Configuração recomendada para o serviço existente:
+
+- Branch: `main`; Root Directory: raiz do repositório.
+- Runtime: Python (manter o existente).
+- Build Command: `pip install -r requirements.txt && npm ci --omit=dev`.
+- Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+- Node fixado por `.node-version`; remover um `NODE_VERSION` antigo ou ajustá-lo
+  para `22.22.0` (a variável tem precedência sobre o arquivo).
+- Manter FEATHERLESS_API_KEY, MODELO_PRINCIPAL, MODELO_FALLBACK e MODELO_VISAO
+  se houver modelo de visão compatível. Chaves continuam somente no ambiente.
+- Manter os caminhos de dados e discos persistentes já configurados.
+
+O `Dockerfile` continua disponível como alternativa. Não há servidor Node público
+adicional: a API e a interface seguem no mesmo serviço, e o worker Node é iniciado
+por execução. O build Docker ainda não foi validado localmente.
+
+Referências de deploy: [runtimes nativos](https://render.com/docs/native-runtimes)
+e [versão do Node](https://render.com/docs/node-version).
 
 Fontes: [ToolLoopAgent](https://ai-sdk.dev/docs/reference/ai-sdk-core/tool-loop-agent)
 e [provider compatível](https://ai-sdk.dev/providers/openai-compatible-providers).

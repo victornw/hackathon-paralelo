@@ -1,0 +1,33 @@
+{
+  "consulta_em": "2026-11-07T18:06:33.497575+00:00",
+  "fonte": "https://registro.inmetro.gov.br/consulta/detalhe.aspx?NumeroRegistro=005485%2F2023&pag=1",
+  "http_status": 200,
+  "sha256_html": "dca1f2161e610c2335af4741969246f23ada29bc67ab582a34b14eb1f7faf3a2",
+  "registro": "005485/2023",
+  "situacao": "Ativo",
+  "historico_modelo": [
+    {
+      "data": "20/08/2024",
+      "alteracao": "Incluido",
+      "marca": "SUNGROW",
+      "modelo": "SG5.0RS-L",
+      "descricao": "Inversor string monofásico, com tensão c.c de 600V, eficiência máxima de 97,9%, potência de 5kW. Tipo de isolação galvânica: sem transformador."
+    },
+    {
+      "data": "20/08/2024",
+      "alteracao": "Excluido",
+      "marca": "SUNGROW",
+      "modelo": "SG5.0RS-L",
+      "descricao": "POTÊNCIA NOMINAL: 5000kW ; TENSÃO ENTRADA: 600V;TENSÃO DE SAÍDA: 220/240V;CORRENTE NOMINAL: 16A"
+    },
+    {
+      "data": "20/08/2024",
+      "alteracao": "Excluido",
+      "marca": "SUNGROW",
+      "modelo": "SG5.0RS-L",
+      "descricao": "POTÊNCIA NOMINAL: 5kW; TENSÃO ENTRADA: 600V; TENSÃO DE SAÍDA: 220/240V; CORRENTE NOMINAL DE SAÍDA: 22.8A"
+    }
+  ],
+  "tensao_confirmada_na_linha_incluida": false,
+  "conclusao": "Consulta HTTP viável. Não equivale a aprovação: a tensão não está explícita na linha incluída; existem descrições excluídas com valores diferentes."
+}

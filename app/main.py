@@ -32,7 +32,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.core import orquestrador
+from app.core import regras as conferidor
 from app.core import repositorio as repo
+from app.core.aprovacao import bloqueios_regras
 from app.core.orquestrador import FONTE_RESPOSTA
 from app.portal_sim import portal
 from app.portal_sim.relogio import avancar_tempo
@@ -43,7 +45,6 @@ from app.schemas import (
     Fonte,
     PassoTrace,
     Processo,
-    StatusRegra,
     StringFV,
 )
 from app.tracing import listar_passos, resumo_custo
@@ -404,19 +405,31 @@ def rodar(
 
 @api.post("/processos/{processo_id}/revisao")
 def revisar(processo_id: str, corpo: Revisao, fundo: BackgroundTasks) -> Processo:
-    p = repo.carregar(processo_id)
-    if p.etapa not in (Etapa.EM_REVISAO, Etapa.PENDENCIA):
-        raise HTTPException(409, f"Não há revisão a fazer na etapa '{p.etapa.value}'.")
-    if any(r.status == StatusRegra.REPROVADA for r in p.regras):
-        raise HTTPException(
-            409, "Há regras reprovadas; corrija o pacote antes de aprovar."
-        )
+    bloqueios: list[str] = []
 
     def mudar(q: Processo) -> None:
+        if q.etapa not in (Etapa.EM_REVISAO, Etapa.PENDENCIA):
+            raise HTTPException(
+                409, f"Não há revisão a fazer na etapa '{q.etapa.value}'."
+            )
+        bloqueios.extend(bloqueios_regras(q))
+        if not bloqueios:
+            # Releitura e recálculo sob a trava: aprovação não usa só o cache.
+            q.regras = conferidor.conferir(q)
+            bloqueios.extend(bloqueios_regras(q))
+        if bloqueios:
+            q.revisado_por = None
+            q.revisado_em = None
+            return
         q.revisado_por = corpo.engenheiro.strip()
         q.revisado_em = repo.agora()
 
     atualizado = repo.atualizar(processo_id, mudar)
+    if bloqueios:
+        raise HTTPException(
+            409, "Pacote não pode ser aprovado: " + "; ".join(bloqueios)
+        )
+
     fundo.add_task(orquestrador.orquestrar, processo_id)
     return atualizado
 

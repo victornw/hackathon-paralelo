@@ -120,8 +120,8 @@ class TestPoliticaDeQuatroEstados:
         assert "sugerido" in r.mensagem
         assert "259" in r.mensagem  # a conta da regra continua visível
 
-    def test_confirmadas_as_strings_a_regra_aprova(self, confirmado):
-        assert resultado(confirmado, "R03").status == APROVADA
+    def test_strings_confirmadas_ainda_dependem_da_premissa_termica(self, confirmado):
+        assert resultado(confirmado, "R03").status == INCERTA
 
     def test_valor_sugerido_reprovado_continua_reprovado(self, confirmado):
         confirmado.kit.strings = [StringFV(mppt=1, modulos_em_serie=20, sugerida=True)]
@@ -157,8 +157,8 @@ class TestR02DisjuntorCa:
     def test_sem_bitola_fica_incerta_por_politica(self, processo):
         assert resultado(processo, "R02").status == INCERTA
 
-    def test_dentro_da_faixa_aprova(self, confirmado):
-        assert resultado(confirmado, "R02").status == APROVADA
+    def test_dentro_da_faixa_ainda_depende_da_validacao_da_tabela(self, confirmado):
+        assert resultado(confirmado, "R02").status == INCERTA
 
     def test_disjuntor_igual_a_corrente_reprova(self, confirmado):
         confirmado.visita.disjuntor_ca_a = confirmado.kit.inversor.corrente_max_saida_a
@@ -193,18 +193,16 @@ class TestR03TensaoDasStrings:
         kit.inversor.tensao_max_cc_v = tensao * fator
         return confirmado
 
-    def test_um_por_cento_abaixo_do_limite_aprova(self, confirmado):
-        assert (
-            resultado(self.kit_com_limite(confirmado, 1.01), "R03").status == APROVADA
-        )
+    def test_abaixo_do_limite_ainda_depende_da_premissa_termica(self, confirmado):
+        assert resultado(self.kit_com_limite(confirmado, 1.01), "R03").status == INCERTA
 
     def test_um_por_cento_acima_do_limite_reprova(self, confirmado):
         assert (
             resultado(self.kit_com_limite(confirmado, 0.99), "R03").status == REPROVADA
         )
 
-    def test_exatamente_no_limite_aprova(self, confirmado):
-        assert resultado(self.kit_com_limite(confirmado, 1.0), "R03").status == APROVADA
+    def test_no_limite_ainda_depende_da_premissa_termica(self, confirmado):
+        assert resultado(self.kit_com_limite(confirmado, 1.0), "R03").status == INCERTA
 
     def test_mensagem_avisa_que_o_coeficiente_e_fixo_e_a_validar(self, confirmado):
         r = resultado(confirmado, "R03")
@@ -237,9 +235,9 @@ class TestR04PotenciaCc:
 
 
 class TestR05Inmetro:
-    def test_com_certificado_aprova_e_avisa_que_nao_checou_o_registro(self, confirmado):
+    def test_numero_preenchido_nao_comprova_certificacao(self, confirmado):
         r = resultado(confirmado, "R05")
-        assert r.status == APROVADA
+        assert r.status == INCERTA
         assert "não foi checado no registro" in r.mensagem
 
     def test_inversor_acima_de_75_kw_fica_incerta(self, confirmado):
@@ -248,7 +246,7 @@ class TestR05Inmetro:
 
     def test_exatamente_75_kw_ainda_exige_certificado(self, confirmado):
         confirmado.kit.inversor.potencia_nominal_w = 75_000
-        assert resultado(confirmado, "R05").status == APROVADA
+        assert resultado(confirmado, "R05").status == INCERTA
 
 
 class TestR01Coerencia:

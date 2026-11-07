@@ -128,12 +128,12 @@ class TestVerificarArranjo:
             "R04": StatusRegra.APROVADA,
         }
 
-    def test_kit_com_strings_informadas_aprova_r03(self, kit):
+    def test_strings_informadas_nao_confirmam_premissa_termica(self, kit):
         kit.strings = propor_strings(kit)
         for s in kit.strings:
             s.sugerida = False
         _, _, resultados = verificar_arranjo(kit, DadosVisita())
-        assert status(resultados)["R03"] == StatusRegra.APROVADA
+        assert status(resultados)["R03"] == StatusRegra.INCERTA
 
     def test_sem_configuracao_possivel_r03_fica_incerta(self, kit):
         kit.inversor.tensao_max_cc_v = 100
