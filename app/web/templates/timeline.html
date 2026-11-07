@@ -27,6 +27,7 @@
           {% if i.passo.decisao %}<p>{{ i.passo.decisao }}</p>{% endif %}
           {% if i.passo.erro %}<p class="falha">Falhou: {{ i.passo.erro }}</p>{% endif %}
           <p class="custo">{{ i.passo.ms }} ms, {{ i.passo.tokens_entrada + i.passo.tokens_saida }} tokens, R$ {{ '%.4f'|format(i.passo.custo_brl)|replace('.', ',') }}</p>
+          {% for p in i.prompts %}<p class="custo prompt">Prompt: {{ p.split('@v')[0] }} v{{ p.split('@v')[1].split('#')[0] }} ({{ p.split('#')[1] }})</p>{% endfor %}
         {% endif %}
       </li>
       {% endfor %}

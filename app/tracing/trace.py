@@ -24,16 +24,18 @@ USD_BRL). Sem preço configurado, o custo fica 0 — nunca um preço inventado.
 from __future__ import annotations
 
 import functools
+import json
 import os
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from contextvars import ContextVar
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from app.schemas import PassoTrace, Processo
 from app.tracing.db import conectar
+from app.tracing.prompts import Prompt
 
 SEM_PROCESSO = "sem_processo"
 
@@ -47,6 +49,7 @@ class _Uso:
     tokens_saida: int = 0
     custo_brl: float | None = None
     decisao: str | None = None
+    prompts: list[str] = field(default_factory=list)
 
 
 def _float_env(nome: str) -> float | None:
@@ -79,9 +82,11 @@ def registrar_uso(
     tokens_saida: int = 0,
     decisao: str | None = None,
     custo_brl: float | None = None,
+    prompt: Prompt | None = None,
 ) -> None:
     """Chamado de dentro de uma função decorada com @trace. Acumula tokens e custo
-    (várias chamadas de LLM no mesmo passo somam) e guarda a última decisão."""
+    (várias chamadas de LLM no mesmo passo somam) e guarda a última decisão.
+    `prompt` registra o prompt versionado usado (sem repetição, em ordem)."""
     uso = _uso.get()
     if uso is None:
         return  # fora de um @trace: nada a registrar
@@ -91,6 +96,10 @@ def registrar_uso(
         uso.custo_brl = (uso.custo_brl or 0.0) + custo_brl
     if decisao is not None:
         uso.decisao = decisao
+    if prompt is not None:
+        ref = f"{prompt.nome}@v{prompt.versao}#{prompt.hash}"
+        if ref not in uso.prompts:
+            uso.prompts.append(ref)
 
 
 def _agora() -> datetime:
@@ -109,11 +118,11 @@ def _descobrir_processo(args: tuple, kwargs: dict) -> str:
     return _processo.get() or SEM_PROCESSO
 
 
-def gravar_passo(passo: PassoTrace) -> None:
+def gravar_passo(passo: PassoTrace, prompts: list[str] | None = None) -> None:
     with conectar() as con:
         con.execute(
-            "INSERT INTO passos_trace (processo_id, json) VALUES (?, ?)",
-            (passo.processo_id, passo.model_dump_json()),
+            "INSERT INTO passos_trace (processo_id, json, prompts) VALUES (?, ?, ?)",
+            (passo.processo_id, passo.model_dump_json(), json.dumps(prompts or [])),
         )
 
 
@@ -155,7 +164,8 @@ def trace(nome_passo: str) -> Callable:
                         custo_brl=custo,
                         erro=erro,
                         em=_agora(),
-                    )
+                    ),
+                    uso.prompts,
                 )
 
         return envoltorio
@@ -171,6 +181,25 @@ def listar_passos(processo_id: str) -> list[PassoTrace]:
             (processo_id,),
         ).fetchall()
     return [PassoTrace.model_validate_json(j) for (j,) in linhas]
+
+
+@dataclass
+class PassoDetalhado:
+    passo: PassoTrace
+    prompts: list[str]
+
+
+def listar_passos_detalhados(processo_id: str) -> list[PassoDetalhado]:
+    """Como listar_passos, com os prompts (`nome@vN#hash`) que cada passo usou."""
+    with conectar() as con:
+        linhas = con.execute(
+            "SELECT json, prompts FROM passos_trace WHERE processo_id = ? ORDER BY id",
+            (processo_id,),
+        ).fetchall()
+    return [
+        PassoDetalhado(PassoTrace.model_validate_json(j), json.loads(p) if p else [])
+        for j, p in linhas
+    ]
 
 
 @dataclass

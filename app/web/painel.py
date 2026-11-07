@@ -19,7 +19,7 @@ from fastapi.templating import Jinja2Templates
 from app.portal_sim.prazos import calcular_prazos, situacao
 from app.portal_sim.relogio import hoje
 from app.schemas import Etapa, Prazo, Processo
-from app.tracing import listar_passos, resumo_custo
+from app.tracing import listar_passos_detalhados, resumo_custo
 from app.tracing.db import conectar
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -143,8 +143,14 @@ def timeline(request: Request, processo_id: str):
         {"quando": ev.data, "tipo": "portal", "titulo": ROTULOS[ev.etapa], "ev": ev}
         for ev in proc.eventos
     ] + [
-        {"quando": ps.em.date(), "tipo": "agente", "titulo": ps.passo, "passo": ps}
-        for ps in listar_passos(processo_id)
+        {
+            "quando": ps.passo.em.date(),
+            "tipo": "agente",
+            "titulo": ps.passo.passo,
+            "passo": ps.passo,
+            "prompts": ps.prompts,
+        }
+        for ps in listar_passos_detalhados(processo_id)
     ]
     itens.sort(key=lambda i: (i["quando"], i["tipo"] == "portal"))
     return templates.TemplateResponse(
