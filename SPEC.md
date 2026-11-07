@@ -281,17 +281,35 @@ Com dois devs, o MVP faz o núcleo muito bem (conta e kit entram, projeto sai co
 
 **Divisão do time.**
 
-- **Dev A (backend do núcleo):** extração, verificador de arranjo, conferidor, geração de documentos e templates.
-- **Dev B (front e dados):** painel da carteira, tela de revisão, portal simulado e timeline; no sábado à noite, base da ANEEL e evals.
-- **Os dois:** pitch no domingo de manhã. Os dois precisam ter commits desde sábado às 10h.
+**Dev A (backend do núcleo).**
 
-| Bloco | Foco |
-|---|---|
-| Sáb 10h–13h | Repositório criado no evento; esqueleto ponta a ponta: conta entra, campos saem, interface mostra |
-| Sáb 13h–17h | Verificador de arranjo, regras e conferidor; tracing ligado; deploy do esqueleto; domínio e e-mail configurados (DNS leva horas) |
-| Sáb 17h–19h | Contas sintéticas da Enel CE, catálogo de kits e datasheets; pesquisa pública das âncoras de preço |
-| Sáb noite | Templates do unifilar, solicitação e memorial; tela de revisão; portal simulado; base da ANEEL e textos de pendência |
-| Dom 8h30–11h | Evals rodando, relógio de prazos, pendência e vistoria; landing page |
+- Setup do repositório (FastAPI, SQLite, `.env.example`) e modelos de domínio: processo e etapas, campos extraídos com confiança, kit (módulo, inversor), dados da visita, resultado de regra em três estados.
+- Contrato da API publicado cedo para o Dev B montar o front em paralelo.
+- Extrator: conta de luz da Enel CE (UC, titular, classe, tipo de ligação, endereço, tensão de atendimento) e datasheets (Voc, coeficiente de temperatura, tensão e potência máximas de entrada, MPPTs, corrente de saída, registro INMETRO).
+- Pedido do que falta: compara o que chegou com o pacote da Enel (Tabela 10 e Anexo A) e gera as perguntas: declaração de carga instalada, disjuntor do padrão, distância, bitola, coordenadas do padrão.
+- Verificador de arranjo e repositório de regras; conferidor R01 a R05 com testes de fronteira.
+- Gerador de documentos: solicitação de orçamento (Anexo A), memorial descritivo em PDF e template SVG do unifilar baseado no Anexo B (começar pelo de 1 MPPT).
+- Orquestrador: o loop do agente que encadeia extração, pedido do que falta, verificação, geração, conferência e escalonamento; tracing de tokens, tempo e custo por passo.
+
+**Dev B (front, portal e dados).**
+
+- Painel da carteira com processos por etapa e tela de revisão do engenheiro (o que foi gerado, regra checada com fonte e valores, o que ficou incerto ou sugerido, botão de aprovar).
+- Timeline do processo a partir da tabela de tracing, com custo por execução.
+- Portal simulado no formato do Portal GD da Enel CE: formulário básico com os campos reais, número da solicitação, consulta por UC, e-mail e número da solicitação, e fluxo roteirizado (protocolado → pendência → correção → orçamento emitido → vistoria → medidor).
+- Relógio de prazos com dias úteis e botão de avançar o tempo: orçamento da distribuidora (15/30 dias), aprovação do orçamento (10 dias úteis), contratos (30 dias), pendência (30 dias), vistoria e ligação (5 dias úteis).
+- Chat simulado de integrador e cliente final.
+- Dados e evals: contas sintéticas no layout da Enel CE com gabarito e versões degradadas; catálogo de 2 ou 3 kits reais; contagem de categorias da ANEEL para a Enel CE; 40 a 50 textos de pendência rotulados; `evals/run.py`.
+- Deploy, domínio e e-mail no mesmo domínio.
+
+**Os dois.** Pitch no domingo de manhã. Os dois precisam ter commits desde sábado às 10h.
+
+| Bloco | Dev A | Dev B |
+|---|---|---|
+| Sáb 10h–13h | Setup, modelos de domínio, contrato da API, extrator v0 da conta | Esqueleto do front (upload da conta, campos com confiança); 2 ou 3 contas sintéticas e catálogo de kits para o Dev A testar |
+| Sáb 13h–17h | Verificador de arranjo, repositório de regras, conferidor R01 a R05 com testes; pedido do que falta; tracing | Painel da carteira e tela de revisão consumindo a API; deploy do esqueleto; domínio e e-mail (DNS leva horas) |
+| Sáb 17h–19h | Extração de datasheets; orquestrador ligando os passos | Portal simulado no formato do Portal GD da Enel CE; pesquisa pública das âncoras de preço |
+| Sáb noite | Solicitação (Anexo A), memorial em PDF e template do unifilar (Anexo B) | Timeline com custo; relógio de prazos; base da ANEEL filtrada na Enel CE; textos de pendência rotulados |
+| Dom 8h30–11h | Classificador de pendência e correção; casos de demo para os jurados | Evals rodando e tabela de números; pendência e vistoria no portal; landing page |
 | Dom 11h–13h | Código congelado, vídeo, slides, submissão |
 | Dom 13h–16h | Ensaios do pitch de 3 minutos |
 
