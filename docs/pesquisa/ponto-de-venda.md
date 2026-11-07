@@ -53,7 +53,8 @@ O que já está sustentado (anexo prova-de-custo):
 
 | Dado | Valor | Fonte |
 |---|---|---|
-| Preço da homologação residencial terceirizada | R$ 399 a 780; Raio R$ 450 com TRT; Solardesc R$ 490 a 690 até 10 kWp | Páginas das empresas |
+| Preço anunciado da homologação terceirizada, até 10 kWp | R$ 249 a cerca de R$ 780 (anúncios de entrada cobram a ART à parte) | Páginas e anúncios das empresas |
+| Serviço completo com responsável técnico incluso | R$ 450 a 690 (Raio a partir de R$ 450 com TRT; Solardesc R$ 490 a 690) | Páginas das empresas |
 | Taxa de ART, contrato até R$ 15 mil | R$ 108,39 (16% a 24% do preço) | Tabela CREA-MT 2026 |
 | Engenheiro eletricista | R$ 11.265/mês de média | Salario.com.br sobre CAGED, 05/11/2026 |
 | Técnico de projeto eletrotécnico | R$ 3.599/mês de média | Salario.com.br sobre CAGED |
@@ -67,7 +68,7 @@ O que ainda não está sustentado: horas de trabalho poupadas. Só sai de mediç
 3. Medir tempo ativo por pacote, defeitos encontrados de cada braço e aprovações falsas. A referência são os defeitos plantados, não o conferidor do agente, para o número não ser circular.
 4. Reportar mediana e intervalo, e dizer que é sintético.
 
-Frases que os dados sustentam hoje: "o mercado cobra de R$ 450 a 690 por homologação residencial, e R$ 108 disso é a ART"; "o custo de modelo por execução é de centavos". Frases que não sustentam: "de uma semana para minutos", "economizamos R$ N por processo" sem a medição, "substitui o engenheiro".
+Frases que os dados sustentam hoje: "homologação terceirizada até 10 kWp é anunciada de R$ 250 a R$ 780; o serviço completo com responsável técnico, de R$ 450 a R$ 690, e cerca de R$ 108 disso é a ART"; "o custo de modelo por execução é de centavos". Frases que não sustentam: "de uma semana para minutos", "economizamos R$ N por processo" sem a medição, "substitui o engenheiro".
 
 **Risco no Featherless:** o plano de assinatura fixa proíbe uso por agentes e API de produção; o plano permitido cobra por token e não publica a tarifa (anexo prova-de-custo, item 4). Confirmar o plano contratado antes de dizer "custo zero".
 
