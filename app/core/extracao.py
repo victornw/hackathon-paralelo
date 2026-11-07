@@ -60,7 +60,7 @@ _DESCRICAO_CAMPOS = {
     "titular": "nome do titular",
     "cpf_cnpj": "CPF ou CNPJ do titular, como impresso",
     "endereco": "endereço da unidade consumidora",
-    "cidade": "cidade da unidade consumidora",
+    "cidade": "só o nome da cidade, sem UF nem estado (ex.: CAUCAIA, não CAUCAIA - CE)",
     "classe": "classe de consumo (ex.: Residencial)",
     "subgrupo": "subgrupo tarifário (ex.: B1)",
     "tipo_ligacao": "monofasico, bifasico ou trifasico",

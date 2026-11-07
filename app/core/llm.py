@@ -171,7 +171,7 @@ def completar_json(
     schema = json.dumps(esquema.model_json_schema(), ensure_ascii=False)
     instrucao = (
         f"{sistema}\n\nResponda SOMENTE com um objeto JSON que siga este esquema, "
-        f"sem texto antes ou depois:\n{schema}"
+        f"sem texto antes ou depois, sem explicação e sem mostrar raciocínio:\n{schema}\n/no_think"
     )
     inicio: list[dict] = [
         {"role": "system", "content": instrucao},
