@@ -3,6 +3,14 @@
 Uso no main.py:  app.include_router(painel.router); app.mount("/static", ...)
 Os processos vêm da tabela `processos(id, json)` quando ela existir; antes disso,
 de fixtures/carteira_demo.json.
+
+Bloco "Documentos gerados" (para a tela do engenheiro, Dev A). Duas formas:
+1. Include server-side, usando o mesmo diretório de templates (app/web/templates):
+       {% include "_documentos.html" %}
+   com o contexto de `contexto_documentos(processo)` mesclado ao da página, ou
+   seja `{**seu_contexto, **contexto_documentos(p)}`.
+2. HTMX, sem tocar no contexto:
+       <div hx-get="/processos/{{ p.id }}/documentos" hx-trigger="load"></div>
 """
 
 from __future__ import annotations
@@ -102,6 +110,11 @@ def _cartao(p: Processo, dia: date) -> dict:
     }
 
 
+def contexto_documentos(processo: Processo) -> dict:
+    """Contexto do parcial `_documentos.html` (para quem faz o include)."""
+    return {"processo_id": processo.id, "documentos": processo.documentos}
+
+
 @router.get("/painel")
 def painel(request: Request):
     dia = hoje()
@@ -162,5 +175,16 @@ def timeline(request: Request, processo_id: str):
             "resumo": resumo_custo(processo_id),
             "hoje": dia,
             "rotulos": ROTULOS,
+            **contexto_documentos(proc),
         },
+    )
+
+
+@router.get("/processos/{processo_id}/documentos")
+def documentos(request: Request, processo_id: str):
+    proc = next((p for p in carregar_processos() if p.id == processo_id), None)
+    if proc is None:
+        raise HTTPException(404, "Processo não encontrado.")
+    return templates.TemplateResponse(
+        request, "_documentos.html", contexto_documentos(proc)
     )

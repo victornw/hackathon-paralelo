@@ -106,6 +106,19 @@ blockquote { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--at
 .custo-total dt { color: var(--tinta-2); }
 .custo-total dd { margin: 0; font-weight: 600; }
 
+/* Documentos gerados */
+.documentos { margin: 0 0 28px; }
+.documentos h2 { font-size: 16px; font-stretch: 88%; margin: 0 0 8px; }
+.docs-lista { list-style: none; margin: 0; padding: 0; }
+.docs-lista li { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 16px; padding: 8px 0; border-top: 1px solid var(--linha); }
+.docs-lista li:last-child { border-bottom: 1px solid var(--linha); }
+.doc-nome { display: flex; flex-direction: column; min-width: 0; }
+.doc-nome small { color: var(--tinta-2); font-size: 12px; }
+.doc-links { display: flex; gap: 14px; }
+.doc-links a { color: var(--prancha); font-weight: 600; }
+.doc-pendente { color: var(--tinta-2); }
+.docs-nota { color: var(--tinta-2); font-size: 12px; margin: 8px 0 0; }
+
 @media (max-width: 760px) {
   main { padding: 16px; }
   .topo { padding: 12px 16px; }

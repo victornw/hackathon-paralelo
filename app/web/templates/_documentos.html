@@ -1,0 +1,34 @@
+{# Bloco de documentos gerados. Contexto: processo_id (str), documentos (list[DocumentoGerado]). #}
+{% set tipos = [
+  ("solicitacao_orcamento", "Solicitação de orçamento (Anexo A)"),
+  ("memorial", "Memorial descritivo"),
+  ("unifilar", "Diagrama unifilar"),
+] %}
+<section class="documentos" aria-labelledby="docs-titulo-{{ processo_id }}">
+  <h2 id="docs-titulo-{{ processo_id }}">Documentos gerados</h2>
+  {% if not documentos %}
+  <p class="vazio">Os documentos aparecem aqui quando o agente gerar o projeto.</p>
+  {% else %}
+  <ul class="docs-lista">
+    {% for tipo, rotulo in tipos %}
+    {% set docs = documentos|selectattr("tipo", "equalto", tipo)|list %}
+    <li>
+      <div class="doc-nome">
+        <span>{{ rotulo }}</span>
+        {% if docs %}<small>{{ (docs|map(attribute="gerado_em")|max).strftime('%d/%m/%Y %H:%M') }}</small>{% endif %}
+      </div>
+      {% if docs %}
+      <div class="doc-links">
+        {% for d in docs|sort(attribute="formato") %}
+        <a href="/api/processos/{{ processo_id }}/documentos/{{ d.nome_arquivo|urlencode }}"{% if d.formato == "pdf" %} target="_blank" rel="noopener"{% endif %}>{{ d.formato|upper }}</a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <span class="doc-pendente">Ainda não gerado</span>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <p class="docs-nota">Revise cada documento antes de aprovar e assinar.</p>
+</section>

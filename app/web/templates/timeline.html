@@ -38,6 +38,8 @@
   </section>
 
   <aside>
+    {% include "_documentos.html" %}
+
     <h2>Prazos correndo</h2>
     {% for x in c.prazos %}
     <div class="prazo {{ x.situacao }} {{ x.prazo.conta_contra }}">
