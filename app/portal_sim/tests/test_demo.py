@@ -84,3 +84,23 @@ def test_orquestrador_roda_nos_casos_sem_falha():
     for p in repo.listar():
         assert not [q for q in p.perguntas if q.id.startswith("falha:")], p.id
     assert _por_id()["demo-02"].eventos[-1].categoria_pendencia
+
+
+def test_garantir_demo_recria_so_quando_falta(monkeypatch):
+    from app.portal_sim.demo import garantir_demo
+
+    assert garantir_demo() is True  # banco vazio: recria
+    assert {p.id for p in repo.listar()} >= {pid for pid, _, _ in CASOS}
+    assert garantir_demo() is False  # já existem: não mexe
+    monkeypatch.setenv("DEMO_AUTO", "0")
+    assert garantir_demo() is False
+
+
+def test_site_sobe_com_os_casos_prontos(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    with TestClient(app) as cliente:  # dispara o startup
+        ids = {p["id"] for p in cliente.get("/api/processos").json()}
+    assert {"demo-01", "demo-02", "demo-03", "demo-04"} <= ids

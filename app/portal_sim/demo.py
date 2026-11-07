@@ -265,3 +265,18 @@ def reiniciar_demo() -> date:
     repo.salvar(p1)
 
     return definir_data(d)
+
+
+def garantir_demo() -> bool:
+    """Ao subir o site: se os casos prontos não existem (banco novo, como no plano
+    grátis do Render, que apaga o disco a cada deploy ou reinício), recria-os.
+    Devolve True quando recriou. Desligável com DEMO_AUTO=0."""
+    if os.environ.get("DEMO_AUTO") == "0":
+        return False
+    from app.core import repositorio as repo
+
+    existentes = {p.id for p in repo.listar()}
+    if all(pid in existentes for pid, _, _ in CASOS):
+        return False
+    reiniciar_demo()
+    return True
