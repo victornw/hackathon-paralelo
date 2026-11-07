@@ -53,7 +53,7 @@ O que já está sustentado (anexo prova-de-custo):
 
 | Dado | Valor | Fonte |
 |---|---|---|
-| Preço de tabela publicado, até 10 kWp (conferido em 08/11/2026) | Raio: a partir de R$ 450, TRT incluso; Solardesc: R$ 490 (1 a 3 kWp), R$ 590 (3,1 a 5), R$ 690 (5,1 a 10); Turon (blog): cerca de R$ 650 (1 a 8 kWp) e R$ 780 (8 a 10) | raiosolucoes.com/homologacao; solardesc.com/homologacao; turontecnologia.com.br (blog) |
+| Preço de tabela publicado, até 10 kWp (conferido em 08/11/2026) | Raio: a partir de R$ 450, TRT incluso; Solardesc: R$ 490 (1 a 3 kWp), R$ 590 (3,1 a 5), R$ 690 (5,1 a 10). Só essas duas vendem homologação a integradores; a Raio também é integradora e vende software, a Solardesc é empresa de engenharia e homologação | raiosolucoes.com/homologacao; solardesc.com/homologacao |
 | Preço com assinatura | Raio: R$ 250 a 400 por homologação para assinantes | raiosolucoes.com/homologacao |
 | Taxa de ART, contrato até R$ 15 mil | R$ 108,39 (16% a 24% do preço) | Tabela CREA-MT 2026 |
 | Engenheiro eletricista | R$ 11.265/mês de média | Salario.com.br sobre CAGED, 05/11/2026 |
@@ -68,7 +68,7 @@ O que ainda não está sustentado: horas de trabalho poupadas. Só sai de mediç
 3. Medir tempo ativo por pacote, defeitos encontrados de cada braço e aprovações falsas. A referência são os defeitos plantados, não o conferidor do agente, para o número não ser circular.
 4. Reportar mediana e intervalo, e dizer que é sintético.
 
-Frases que os dados sustentam hoje: "empresas que publicam preço cobram de R$ 450 a cerca de R$ 780 por homologação residencial até 10 kWp, e de R$ 250 a 400 em plano de assinatura"; "o custo de modelo por execução é de centavos". Frases que não sustentam: "de uma semana para minutos", "economizamos R$ N por processo" sem a medição, "substitui o engenheiro".
+Frases que os dados sustentam hoje: "empresas que vendem homologação a integradores cobram de R$ 450 a R$ 690 por processo residencial até 10 kWp, e de R$ 250 a 400 em plano de assinatura"; "o custo de modelo por execução é de centavos". Frases que não sustentam: "de uma semana para minutos", "economizamos R$ N por processo" sem a medição, "substitui o engenheiro".
 
 **Risco no Featherless:** o plano de assinatura fixa proíbe uso por agentes e API de produção; o plano permitido cobra por token e não publica a tarifa (anexo prova-de-custo, item 4). Confirmar o plano contratado antes de dizer "custo zero".
 
@@ -104,6 +104,6 @@ O motor de regras, o orquestrador e a API ficam. Se não houver tempo para gerar
 
 ## Fala de pitch que os dados permitem
 
-"Segundo a ANEEL, em 2022 e 2023, 1 em cada 7 pedidos residenciais de geração solar em Alagoas voltou por documentação incompleta, e 1 em cada 8 ficou parado esperando a vistoria. Nosso agente monta o pacote conferido contra a norma da Equatorial, vigia os prazos do integrador e registra quem atrasou cada etapa. Empresas que publicam preço cobram de R$ 450 a R$ 780 por homologação residencial; nosso custo de modelo por processo é de centavos, e medimos o tempo de revisão humana em N minutos."
+"Segundo a ANEEL, em 2022 e 2023, 1 em cada 7 pedidos residenciais de geração solar em Alagoas voltou por documentação incompleta, e 1 em cada 8 ficou parado esperando a vistoria. Nosso agente monta o pacote conferido contra a norma da Equatorial, vigia os prazos do integrador e registra quem atrasou cada etapa. Empresas que vendem homologação a integradores cobram de R$ 450 a R$ 690 por processo residencial; nosso custo de modelo por processo é de centavos, e medimos o tempo de revisão humana em N minutos."
 
 O N sai do protocolo de medição da seção 3.
