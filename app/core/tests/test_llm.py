@@ -20,6 +20,8 @@ def ambiente(tmp_path, monkeypatch):
     monkeypatch.setenv("MODELO_EXTRACAO", "modelo-extracao")
     monkeypatch.setenv("MODELO_VISAO", "modelo-visao")
     for nome in (
+        "MODELO_PRINCIPAL",
+        "MODELO_FALLBACK",
         "MODELO_DECISAO",
         "MODELO_REDACAO",
         "MODELO_PENDENCIA",
@@ -152,3 +154,44 @@ def test_tokens_de_todas_as_chamadas_do_passo_somam_no_trace(falso):
         passo()
     (registro,) = listar_passos("proc-1")
     assert (registro.tokens_entrada, registro.tokens_saida) == (20, 10)
+
+
+def test_principal_serve_todos_os_papeis_menos_visao(monkeypatch):
+    monkeypatch.delenv("MODELO_EXTRACAO")
+    monkeypatch.delenv("MODELO_VISAO")
+    monkeypatch.setenv("MODELO_PRINCIPAL", "principal")
+    assert llm.disponivel("decisao") and llm.disponivel("extracao")
+    assert not llm.disponivel("visao")
+
+
+def test_fallback_entra_quando_o_principal_falha_na_api(monkeypatch, falso):
+    monkeypatch.delenv("MODELO_EXTRACAO")
+    monkeypatch.setenv("MODELO_PRINCIPAL", "principal")
+    monkeypatch.setenv("MODELO_FALLBACK", "reserva")
+    erro = openai.APIConnectionError(request=httpx.Request("POST", "http://x"))
+    cliente = falso(erro, '{"nome": "Ana", "idade": 30}')
+    assert llm.completar_json("decisao", "s", "u", Resposta).nome == "Ana"
+    assert [c["model"] for c in cliente.chamadas] == ["principal", "reserva"]
+
+
+def test_fallback_entra_quando_o_principal_erra_o_esquema_apos_reparo(
+    monkeypatch, falso
+):
+    monkeypatch.delenv("MODELO_EXTRACAO")
+    monkeypatch.setenv("MODELO_PRINCIPAL", "principal")
+    monkeypatch.setenv("MODELO_FALLBACK", "reserva")
+    cliente = falso("nada", "ainda nada", '{"nome": "Bia", "idade": 9}')
+    assert llm.completar_json("pendencia", "s", "u", Resposta).nome == "Bia"
+    assert [c["model"] for c in cliente.chamadas] == [
+        "principal",
+        "principal",
+        "reserva",
+    ]
+
+
+def test_sem_fallback_o_erro_do_principal_sobe(monkeypatch, falso):
+    monkeypatch.delenv("MODELO_EXTRACAO")
+    monkeypatch.setenv("MODELO_PRINCIPAL", "principal")
+    falso("nada", "ainda nada")
+    with pytest.raises(LLMErro, match="principal"):
+        llm.completar_json("decisao", "s", "u", Resposta)

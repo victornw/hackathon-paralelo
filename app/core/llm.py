@@ -1,7 +1,10 @@
 """Cliente do LLM (Featherless, compatível com a API da OpenAI).
 
-O modelo de cada papel vem do ambiente (MODELO_EXTRACAO, MODELO_VISAO,
-MODELO_DECISAO, MODELO_REDACAO, MODELO_PENDENCIA). Não usamos response_format:
+Todo papel usa MODELO_PRINCIPAL, e MODELO_FALLBACK entra quando o principal
+falha (erro de API ou resposta fora do esquema mesmo após o reparo). Um papel
+pode sobrescrever o principal com MODELO_<PAPEL>. Visão só roda com
+MODELO_VISAO explícito, porque nem todo modelo de texto lê imagem.
+Não usamos response_format:
 o esquema JSON vai no prompt, o primeiro objeto JSON da resposta é validado
 com Pydantic e há uma tentativa de reparo citando o erro. A política de
 retentativa de falhas de rede fica no orquestrador (max_retries=0 aqui).
@@ -47,12 +50,21 @@ class LLMErro(Exception):
     """A chamada falhou ou a resposta não passou na validação."""
 
 
-def _modelo(papel: Papel) -> str | None:
-    return os.environ.get(_VAR_MODELO[papel]) or None
+def _modelos(papel: Papel) -> list[str]:
+    """Modelos a tentar, em ordem, sem repetição."""
+    proprio = os.environ.get(_VAR_MODELO[papel])
+    if papel == "visao":
+        candidatos = [proprio]
+    else:
+        candidatos = [
+            proprio or os.environ.get("MODELO_PRINCIPAL"),
+            os.environ.get("MODELO_FALLBACK"),
+        ]
+    return list(dict.fromkeys(m for m in candidatos if m))
 
 
 def disponivel(papel: Papel) -> bool:
-    return bool(os.environ.get("FEATHERLESS_API_KEY")) and _modelo(papel) is not None
+    return bool(os.environ.get("FEATHERLESS_API_KEY")) and bool(_modelos(papel))
 
 
 def _cliente() -> openai.OpenAI:
@@ -85,10 +97,24 @@ def _conteudo_usuario(texto: str, imagens: Sequence[bytes]) -> str | list[dict]:
     return partes
 
 
-def _chamar(papel: Papel, mensagens: list[dict]) -> str:
-    modelo = _modelo(papel)
-    if modelo is None:
-        raise LLMIndisponivel(f"{_VAR_MODELO[papel]} não definida")
+def _modelos_ou_erro(papel: Papel) -> list[str]:
+    modelos = _modelos(papel)
+    if not modelos:
+        raise LLMIndisponivel(f"MODELO_PRINCIPAL ou {_VAR_MODELO[papel]} não definida")
+    return modelos
+
+
+def _com_fallback(papel: Papel, tentar):
+    erros: list[str] = []
+    for modelo in _modelos_ou_erro(papel):
+        try:
+            return tentar(modelo)
+        except LLMErro as erro:
+            erros.append(f"{modelo}: {erro}")
+    raise LLMErro(" | ".join(erros))
+
+
+def _chamar(modelo: str, mensagens: list[dict]) -> str:
     cliente = _cliente()
     try:
         resposta = cliente.chat.completions.create(model=modelo, messages=mensagens)
@@ -147,30 +173,35 @@ def completar_json(
         f"{sistema}\n\nResponda SOMENTE com um objeto JSON que siga este esquema, "
         f"sem texto antes ou depois:\n{schema}"
     )
-    mensagens: list[dict] = [
+    inicio: list[dict] = [
         {"role": "system", "content": instrucao},
         {"role": "user", "content": _conteudo_usuario(usuario, imagens)},
     ]
-    resposta = _chamar(papel, mensagens)
-    try:
-        return _validar(resposta, esquema)
-    except (ValueError, ValidationError) as erro:
-        mensagens += [
-            {"role": "assistant", "content": resposta},
-            {
-                "role": "user",
-                "content": f"A resposta não é válida: {erro}\nCorrija e responda só com o objeto JSON.",
-            },
-        ]
-    resposta = _chamar(papel, mensagens)
-    try:
-        return _validar(resposta, esquema)
-    except (ValueError, ValidationError) as erro:
-        raise LLMErro(f"resposta fora do esquema após reparo: {erro}") from erro
+
+    def tentar(modelo: str) -> T:
+        resposta = _chamar(modelo, inicio)
+        try:
+            return _validar(resposta, esquema)
+        except (ValueError, ValidationError) as erro:
+            reparo = inicio + [
+                {"role": "assistant", "content": resposta},
+                {
+                    "role": "user",
+                    "content": f"A resposta não é válida: {erro}\nCorrija e responda só com o objeto JSON.",
+                },
+            ]
+        resposta = _chamar(modelo, reparo)
+        try:
+            return _validar(resposta, esquema)
+        except (ValueError, ValidationError) as erro:
+            raise LLMErro(f"resposta fora do esquema após reparo: {erro}") from erro
+
+    return _com_fallback(papel, tentar)
 
 
 def completar_texto(papel: Papel, sistema: str, usuario: str) -> str:
-    return _chamar(
-        papel,
-        [{"role": "system", "content": sistema}, {"role": "user", "content": usuario}],
-    ).strip()
+    mensagens = [
+        {"role": "system", "content": sistema},
+        {"role": "user", "content": usuario},
+    ]
+    return _com_fallback(papel, lambda modelo: _chamar(modelo, mensagens).strip())
