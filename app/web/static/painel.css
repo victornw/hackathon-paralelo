@@ -129,3 +129,31 @@ blockquote { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--at
   .etapa .n { margin-top: 0; }
   .duas-colunas { grid-template-columns: 1fr; }
 }
+
+/* Chat simulado */
+.link-mensagens { font-size: 12px; color: var(--prancha); font-weight: 600; }
+.chat-colunas { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.chat-canal h2 { font-size: 16px; font-stretch: 88%; margin: 0 0 8px; }
+.chat-fio { display: flex; flex-direction: column; gap: 10px; padding: 12px; border: 1px solid var(--linha); border-radius: var(--raio); background: #fff; min-width: 0; }
+.chat-canal.cliente .chat-fio { background: #eef2ee; }
+.bolha { max-width: 88%; padding: 8px 12px; border: 1px solid var(--linha); border-radius: 10px; background: var(--papel); overflow-wrap: anywhere; }
+.bolha p { margin: 0 0 4px; }
+.bolha p:last-child { margin-bottom: 0; }
+.bolha .data { color: var(--tinta-2); font-size: 12px; }
+.bolha.agente { align-self: flex-start; border-top-left-radius: 2px; }
+.bolha.integrador { align-self: flex-end; border-top-right-radius: 2px; background: #e6eff6; border-color: var(--prancha); }
+.bolha.pendencia { border-left: 3px solid var(--atencao); }
+.bolha.prazo { border-left: 3px solid var(--neutro); }
+.bolha.lembrete_vistoria { border-left: 3px solid var(--ok); }
+.chat-canal.cliente .bolha.agente { background: #fff; border-color: #cfd8cf; }
+.bolha a { color: var(--prancha); font-weight: 600; }
+.bolha form.resposta { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.bolha form.resposta label { font-size: 12px; color: var(--tinta-2); }
+.bolha form.resposta textarea { width: 100%; font: inherit; padding: 6px 8px; border: 1px solid var(--linha); border-radius: var(--raio); }
+.bolha form.resposta button { align-self: flex-start; font: inherit; padding: 6px 12px; background: var(--prancha); color: #fff; border: 0; border-radius: var(--raio); cursor: pointer; }
+.erro-form { color: var(--vencido); font-size: 13px; }
+.erro-form:empty { display: none; }
+@media (max-width: 760px) {
+  .chat-colunas { grid-template-columns: 1fr; }
+  .bolha { max-width: 96%; }
+}

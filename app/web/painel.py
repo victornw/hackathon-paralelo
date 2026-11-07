@@ -193,3 +193,7 @@ def documentos(request: Request, processo_id: str):
 from app.portal_sim.rotas import router as _portal_router
 
 router.include_router(_portal_router)
+
+from app.web.chat import router as _chat_router
+
+router.include_router(_chat_router)

@@ -1,0 +1,74 @@
+{% extends "layout.html" %}
+{% block titulo %}{{ titular }}: mensagens{% endblock %}
+{% block conteudo %}
+<section class="cabeca">
+  <p><a href="/processos/{{ p.id }}/timeline">Voltar à timeline</a></p>
+  <h1>Mensagens: {{ titular }}</h1>
+  <p class="resumo">UC {{ uc }}. Conversa simulada: nenhuma mensagem é enviada de verdade.</p>
+</section>
+
+<div class="chat-colunas">
+  <section class="chat-canal" aria-labelledby="c-int">
+    <h2 id="c-int">Integrador</h2>
+    <div class="chat-fio">
+      {% for m in integrador %}
+      <div class="bolha {{ m.autor }} {{ m.tipo }}">
+        <p class="data"><time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
+        <p>{{ m.texto }}</p>
+        {% if m.link %}<p><a href="{{ m.link }}">{{ m.link_texto or m.link }}</a></p>{% endif %}
+        {% if m.tipo == 'pergunta' %}
+        <form class="resposta" data-pergunta="{{ m.pergunta_id }}">
+          <label for="r-{{ m.pergunta_id }}">Sua resposta</label>
+          <textarea id="r-{{ m.pergunta_id }}" name="resposta" rows="2" required></textarea>
+          <button type="submit">Enviar resposta</button>
+          <p class="erro-form" role="alert"></p>
+        </form>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="vazio">Nenhuma mensagem ainda.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="chat-canal cliente" aria-labelledby="c-cli">
+    <h2 id="c-cli">Cliente final (WhatsApp simulado)</h2>
+    <div class="chat-fio">
+      {% for m in cliente %}
+      <div class="bolha {{ m.autor }} {{ m.tipo }}">
+        <p class="data"><time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
+        <p>{{ m.texto }}</p>
+        {% if m.link %}<p><a href="{{ m.link }}">{{ m.link_texto or m.link }}</a></p>{% endif %}
+      </div>
+      {% else %}
+      <p class="vazio">Nenhuma mensagem ainda.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<script>
+  document.querySelectorAll("form.resposta").forEach(function (form) {
+    form.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      var erro = form.querySelector(".erro-form");
+      erro.textContent = "";
+      var corpo = [{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }];
+      try {
+        var r = await fetch("/api/processos/{{ p.id }}/respostas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(corpo),
+        });
+        if (r.ok) { location.reload(); return; }
+        var d = await r.json().catch(function () { return {}; });
+        var det = d.detail;
+        if (Array.isArray(det)) { det = det.map(function (x) { return x.msg; }).join("; "); }
+        erro.textContent = det || "Não foi possível enviar a resposta.";
+      } catch (e) {
+        erro.textContent = "Não foi possível enviar a resposta.";
+      }
+    });
+  });
+</script>
+{% endblock %}

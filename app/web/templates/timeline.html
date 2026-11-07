@@ -2,7 +2,7 @@
 {% block titulo %}{{ c.titular }}: timeline{% endblock %}
 {% block conteudo %}
 <section class="cabeca">
-  <p><a href="/painel">Voltar à carteira</a></p>
+  <p><a href="/painel">Voltar à carteira</a> · <a href="/processos/{{ c.p.id }}/chat">Mensagens</a></p>
   <h1>{{ c.titular }}</h1>
   <p class="resumo">UC {{ c.uc }}{% if c.kwp %}, {{ '%.2f'|format(c.kwp)|replace('.', ',') }} kWp{% endif %}. Etapa atual: <strong>{{ rotulos[c.p.etapa] }}</strong>{% if c.p.numero_solicitacao %}. Solicitação {{ c.p.numero_solicitacao }}{% endif %}.</p>
 </section>
