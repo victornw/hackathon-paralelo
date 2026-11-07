@@ -1,0 +1,76 @@
+{
+  "sha256_zip": "73a44238f91deb3fdc4c92109f44c909fcd86d9b203e25794f5ef9b1a92ac38b",
+  "linhas_nordeste": 13690608,
+  "linhas_enel_ce_antes_dedup": 1625758,
+  "metodo": "Filtrar Enel CE; deduplicar por NumProtocolo, mantendo maior DatPrzEnvio; empate mantém última linha do arquivo. Residencial: B1 e 0 < MdaPotencia <= 10. Sem recorte de data adicional.",
+  "periodo_solicitacoes": {
+    "inicio": "2022-01-07",
+    "fim": "2023-01-07"
+  },
+  "enel_ce_todos_segmentos": {
+    "pedidos": 35030,
+    "status": {
+      "Pedidos Conectados": 33256,
+      "Pedidos em Estoque": 1308,
+      "Pedidos Negados": 466
+    },
+    "situacoes": {
+      "Enquadrado como GD I": 33256,
+      "Vistoria não solicitada": 611,
+      "Vistoria reprovada, aguardando nova solicitação": 595,
+      "Solicitação de orçamento indeferida (art. 71, II)": 304,
+      "Orçamento Cancelado": 68,
+      "Obra em execução pela distribuidora": 80,
+      "Prazo de Obra Suspenso": 17,
+      "Estudos, projetos e orçamento em elaboração": 5,
+      "Orçamento Perdeu Validade": 94
+    },
+    "motivos": {
+      "Não  apresentação  das  informações  ou  não  execução  das  obras  pelo acessante (art. 89, I)": 33111,
+      "Identificação de divisão": 672,
+      "": 226,
+      "Cancelamento: outros motivos": 544,
+      "Documentação incompleta": 304,
+      "Outras não conformidades": 68,
+      "Suspensão: outros motivos": 2,
+      "Não   obtenção   de   licença,   autorização   ou   aprovação   de   autoridade competente (art. 89, II)": 7,
+      "Não aprovação nos prazos estabelecidos (art. 83, § 7º, I)": 94,
+      "Não obtenção de servidão de passagem ou via de acesso (art. 89, II)": 2
+    },
+    "solicitacao_ate_injecao": {
+      "n_datas_validas": 33229,
+      "datas_ausentes": 1776,
+      "intervalos_negativos_excluidos": 25,
+      "mediana_dias_corridos": 35,
+      "p90_dias_corridos_nearest_rank": 98
+    }
+  },
+  "enel_ce_b1_ate10kw": {
+    "pedidos": 24269,
+    "status": {
+      "Pedidos Conectados": 23576,
+      "Pedidos em Estoque": 693
+    },
+    "situacoes": {
+      "Enquadrado como GD I": 23576,
+      "Vistoria não solicitada": 378,
+      "Vistoria reprovada, aguardando nova solicitação": 315
+    },
+    "motivos": {
+      "Não  apresentação  das  informações  ou  não  execução  das  obras  pelo acessante (art. 89, I)": 23507,
+      "Identificação de divisão": 407,
+      "Cancelamento: outros motivos": 285,
+      "": 70
+    },
+    "solicitacao_ate_injecao": {
+      "n_datas_validas": 23571,
+      "datas_ausentes": 694,
+      "intervalos_negativos_excluidos": 4,
+      "mediana_dias_corridos": 33,
+      "p90_dias_corridos_nearest_rank": 86
+    }
+  },
+  "limites": "Base histórica observacional; não mede horas de engenharia, causas individuais ou economia do nosso agente. Datas faltantes/casos ainda não conectados não entram na mediana. Motivos não foram interpretados como causa sem validação do preenchimento.",
+  "fonte": "https://dadosabertos.aneel.gov.br/dataset/atendimento-mmgd-mini-e-micro-geracao-distribuida",
+  "consultado_em": "2026-11-07T18:41:55.362117+00:00"
+}

@@ -1,0 +1,44 @@
+{
+  "id": "ufcg-2024-projeto4",
+  "origem": {
+    "url": "https://dspace.sti.ufcg.edu.br/jspui/bitstream/riufcg/37231/1/HENRIQUE%20FRANKLIN%20BRAZIL%20DA%20SILVA-RELAT%C3%93RIO%20DE%20EST%C3%81GIO-CEEI-ENGENHARIA%20EL%C3%89TRICA%20%282024%29.pdf",
+    "sha256": "e09d060f694407d494f7f6bb551c0355f1d4b2d195750a69abd7c49ca1e51a12",
+    "paginas": [
+      39,
+      40,
+      41
+    ],
+    "natureza": "Relato acadêmico de instalação; aprovação Energisa/PB declarada pelo autor, sem parecer original anexado ao caso."
+  },
+  "privacidade": "Transcrição técnica sem cliente, UC, CPF, endereço, coordenadas, assinatura ou fotografias. Não é o PDF original anonimizado.",
+  "categoria": "residencial monofásico",
+  "distribuidora": "energisa_pb",
+  "qtd_modulos_quadro19": 12,
+  "potencia_modulo_wp": 570,
+  "modelo_modulo": "CHSM72M-HC-570",
+  "fabricante_modulo": "ASTRONERGY",
+  "voc_v": 52,
+  "isc_a": 13.79,
+  "coef_temp_voc_pct_c": null,
+  "fabricante_inversor": "DEYE",
+  "modelo_inversor": "SUN-8K-G",
+  "potencia_nominal_w": 8000,
+  "potencia_max_cc_w": 8800,
+  "tensao_max_cc_v": 500,
+  "tensao_saida_v": 230,
+  "corrente_max_saida_a": 39,
+  "num_mppt": 2,
+  "strings": [
+    6,
+    6
+  ],
+  "disjuntor_ca_a": 50,
+  "bitola_ca_mm2": 10,
+  "inmetro": null,
+  "dps": "classe II 15 kA",
+  "divergencias_do_relato": [
+    "Página 39 calcula aproximadamente 13 módulos; resumo e strings nas páginas 40–41 usam 12.",
+    "Página 41 declara capacidade máxima de 15 módulos e possibilidade de adicionar 8 aos 12 existentes; números não fecham."
+  ],
+  "limites": "Valores transcritos do relato, não confrontados com datasheets oficiais. Não usar como gabarito de conformidade ou como caso Enel CE."
+}

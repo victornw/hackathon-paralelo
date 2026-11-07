@@ -1,0 +1,108 @@
+{
+  "caso": "ufcg-2024-projeto4",
+  "tipo_execucao": "Conferidor determinístico sobre transcrição técnica revisada, sem extração por LLM e sem documentos do cliente",
+  "tokens_api": 0,
+  "ms_motor": 7.33,
+  "regras": [
+    {
+      "regra_id": "R01",
+      "descricao": "Coerência: o mesmo dado é igual em solicitação, memorial e unifilar",
+      "camada": "tecnica",
+      "status": "incerta",
+      "valores": {
+        "modelo_inversor": "SUN-8K-G",
+        "modelo_modulo": "CHSM72M-HC-570",
+        "qtd_modulos": 12.0,
+        "disjuntor_ca_a": 50.0
+      },
+      "mensagem": "Não dá para conferir sem: titular da UC, código da UC, documentos gerados.",
+      "fonte_norma": "Prática; erros recorrentes",
+      "a_validar": false
+    },
+    {
+      "regra_id": "R02",
+      "descricao": "Disjuntor CA entre corrente de projeto e capacidade do cabo",
+      "camada": "tecnica",
+      "status": "incerta",
+      "valores": {
+        "corrente_saida_a": 39.0,
+        "disjuntor_ca_a": 50.0,
+        "bitola_ca_mm2": 10.0,
+        "capacidade_cabo_a": 57.0
+      },
+      "mensagem": "Cálculo favorável, mas o critério técnico ainda precisa de validação. 39 A < disjuntor de 50 A < 57 A do cabo de 10 mm² (tabela de capacidade a validar com engenheiro).",
+      "fonte_norma": "NBR 5410",
+      "a_validar": true
+    },
+    {
+      "regra_id": "R03",
+      "descricao": "Módulos por string × Voc corrigido ≤ tensão máxima CC",
+      "camada": "tecnica",
+      "status": "incerta",
+      "valores": {
+        "strings": "MPPT 1: 6 módulos; MPPT 2: 6 módulos",
+        "voc_v": 52.0,
+        "tensao_max_cc_v": 500.0
+      },
+      "mensagem": "Não dá para conferir sem: coeficiente de temperatura do Voc do módulo.",
+      "fonte_norma": "Datasheets",
+      "a_validar": true
+    },
+    {
+      "regra_id": "R04",
+      "descricao": "Potência dos módulos ≤ potência máxima CC do inversor",
+      "camada": "tecnica",
+      "status": "aprovada",
+      "valores": {
+        "potencia_modulos_w": 6840.0,
+        "potencia_max_cc_w": 8800.0
+      },
+      "mensagem": "6.840 W de módulos ≤ 8.800 W de entrada CC.",
+      "fonte_norma": "Datasheets",
+      "a_validar": false
+    },
+    {
+      "regra_id": "R05",
+      "descricao": "Inversor até 75 kW com certificado INMETRO",
+      "camada": "distribuidora",
+      "status": "incerta",
+      "valores": {
+        "potencia_nominal_w": 8000.0
+      },
+      "mensagem": "Não dá para conferir sem: certificado INMETRO do inversor.",
+      "fonte_norma": "Norma Enel v05, Tabelas 10 e 11 e 7.6.1.4; Portarias INMETRO 140/2022 e 515/2023",
+      "a_validar": false
+    },
+    {
+      "regra_id": "R06",
+      "descricao": "Coordenada do padrão de entrada coerente com o endereço cadastrado",
+      "camada": "distribuidora",
+      "status": "nao_verificada",
+      "valores": {},
+      "mensagem": "Fora do MVP: exige geocodificação e a fonte é da Cemig.",
+      "fonte_norma": "Cartilha Cemig 2025",
+      "a_validar": false
+    },
+    {
+      "regra_id": "R07",
+      "descricao": "Tensão e tipo de ligação coerentes com a potência disponibilizada",
+      "camada": "distribuidora",
+      "status": "nao_verificada",
+      "valores": {},
+      "mensagem": "Fora do MVP: planejada para a fase 2.",
+      "fonte_norma": "Norma Enel, Tabela 4",
+      "a_validar": false
+    },
+    {
+      "regra_id": "R08",
+      "descricao": "Ajustes de proteção do inversor conforme a tabela da distribuidora",
+      "camada": "distribuidora",
+      "status": "nao_verificada",
+      "valores": {},
+      "mensagem": "Fora do MVP: os valores do Anexo G ainda estão 'a informar' para o Ceará.",
+      "fonte_norma": "Norma Enel, Anexo G",
+      "a_validar": false
+    }
+  ],
+  "limites": "Apenas R02–R04 reutilizam cálculos gerais; R05–R08 têm referência específica à Enel e não validam enquadramento Energisa. Resultado não equivale a auditoria normativa deste caso. Tempo do motor não equivale a tempo de engenharia economizado."
+}

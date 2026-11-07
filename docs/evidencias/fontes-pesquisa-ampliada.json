@@ -1,0 +1,50 @@
+{
+  "consulta": "2026-11-07",
+  "fontes_baixadas": [
+    {
+      "titulo": "CEMIG — orientações para aprovação de microgeração",
+      "url": "https://www.cemig.com.br/wp-content/uploads/2025/08/Cartilha-Orientacao-Responsaveis-Tecnicos-MICRO-GD.pdf",
+      "arquivo_local": "data/pesquisa/cemig-orientacao.pdf",
+      "bytes": 1434914,
+      "sha256": "edf30b158a13f4fef32082f89fcaddc8ea2efaf09ad2df6f43a55f8572cc1843"
+    },
+    {
+      "titulo": "UFCG — auditoria 004/2024",
+      "url": "https://www.gov.br/ufcg/pt-br/composicao/assessoramento/auditoria-interna/relatorios-de-auditoria/r0424-placas-fotovolticas.pdf/@@display-file/file",
+      "arquivo_local": "data/pesquisa/ufcg-auditoria-004-2024.pdf",
+      "bytes": 1467363,
+      "sha256": "bc0151fb20c106acd8d37ae3ddcf3621a529b259514b469f3680bd8532538395"
+    },
+    {
+      "titulo": "Santa Cruz da Conceição — orçamento de instalação solar",
+      "url": "https://santacruzdaconceicao.sp.gov.br/wp-content/uploads/2025/05/PLANILHA-ORCAMENTARIA-PLACAS.pdf",
+      "arquivo_local": "data/pesquisa/santacruz-orcamento.pdf",
+      "bytes": 60374,
+      "sha256": "e3a220e417230bcd420ec671dc36821899c6498afe0e07a2eee22561e9e00ef6"
+    },
+    {
+      "titulo": "Rio Bom — auditoria (PDF digitalizado; não analisado integralmente)",
+      "url": "https://riobom.pr.gov.br/public/admin/globalarq/uploads/files/RELAT%C3%93RIO%20DE%20AUDITORIA%20INTERNA%20COMPLETO%20USINA%20FOTOVOLTAICA.pdf",
+      "arquivo_local": "data/pesquisa/riobom-auditoria.pdf",
+      "bytes": 12951256,
+      "sha256": "4c08a4e451126389be04f3e8fc6505d3aec622637bc3a66f4406ac877ed36376"
+    }
+  ],
+  "outras_fontes": [
+    {
+      "titulo": "Unisinos — Ingrid Kirsch (2021)",
+      "url": "https://www.repositorio.jesuita.org.br/handle/UNISINOS/13018?show=full",
+      "acesso": "Metadados/resumo e trechos indexados do PDF; download integral bloqueado por verificação de acesso. Percentual de redução não tratado como resultado de implantação."
+    },
+    {
+      "titulo": "Reonic — homologação",
+      "url": "https://reonic.com/pt-br/product/360h/grid-registration/",
+      "acesso": "Página oficial; métricas comerciais autodeclaradas, sem auditoria independente."
+    },
+    {
+      "titulo": "Tarumã — requerimento 05/2026",
+      "url": "https://www.taruma.sp.leg.br/doc/materia/6865?imagedoc=1",
+      "acesso": "Íntegra do requerimento; sem resposta executiva verificada, não tratado como falha técnica comprovada."
+    }
+  ]
+}

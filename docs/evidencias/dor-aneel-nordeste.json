@@ -1,0 +1,549 @@
+{
+  "fonte": "https://dadosabertos.aneel.gov.br/dataset/atendimento-mmgd-mini-e-micro-geracao-distribuida",
+  "linhas": 13690608,
+  "linhas_sem_chave_ou_envio_excluidas": 0,
+  "geracoes_dataset": {
+    "2026-10-28": 13690608
+  },
+  "coorte_b1_solar_ate10kw": "B1; 0 < MdaPotencia <= 10; DscFonteGeracao = UFV; DatSolicitacao entre 2022-01-07 e 2023-01-07, inclusivos.",
+  "sha256_zip": "73a44238f91deb3fdc4c92109f44c909fcd86d9b203e25794f5ef9b1a92ac38b",
+  "metodo": "Última DatPrzEnvio por (distribuidora, protocolo), empate mantém última linha. Documentação incompleta contada apenas quando status é pedido negado e motivo o declara. B1 até 10 kW é recorte residencial. Campos pessoais não são exportados.",
+  "distribuidoras": [
+    {
+      "agente": "Equatorial AL",
+      "ufs": [
+        "ALAGOAS"
+      ],
+      "solicitacao_min": "2021-12-14",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-03-31",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 30057,
+        "negados": 7849,
+        "negados_documentacao_incompleta": 6056
+      },
+      "b1_ate10kw": {
+        "pedidos": 18491,
+        "negados": 3935,
+        "negados_documentacao_incompleta": 3212
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 18380,
+        "negados": 3929,
+        "negados_documentacao_incompleta": 3206
+      },
+      "motivos_negados": {
+        "Documentação incompleta": 6056,
+        "Desistência do consumidor e demais usuários (art. 83, § 7º, V)": 1792,
+        "Casos fortuitos ou de força maior (art. 89, V)": 1
+      },
+      "fontes": {
+        "UFV": 30055,
+        "CGH": 2
+      }
+    },
+    {
+      "agente": "Equatorial MA",
+      "ufs": [
+        "MARANHAO"
+      ],
+      "solicitacao_min": "2022-01-03",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2026-09-30",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 22533,
+        "negados": 4026,
+        "negados_documentacao_incompleta": 2635
+      },
+      "b1_ate10kw": {
+        "pedidos": 14460,
+        "negados": 2280,
+        "negados_documentacao_incompleta": 1491
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 14261,
+        "negados": 2235,
+        "negados_documentacao_incompleta": 1462
+      },
+      "motivos_negados": {
+        "Desistência do consumidor e demais usuários (art. 83, § 7º, V)": 1391,
+        "Documentação incompleta": 2635
+      },
+      "fontes": {
+        "UFV": 22532,
+        "CGH": 1
+      }
+    },
+    {
+      "agente": "Neoenergia Cosern",
+      "ufs": [
+        "RIO GRANDE DO NORTE"
+      ],
+      "solicitacao_min": "2022-01-01",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-03-20",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 30925,
+        "negados": 6766,
+        "negados_documentacao_incompleta": 2068
+      },
+      "b1_ate10kw": {
+        "pedidos": 18504,
+        "negados": 2610,
+        "negados_documentacao_incompleta": 865
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 18357,
+        "negados": 2598,
+        "negados_documentacao_incompleta": 856
+      },
+      "motivos_negados": {
+        "Documentação incompleta": 2068,
+        "Documentação incorreta": 589,
+        "Outras não conformidades": 3872,
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 134,
+        "Desistência do consumidor e demais usuários (art. 83, § 7º, V)": 65,
+        "Cancelamento: outros motivos": 21,
+        "": 17
+      },
+      "fontes": {
+        "UFV": 30903,
+        "OUTROS": 9,
+        "EOL": 13
+      }
+    },
+    {
+      "agente": "Equatorial PI",
+      "ufs": [
+        "PIAUI"
+      ],
+      "solicitacao_min": "2022-01-03",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-03-31",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 23130,
+        "negados": 11238,
+        "orcamentos_perderam_validade": 8887,
+        "negados_documentacao_incompleta": 1221
+      },
+      "b1_ate10kw": {
+        "pedidos": 16190,
+        "negados": 7382,
+        "orcamentos_perderam_validade": 6259,
+        "negados_documentacao_incompleta": 546
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 16024,
+        "negados": 7216,
+        "orcamentos_perderam_validade": 6094,
+        "negados_documentacao_incompleta": 545
+      },
+      "motivos_negados": {
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 8887,
+        "Cancelamento: outros motivos": 939,
+        "Documentação incompleta": 1221,
+        "Outras não conformidades": 140,
+        "Documentação incorreta": 46,
+        "Desistência do consumidor e demais usuários (art. 83, § 7º, V)": 5
+      },
+      "fontes": {
+        "UFV": 23130
+      }
+    },
+    {
+      "agente": "Energisa PB",
+      "ufs": [
+        "PARAIBA",
+        "PERNAMBUCO"
+      ],
+      "solicitacao_min": "2022-01-07",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2024-01-31",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 14722,
+        "negados": 3314,
+        "negados_documentacao_incompleta": 852,
+        "orcamentos_perderam_validade": 9
+      },
+      "b1_ate10kw": {
+        "pedidos": 7953,
+        "negados": 1185,
+        "negados_documentacao_incompleta": 313,
+        "orcamentos_perderam_validade": 4
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 7953,
+        "negados": 1185,
+        "negados_documentacao_incompleta": 313,
+        "orcamentos_perderam_validade": 4
+      },
+      "motivos_negados": {
+        "Documentação incorreta": 963,
+        "Outras não conformidades": 1338,
+        "Documentação incompleta": 852,
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 9,
+        "Identificada a Divisão": 149,
+        "Não aprovação nos prazos estabelecidos (art. 83, § 7º, I)": 3
+      },
+      "fontes": {
+        "UFV": 14713,
+        "UTE": 3,
+        "EOL": 4,
+        "OUTROS": 2
+      }
+    },
+    {
+      "agente": "Energisa SE",
+      "ufs": [
+        "SERGIPE"
+      ],
+      "solicitacao_min": "2018-09-12",
+      "solicitacao_max": "2024-04-29",
+      "envio_min": "2024-03-31",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 20198,
+        "negados": 3703,
+        "negados_documentacao_incompleta": 669,
+        "orcamentos_perderam_validade": 1258
+      },
+      "b1_ate10kw": {
+        "pedidos": 11101,
+        "negados": 1463,
+        "negados_documentacao_incompleta": 342,
+        "orcamentos_perderam_validade": 481
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 4257,
+        "negados": 627,
+        "negados_documentacao_incompleta": 98,
+        "orcamentos_perderam_validade": 288
+      },
+      "motivos_negados": {
+        "Documentação incompleta": 669,
+        "Cancelamento: outros motivos": 1126,
+        "Outras não conformidades": 319,
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 703,
+        "Documentação incorreta": 316,
+        "Identificada a Divisão": 15,
+        "Desistência do consumidor e demais usuários (art. 83, § 7º, V)": 546,
+        "": 9
+      },
+      "fontes": {
+        "UFV": 20187,
+        "CGH": 1,
+        "UTE": 10
+      }
+    },
+    {
+      "agente": "Enel CE",
+      "ufs": [
+        "CEARA"
+      ],
+      "solicitacao_min": "2022-01-07",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-04-30",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 35030,
+        "negados": 466,
+        "negados_documentacao_incompleta": 304,
+        "orcamentos_perderam_validade": 94
+      },
+      "b1_ate10kw": {
+        "pedidos": 24269
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 24264
+      },
+      "motivos_negados": {
+        "Documentação incompleta": 304,
+        "Outras não conformidades": 68,
+        "Não aprovação nos prazos estabelecidos (art. 83, § 7º, I)": 94
+      },
+      "fontes": {
+        "UFV": 35020,
+        "EOL": 7,
+        "OUTROS": 3
+      }
+    },
+    {
+      "agente": "Neoenergia Coelba",
+      "ufs": [
+        "ALAGOAS",
+        "BAHIA",
+        "CEARA",
+        "PERNAMBUCO",
+        "RIO GRANDE DO NORTE"
+      ],
+      "solicitacao_min": "2020-07-15",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-04-30",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 100083,
+        "negados": 30226,
+        "orcamentos_perderam_validade": 4968,
+        "negados_documentacao_incompleta": 279
+      },
+      "b1_ate10kw": {
+        "pedidos": 62030,
+        "negados": 14489,
+        "orcamentos_perderam_validade": 1641,
+        "negados_documentacao_incompleta": 154
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 61519,
+        "negados": 14318,
+        "orcamentos_perderam_validade": 1627,
+        "negados_documentacao_incompleta": 153
+      },
+      "motivos_negados": {
+        "Outras não conformidades": 22211,
+        "Não aprovação nos prazos estabelecidos (art. 83, § 7º, I)": 4727,
+        "Documentação incorreta": 7,
+        "Cancelamento: outros motivos": 2759,
+        "Não devolução dos contratos assinados no prazo (art. 83, § 7º, III)": 165,
+        "Documentação incompleta": 279,
+        "Não pagamento da participação financeira nas condições estabelecidas pela distribuidora (art. 83, § 7º, II)": 71,
+        "Desistência do consumidor e demais usuários (art. 83, § 7º, V)": 5,
+        "Identificação de divisão": 2
+      },
+      "fontes": {
+        "UFV": 100076,
+        "OUTROS": 4,
+        "EOL": 3
+      }
+    },
+    {
+      "agente": "Neoenergia Pernambuco",
+      "ufs": [
+        "PARAIBA",
+        "PERNAMBUCO"
+      ],
+      "solicitacao_min": "2022-01-01",
+      "solicitacao_max": "2023-08-14",
+      "envio_min": "2023-03-20",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 53300,
+        "negados": 9881,
+        "negados_documentacao_incompleta": 278,
+        "orcamentos_perderam_validade": 577
+      },
+      "b1_ate10kw": {
+        "pedidos": 33256,
+        "negados": 3880,
+        "orcamentos_perderam_validade": 250,
+        "negados_documentacao_incompleta": 104
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 32797,
+        "negados": 3819,
+        "orcamentos_perderam_validade": 248,
+        "negados_documentacao_incompleta": 96
+      },
+      "motivos_negados": {
+        "Outras não conformidades": 8576,
+        "": 449,
+        "Documentação incompleta": 278,
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 577,
+        "Cancelamento: outros motivos": 1
+      },
+      "fontes": {
+        "UFV": 53300
+      }
+    },
+    {
+      "agente": "Energisa Borborema",
+      "ufs": [
+        "PARAIBA"
+      ],
+      "solicitacao_min": "2022-01-07",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-04-30",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 2031,
+        "negados": 688,
+        "negados_documentacao_incompleta": 102
+      },
+      "b1_ate10kw": {
+        "pedidos": 1116,
+        "negados": 305,
+        "negados_documentacao_incompleta": 39
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 1116,
+        "negados": 305,
+        "negados_documentacao_incompleta": 39
+      },
+      "motivos_negados": {
+        "": 76,
+        "Outras não conformidades": 206,
+        "Documentação incorreta": 304,
+        "Documentação incompleta": 102
+      },
+      "fontes": {
+        "UFV": 2030,
+        "UTE": 1
+      }
+    },
+    {
+      "agente": "Sulgipe",
+      "ufs": [
+        "BAHIA",
+        "SERGIPE"
+      ],
+      "solicitacao_min": "2022-01-07",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2026-09-30",
+      "envio_max": "2026-09-30",
+      "todos": {
+        "pedidos": 851,
+        "negados": 416,
+        "negados_documentacao_incompleta": 58,
+        "orcamentos_perderam_validade": 25
+      },
+      "b1_ate10kw": {
+        "pedidos": 465,
+        "negados": 200,
+        "negados_documentacao_incompleta": 15,
+        "orcamentos_perderam_validade": 9
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 465,
+        "negados": 200,
+        "negados_documentacao_incompleta": 15,
+        "orcamentos_perderam_validade": 9
+      },
+      "motivos_negados": {
+        "Outras não conformidades": 291,
+        "Documentação incompleta": 58,
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 25,
+        "Documentação incorreta": 42
+      },
+      "fontes": {
+        "UFV": 851
+      }
+    },
+    {
+      "agente": "Energisa MT",
+      "ufs": [
+        "BAHIA",
+        "PERNAMBUCO",
+        "PIAUI",
+        "RIO GRANDE DO NORTE"
+      ],
+      "solicitacao_min": "2022-01-07",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2024-04-30",
+      "envio_max": "2025-11-30",
+      "todos": {
+        "pedidos": 3907,
+        "negados": 773,
+        "negados_documentacao_incompleta": 22
+      },
+      "b1_ate10kw": {
+        "pedidos": 2724,
+        "negados": 382,
+        "negados_documentacao_incompleta": 11
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 2724,
+        "negados": 382,
+        "negados_documentacao_incompleta": 11
+      },
+      "motivos_negados": {
+        "Outras não conformidades": 532,
+        "Documentação incorreta": 101,
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 86,
+        "Documentação incompleta": 22,
+        "Identificada a Divisão": 15,
+        "": 16,
+        "Desistência do consumidor e demais usuários (art. 83, § 7º, V)": 1
+      },
+      "fontes": {
+        "UFV": 3907
+      }
+    },
+    {
+      "agente": "Neoenergia Elektro",
+      "ufs": [
+        "BAHIA",
+        "CEARA",
+        "PERNAMBUCO",
+        "RIO GRANDE DO NORTE"
+      ],
+      "solicitacao_min": "2021-04-05",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-07-31",
+      "envio_max": "2026-01-31",
+      "todos": {
+        "pedidos": 81,
+        "negados": 71,
+        "negados_documentacao_incompleta": 1
+      },
+      "b1_ate10kw": {
+        "pedidos": 56,
+        "negados": 50,
+        "negados_documentacao_incompleta": 1
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 55,
+        "negados": 49,
+        "negados_documentacao_incompleta": 1
+      },
+      "motivos_negados": {
+        "Documentação incorreta": 70,
+        "Documentação incompleta": 1
+      },
+      "fontes": {
+        "UFV": 81
+      }
+    },
+    {
+      "agente": "Energisa Sul-Sudeste",
+      "ufs": [
+        "BAHIA"
+      ],
+      "solicitacao_min": "2022-01-07",
+      "solicitacao_max": "2023-01-07",
+      "envio_min": "2023-10-31",
+      "envio_max": "2024-04-30",
+      "todos": {
+        "pedidos": 976,
+        "negados": 87,
+        "orcamentos_perderam_validade": 16,
+        "negados_documentacao_incompleta": 1
+      },
+      "b1_ate10kw": {
+        "pedidos": 714,
+        "negados": 57,
+        "orcamentos_perderam_validade": 10,
+        "negados_documentacao_incompleta": 1
+      },
+      "b1_solar_ate10kw": {
+        "pedidos": 714,
+        "negados": 57,
+        "orcamentos_perderam_validade": 10,
+        "negados_documentacao_incompleta": 1
+      },
+      "motivos_negados": {
+        "Cancelamento: outros motivos": 20,
+        "Perda de validade: outros motivos;Caso o Orçamento tenha sido cancelado": 16,
+        "Outras não conformidades": 50,
+        "Documentação incompleta": 1
+      },
+      "fontes": {
+        "UFV": 975,
+        "CGH": 1
+      }
+    }
+  ]
+}
