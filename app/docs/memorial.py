@@ -48,7 +48,7 @@ def gerar_memorial(processo: Processo, pasta: Path) -> Path:
     pdf.secao("1. Objetivo")
     pdf.paragrafo(
         "Descrever a central de microgeração fotovoltaica conectada à rede de baixa tensão da "
-        "Enel Distribuição Ceará por meio de inversor, conforme a norma CNC-NDBR-DBR-18-0122-EDBR "
+        "Enel por meio de inversor, conforme a norma CNC-NDBR-DBR-18-0122-EDBR "
         "v05 (Anexo B, forma de conexão 1), a Lei 14.300/2022 e a REN ANEEL 1.000/2021."
     )
 

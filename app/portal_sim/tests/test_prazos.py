@@ -31,14 +31,20 @@ def tipos(prazos):
         (date(2026, 11, 14), False),  # sábado
         (date(2026, 11, 15), False),  # domingo (e Proclamação)
         (date(2026, 11, 20), False),  # Consciência Negra, nacional, sexta
-        (date(2026, 3, 19), False),  # São José, feriado no Ceará
-        (date(2026, 3, 25), False),  # Data Magna do Ceará
+        (date(2026, 3, 19), True),  # feriado estadual: só conta com FERIADOS_UF
         (date(2026, 2, 17), True),  # Carnaval é ponto facultativo
         (date(2026, 12, 25), False),
     ],
 )
 def test_eh_dia_util(d, util):
     assert eh_dia_util(d) is util
+
+
+def test_feriado_estadual_com_feriados_uf(monkeypatch):
+    monkeypatch.setenv("FERIADOS_UF", "RJ")
+    assert eh_dia_util(date(2026, 4, 23)) is False  # São Jorge, feriado no RJ
+    monkeypatch.delenv("FERIADOS_UF")
+    assert eh_dia_util(date(2026, 4, 23)) is True
 
 
 def test_10_dias_uteis_pulando_consciencia_negra():

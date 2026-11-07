@@ -1,0 +1,50 @@
+{
+  "campos": {
+    "uc": {
+      "valor": "12345678",
+      "trecho": "Código da UC: 12345678"
+    },
+    "titular": {
+      "valor": "MARIA DAS GRAÇAS LIMA",
+      "trecho": "Nome: MARIA DAS GRAÇAS LIMA"
+    },
+    "cpf_cnpj": {
+      "valor": "123.456.789-09",
+      "trecho": "CPF: 123.456.789-09"
+    },
+    "endereco": {
+      "valor": "RUA DAS FLORES, 123 - ALDEOTA",
+      "trecho": "Endereço: RUA DAS FLORES, 123 - ALDEOTA"
+    },
+    "cidade": {
+      "valor": "FORTALEZA",
+      "trecho": "Cidade: FORTALEZA - CE"
+    },
+    "classe": {
+      "valor": "Residencial",
+      "trecho": "Classe: Residencial"
+    },
+    "subgrupo": {
+      "valor": "B1",
+      "trecho": "Subgrupo: B1"
+    },
+    "tipo_ligacao": {
+      "valor": "monofasico",
+      "trecho": "Tipo de ligação: MONOFÁSICO"
+    },
+    "tensao_atendimento_v": {
+      "valor": 220,
+      "trecho": "Tensão de atendimento: 220 V"
+    },
+    "consumo_medio_kwh": {
+      "valor": 412,
+      "trecho": "Consumo médio dos últimos 6 meses: 412 kWh"
+    }
+  },
+  "kit": {
+    "modelo_modulo": "HS-550M",
+    "qtd_modulos": 10,
+    "modelo_inversor": "SI-5000",
+    "strings": []
+  }
+}

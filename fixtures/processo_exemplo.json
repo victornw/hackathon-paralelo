@@ -2,7 +2,7 @@
   "id": "proc-exemplo-001",
   "criado_em": "2026-11-09T09:30:00",
   "etapa": "em_revisao",
-  "distribuidora": "enel_ce",
+  "distribuidora": "enel",
   "email_contato": "integrador@exemplo.com",
   "campos": {
     "uc": {
@@ -33,21 +33,21 @@
       }
     },
     "endereco": {
-      "valor": "RUA EXEMPLO, 100 - MEIRELES",
+      "valor": "RUA EXEMPLO, 100 - CENTRO",
       "confianca": 0.92,
       "fonte": {
         "documento": "conta_luz_exemplo.pdf",
         "pagina": 1,
-        "trecho": "RUA EXEMPLO, 100 - MEIRELES"
+        "trecho": "RUA EXEMPLO, 100 - CENTRO"
       }
     },
     "cidade": {
-      "valor": "FORTALEZA",
+      "valor": "CIDADE EXEMPLO",
       "confianca": 0.97,
       "fonte": {
         "documento": "conta_luz_exemplo.pdf",
         "pagina": 1,
-        "trecho": "FORTALEZA"
+        "trecho": "CIDADE EXEMPLO"
       }
     },
     "classe": {

@@ -84,7 +84,7 @@ class DocPDF(FPDF):
         self.cell(
             0,
             5,
-            latin1("Enel Distribuição Ceará - Norma CNC-NDBR-DBR-18-0122-EDBR v05"),
+            latin1("Enel - Norma CNC-NDBR-DBR-18-0122-EDBR v05"),
             new_x="LMARGIN",
             new_y="NEXT",
         )

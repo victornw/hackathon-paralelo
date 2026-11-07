@@ -2,9 +2,9 @@
 
 Convenções (testadas em tests/test_prazos.py):
 - A contagem começa no dia seguinte ao evento que abre o prazo.
-- Dias úteis excluem sábado, domingo e feriados nacionais e do Ceará
-  (biblioteca `holidays`, Brasil subdivisão CE). Carnaval é ponto facultativo
-  e não entra como feriado.
+- Dias úteis excluem sábado, domingo e feriados nacionais (biblioteca
+  `holidays`). Feriados estaduais entram só se FERIADOS_UF estiver no .env
+  (sigla da UF da distribuidora). Carnaval é ponto facultativo e não entra.
 - Prazos em dias corridos vencem exatamente em início + N dias; não aplicamos
   prorrogação para o próximo dia útil (a norma Enel não diz isso).
 - Um prazo some da lista quando o evento que o fecha acontece.
@@ -23,6 +23,7 @@ e trata o pedido de vistoria como sinal de contratos devolvidos.
 
 from __future__ import annotations
 
+import os
 from datetime import date, timedelta
 from functools import cache
 from typing import Literal
@@ -41,8 +42,12 @@ TipoPrazo = Literal[
 
 
 @cache
+def _feriados_uf(ano: int, uf: str | None) -> holidays.HolidayBase:
+    return holidays.Brazil(subdiv=uf, years=ano)
+
+
 def _feriados(ano: int) -> holidays.HolidayBase:
-    return holidays.Brazil(subdiv="CE", years=ano)
+    return _feriados_uf(ano, os.environ.get("FERIADOS_UF") or None)
 
 
 def eh_dia_util(d: date) -> bool:

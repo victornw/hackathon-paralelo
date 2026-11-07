@@ -2,7 +2,7 @@
   "id": "proc-exemplo-002",
   "criado_em": "2026-11-09T09:30:00",
   "etapa": "pendencia",
-  "distribuidora": "enel_ce",
+  "distribuidora": "enel",
   "email_contato": "integrador@exemplo.com",
   "campos": {
     "uc": {
@@ -33,21 +33,21 @@
       }
     },
     "endereco": {
-      "valor": "RUA EXEMPLO, 100 - MEIRELES",
+      "valor": "RUA EXEMPLO, 100 - CENTRO",
       "confianca": 0.92,
       "fonte": {
         "documento": "conta_luz_exemplo.pdf",
         "pagina": 1,
-        "trecho": "RUA EXEMPLO, 100 - MEIRELES"
+        "trecho": "RUA EXEMPLO, 100 - CENTRO"
       }
     },
     "cidade": {
-      "valor": "FORTALEZA",
+      "valor": "CIDADE EXEMPLO",
       "confianca": 0.97,
       "fonte": {
         "documento": "conta_luz_exemplo.pdf",
         "pagina": 1,
-        "trecho": "FORTALEZA"
+        "trecho": "CIDADE EXEMPLO"
       }
     },
     "classe": {
@@ -258,10 +258,10 @@
   "documentos": [],
   "revisado_por": "Eng. Exemplo (CREA sintético)",
   "revisado_em": "2026-11-10T15:00:00",
-  "numero_solicitacao": "GD-CE-2026-000123",
+  "numero_solicitacao": "GD-2026-000123",
   "eventos": [
     {
-      "numero_solicitacao": "GD-CE-2026-000123",
+      "numero_solicitacao": "GD-2026-000123",
       "etapa": "protocolado",
       "descricao": "Solicitação recebida.",
       "data": "2026-11-10",
@@ -270,7 +270,7 @@
       "correcao_proposta": null
     },
     {
-      "numero_solicitacao": "GD-CE-2026-000123",
+      "numero_solicitacao": "GD-2026-000123",
       "etapa": "pendencia",
       "descricao": "Documentação com pendência.",
       "data": "2026-11-13",

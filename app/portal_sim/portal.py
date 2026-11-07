@@ -1,4 +1,4 @@
-"""Portal simulado no formato do Portal GD da Enel CE. Nunca acessa o portal real.
+"""Portal simulado no formato do Portal GD da Enel. Nunca acessa o portal real.
 
 Formulário básico com os mesmos campos do portal real; consulta por UC, e-mail
 e número da solicitação; fluxo roteirizado de status.
@@ -53,7 +53,7 @@ class SolicitacaoNaoEncontrada(PortalErro):
 
 
 class FormularioBasico(BaseModel):
-    """Passo 1 do Portal GD da Enel CE: formulário básico."""
+    """Passo 1 do Portal GD da Enel: formulário básico."""
 
     codigo_uc: str
     classe: str
@@ -162,9 +162,9 @@ def _proximo_numero() -> str:
     with _con() as con:
         (n,) = con.execute(
             "SELECT COUNT(*) FROM portal_solicitacoes WHERE numero LIKE ?",
-            (f"GD-CE-{ano}-%",),
+            (f"GD-{ano}-%",),
         ).fetchone()
-    return f"GD-CE-{ano}-{n + 1:06d}"
+    return f"GD-{ano}-{n + 1:06d}"
 
 
 def _evento(numero: str, etapa: Etapa, descricao: str, **extra) -> EventoPortal:
