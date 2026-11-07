@@ -369,6 +369,41 @@ O agente começa conferindo, gerando e lendo portais; só passa a protocolar qua
 
 **Critério de desistência.** Se integradores disserem que o projeto sai em minutos com o software atual e quase nunca volta com pendência, pivotar para a etapa que eles apontarem como dolorosa, mantendo o mesmo cliente e a mesma estrutura de agente.
 
+## Informações adicionais
+
+**Mercado e tempo.**
+
+- Cerca de 600 mil novas conexões solares por ano no Brasil.
+- O processo completo costuma chegar a 90 dias, e o que mais atrasa não é o projeto elétrico, é documentação inconsistente (SolarMarket).
+- Montar o projeto: 1 a 2 semanas à mão (UFCG); 3 a 5 dias nas empresas especializadas, que protocolam em até 3 dias úteis ou entregam o projeto em média em até 5 dias (GSH Engenharia, Treviso Engenharia).
+- Energisa PB: 15 dias a 2 meses de espera depois do envio.
+- Pesquisa Greener 2025: a inversão de fluxo afetou 28% dos integradores, e 34% das empresas perderam clientes (Canal Solar).
+
+**Valores.** Homologação terceirizada para residencial: cerca de R$ 290 a R$ 690 por sistema, com base em duas tabelas públicas. A maioria das empresas não publica preço e a ART pode ser cobrada à parte, então é um número a validar.
+
+**Como o mercado faz hoje.**
+
+- Empresas de serviço (Tellar, Treviso, GSH, Techmax e outras) têm engenheiros fazendo o trabalho e plataforma para acompanhar status.
+- Softwares (GD Pro, que agora é gratuito, e Homologa Plus) geram unifilar, memorial e formulários por template, a partir de dados que uma pessoa digita, e validam com regras.
+- A Dynadok valida documentos com IA, mas só essa etapa.
+- Pelo que publicam, nenhum conduz o processo sozinho: alguém ainda lê a conta, digita, escolhe equipamentos, protocola, interpreta pendência e lembra da vistoria. Não é prova de que não exista, mas não achamos.
+
+**Achados regulatórios.**
+
+- Pendência deve ser sanada em até 30 dias (Lei 14.300) e a vistoria pedida em até 120 dias após o parecer.
+- Pendência documental mantém a ART; mudança técnica pede ART de substituição do mesmo engenheiro (Resolução Confea 1.137/2023). Os Creas vigiam substituições em excesso, inclusive em solar.
+- O engenheiro sempre revisa e reenvia pelo login dele; o agente prepara.
+- Correção: a Neoenergia SP avisa mudança de status por e-mail, então nem toda distribuidora é só portal.
+
+**Onde nos destacamos.**
+
+- Entrada por foto e WhatsApp, sem digitação.
+- Condução depois do protocolo: pendência, prazos e vistoria.
+- Validação em duas camadas: regras para o que é certo ou errado, IA para o que as regras não preveem (nomes, endereços, foto contra projeto), sempre com evidência.
+- Custo de um serviço operado por agente, abaixo do serviço feito por engenheiros.
+
+**O que ainda falta.** Preço que o integrador pagaria e frequência real de pendências: só nas conversas com integradores.
+
 ## Integradores em João Pessoa
 
 Contatos levantados na v3.1, quando a demo era na Energisa PB. Não há ligações durante o hackathon; servem para validação depois do evento e para a expansão à Energisa.
@@ -396,6 +431,9 @@ Contatos levantados na v3.1, quando a demo era na Energisa PB. Não há ligaçõ
 - Protesto na Neoenergia Brasília, 2026 (Canal Solar)
 - Atrasos na Equatorial Goiás, 2026 (Canal Solar)
 - Fast Track e inversão de fluxo na CPFL (Canal Solar)
+- Pesquisa Greener 2025 sobre inversão de fluxo (Canal Solar)
+- Prazo do processo e documentação inconsistente (SolarMarket)
+- Prazos de empresas de projeto (GSH Engenharia, Treviso Engenharia)
 
 **Processo, normas e regras**
 
