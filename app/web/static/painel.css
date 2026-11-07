@@ -159,3 +159,22 @@ blockquote { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--at
 }
 .chat-legenda { color: var(--tinta-2); font-size: 14px; margin: -6px 0 10px; max-width: 60ch; }
 .bolha .autor { font-weight: 600; color: var(--tinta); }
+
+/* Prazos vigiados: a faixa acima da régua */
+.prazos-vigiados { margin: 0 0 22px; max-width: 980px; }
+.prazos-vigiados h2 { font-size: 16px; font-stretch: 88%; margin: 0 0 8px; }
+.prazos-vigiados ul { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--linha); }
+.prazo-linha {
+  display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 4px 16px;
+  align-items: baseline; padding: 7px 0 7px 10px; border-bottom: 1px solid var(--linha);
+  border-left: 3px solid var(--ok); font-size: 14px;
+}
+.prazo-linha .quando { font-weight: 600; }
+.prazo-linha .fonte { color: var(--tinta-2); font-size: 12px; }
+.prazo-linha.atencao, .prazo-linha.vence_hoje { border-left-color: var(--atencao); }
+.prazo-linha.atencao .quando, .prazo-linha.vence_hoje .quando { color: var(--atencao); }
+.prazo-linha.vencido { border-left-color: var(--vencido); }
+.prazo-linha.vencido .quando { color: var(--vencido); }
+@media (max-width: 760px) {
+  .prazo-linha { grid-template-columns: 1fr; }
+}

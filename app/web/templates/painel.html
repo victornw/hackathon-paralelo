@@ -6,6 +6,25 @@
   <p class="resumo">{{ total }} processos na Enel{% if vencendo %}; <span class="alerta">{{ vencendo }} com prazo do integrador perto de vencer</span>{% endif %}.</p>
 </section>
 
+{% if proximos %}
+<section class="prazos-vigiados" aria-labelledby="h-prazos">
+  <h2 id="h-prazos">Prazos que o agente está vigiando</h2>
+  <ul>
+    {% for i in proximos %}
+    <li class="prazo-linha {{ i.x.situacao }}">
+      <span class="quando">
+        {% if i.x.situacao == 'vencido' %}Venceu em {{ i.x.prazo.vencimento.strftime('%d/%m') }}
+        {% elif i.x.situacao == 'vence_hoje' %}Vence hoje
+        {% else %}{{ i.x.restantes }} dia{{ 's' if i.x.restantes != 1 }}{{ ' úteis' if i.x.prazo.dias_uteis }}{% endif %}
+      </span>
+      <span class="oque"><strong>{{ i.quem }}</strong> precisa {{ i.acao }} <a href="{{ i.link }}">{{ i.titular }}</a></span>
+      <span class="fonte">{{ i.x.prazo.fonte }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
 <ol class="regua" aria-label="Etapas da homologação">
   {% for col in colunas %}
   <li class="etapa{% if not col.cartoes %} vazia{% endif %}">

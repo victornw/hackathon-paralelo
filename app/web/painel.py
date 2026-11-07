@@ -116,6 +116,42 @@ def contexto_documentos(processo: Processo) -> dict:
     return {"processo_id": processo.id, "documentos": processo.documentos}
 
 
+ACAO_PRAZO = {
+    "orcamento": "emitir o orçamento de",
+    "aprovar_orcamento": "aprovar o orçamento de",
+    "devolver_contratos": "devolver os contratos de",
+    "sanar_pendencia": "corrigir a pendência de",
+    "vistoria_ligacao": "vistoriar e ligar o sistema de",
+}
+
+_ORDEM_SITUACAO = {"vencido": 0, "vence_hoje": 1, "atencao": 2, "no_prazo": 3}
+
+
+def proximos_prazos(
+    processos: list[Processo], dia: date, limite: int = 6
+) -> list[dict]:
+    """Prazos correndo na carteira, do mais urgente para o menos urgente."""
+    itens = []
+    for p in processos:
+        for pr in calcular_prazos(p):
+            x = PrazoTela.de(pr, dia)
+            itens.append(
+                {
+                    "x": x,
+                    "titular": _campo(p, "titular").title(),
+                    "acao": ACAO_PRAZO[pr.tipo],
+                    "quem": "Integrador" if pr.conta_contra == "integrador" else "Enel",
+                    "link": f"/processos/{p.id}/chat"
+                    if pr.conta_contra == "integrador"
+                    else f"/processos/{p.id}/timeline",
+                }
+            )
+    itens.sort(
+        key=lambda i: (_ORDEM_SITUACAO[i["x"].situacao], i["x"].prazo.vencimento)
+    )
+    return itens[:limite]
+
+
 @router.get("/painel")
 def painel(request: Request):
     dia = hoje()
@@ -135,6 +171,7 @@ def painel(request: Request):
         for x in k["integrador"]
         if x.situacao in ("atencao", "vence_hoje", "vencido")
     )
+    proximos = proximos_prazos(processos, dia)
     return templates.TemplateResponse(
         request,
         "painel.html",
@@ -143,6 +180,7 @@ def painel(request: Request):
             "hoje": dia,
             "total": len(processos),
             "vencendo": vencendo,
+            "proximos": proximos,
         },
     )
 
