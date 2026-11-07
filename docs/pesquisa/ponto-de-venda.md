@@ -27,6 +27,9 @@ Base ANEEL "Atendimento a pedidos de conexões MMGD", arquivo Nordeste, pedidos 
 
 ## 2. Qualidade e prazos: onde a dor aparece nos dados
 
+> **Correção de 08/11/2026.** A primeira versão desta seção removia duplicatas só pelo número do protocolo e não filtrava a data de solicitação. Refeito com distribuidora + protocolo, fonte UFV e solicitação entre 07/01/2022 e 07/01/2023 (`scripts/aneel/recontagem_coorte.py`): Equatorial AL fica em **16,3%** negados por documentação incompleta (17,4% na análise de `evidencias-outros-estados.md`, feita sobre outra versão do arquivo), MA 10,25%, Cosern 4,66%, PI 3,40%. Os pedidos da Equatorial AL parados em vistoria são **1,2%**, não 11,9%. A Coelba tem 1.627 negados por não aprovação do orçamento no prazo. A tabela abaixo é a versão antiga e fica só como registro; use os números desta nota.
+
+
 Mesma base. Script: `scripts/aneel/perdas_por_motivo.py`.
 
 | Distribuidora | Negados por documentação incompleta ou incorreta | Parados em "vistoria não solicitada" ou "vistoria reprovada" | Negados por não aprovar o orçamento no prazo (art. 83, § 7º, I) |
@@ -126,6 +129,6 @@ O motor de regras, o orquestrador e a API ficam. Se não houver tempo para gerar
 
 ## Fala de pitch que os dados permitem
 
-"Segundo a ANEEL, em 2022 e 2023, 1 em cada 7 pedidos residenciais de geração solar em Alagoas voltou por documentação incompleta, e 1 em cada 8 ficou parado esperando a vistoria. Nosso agente monta o pacote conferido contra a norma da Equatorial, vigia os prazos do integrador e registra quem atrasou cada etapa. Empresas que vendem homologação a integradores cobram de R$ 450 a R$ 690 por processo residencial; nosso custo de modelo por processo é de centavos, e medimos o tempo de revisão humana em N minutos."
+"Segundo a ANEEL, em 2022 e 2023, 1 em cada 6 pedidos residenciais de geração solar em Alagoas foi negado por documentação incompleta. Nosso agente monta o pacote conferido contra a norma da Equatorial, vigia os prazos do integrador e registra quem atrasou cada etapa. Empresas que vendem homologação a integradores cobram de R$ 450 a R$ 690 por processo residencial; nosso custo de modelo por processo é de centavos, e medimos o tempo de revisão humana em N minutos."
 
 O N sai do protocolo de medição da seção 3.
