@@ -1,0 +1,117 @@
+:root {
+  --papel: #fafbfc;
+  --tinta: #1d2b36;
+  --tinta-2: #51616e;
+  --linha: #d5dce2;
+  --prancha: #1f5f8b;
+  --ok: #2f7d4f;
+  --atencao: #b7791f;
+  --vencido: #b3261e;
+  --neutro: #7a8790;
+  --raio: 3px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font: 400 15px/1.5 "Archivo", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+a { color: var(--prancha); }
+a:focus-visible { outline: 2px solid var(--prancha); outline-offset: 2px; }
+
+.topo {
+  display: flex; align-items: baseline; gap: 24px; flex-wrap: wrap;
+  padding: 14px 24px; border-bottom: 1px solid var(--linha); background: #fff;
+}
+.marca { font-weight: 700; font-stretch: 112%; color: var(--tinta); text-decoration: none; }
+.topo nav a { text-decoration: none; }
+.relogio { margin: 0 0 0 auto; color: var(--tinta-2); font-size: 14px; }
+.selo-simulacao {
+  margin: 0; padding: 5px 24px; font-size: 13px;
+  background: #fff4e0; color: #7a4a00; border-bottom: 1px solid #f0d9ad;
+}
+main { padding: 24px; }
+
+.cabeca h1 { margin: 0; font-size: 30px; font-weight: 700; font-stretch: 88%; letter-spacing: -0.01em; }
+.resumo { margin: 4px 0 20px; color: var(--tinta-2); max-width: 75ch; }
+.alerta { color: var(--vencido); font-weight: 600; }
+
+/* A régua: a carteira como uma linha de processo */
+.regua {
+  list-style: none; margin: 0; padding: 0 0 12px;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr);
+  gap: 0; overflow-x: auto; border-top: 3px solid var(--tinta);
+}
+.etapa { padding: 0 10px 0 0; min-height: 300px; border-right: 1px dashed var(--linha); }
+.etapa + .etapa { padding-left: 10px; }
+.etapa h2 {
+  margin: 0 0 10px; padding-top: 8px;
+  font-size: 14px; font-weight: 650; font-stretch: 75%;
+  display: flex; gap: 6px; align-items: baseline;
+}
+.etapa .n {
+  display: inline-grid; place-items: center; width: 20px; height: 20px; margin-top: -19px;
+  border-radius: 50%; background: var(--tinta); color: #fff; font-size: 11px; font-stretch: 100%;
+}
+.etapa .qtd { margin-left: auto; color: var(--tinta-2); font-weight: 400; }
+.etapa.vazia h2 { color: var(--neutro); }
+.etapa.vazia .n { background: var(--linha); color: var(--tinta-2); }
+
+.cartao {
+  background: #fff; border: 1px solid var(--linha); border-radius: var(--raio);
+  padding: 10px 12px; margin-bottom: 10px;
+}
+.cartao .titular { font-weight: 600; text-decoration: none; color: var(--tinta); }
+.cartao .titular:hover { color: var(--prancha); text-decoration: underline; }
+.meta, .aviso { margin: 2px 0 0; font-size: 13px; color: var(--tinta-2); }
+.aviso { color: var(--atencao); }
+
+/* Prazo: um pavio que queima da esquerda para a direita */
+.prazo { margin-top: 8px; font-size: 13px; }
+.prazo p { margin: 3px 0 0; }
+.pavio { height: 4px; background: var(--linha); border-radius: 2px; overflow: hidden; }
+.pavio span { display: block; height: 100%; background: var(--ok); }
+.prazo.distribuidora .pavio span { background: var(--neutro); }
+.prazo.atencao .pavio span, .prazo.vence_hoje .pavio span { background: var(--atencao); }
+.prazo.vencido .pavio span { background: var(--vencido); }
+.prazo.integrador.atencao p, .prazo.integrador.vence_hoje p { color: var(--atencao); font-weight: 600; }
+.prazo.vencido p { color: var(--vencido); font-weight: 600; }
+.fonte { color: var(--tinta-2); font-size: 12px; }
+
+/* Timeline */
+.duas-colunas { display: grid; grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); gap: 40px; }
+.duas-colunas h2 { font-size: 16px; font-stretch: 88%; margin: 0 0 12px; }
+aside h2 + * { margin-top: 0; }
+aside h2:not(:first-child) { margin-top: 28px; }
+.linha { list-style: none; margin: 0; padding: 0 0 0 64px; border-left: 0; position: relative; }
+.linha li { position: relative; padding: 0 0 18px 18px; border-left: 2px solid var(--linha); max-width: 70ch; }
+.linha li::before {
+  content: ""; position: absolute; left: -6px; top: 5px;
+  width: 10px; height: 10px; border-radius: 50%; background: var(--prancha);
+}
+.linha li.agente::before { background: #fff; border: 2px solid var(--tinta-2); width: 6px; height: 6px; }
+.linha li.erro::before { background: var(--vencido); border-color: var(--vencido); }
+.linha time { position: absolute; left: -64px; top: 0; width: 52px; text-align: right; color: var(--tinta-2); font-size: 13px; }
+.linha h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.linha p { margin: 2px 0 0; }
+.quem { font-size: 12px; color: var(--tinta-2); }
+.custo { font-size: 12px; color: var(--tinta-2); }
+.falha { color: var(--vencido); }
+blockquote { margin: 6px 0 0; padding: 6px 10px; border-left: 3px solid var(--atencao); background: #fff; }
+.correcao { color: var(--ok); }
+.vazio { color: var(--tinta-2); }
+.custo-total { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
+.custo-total dt { color: var(--tinta-2); }
+.custo-total dd { margin: 0; font-weight: 600; }
+
+@media (max-width: 760px) {
+  main { padding: 16px; }
+  .topo { padding: 12px 16px; }
+  .relogio { margin-left: 0; }
+  .regua { grid-auto-flow: row; grid-auto-columns: auto; border-top: 0; }
+  .etapa, .etapa + .etapa { padding: 0; border-right: 0; min-height: 0; border-top: 2px solid var(--tinta); }
+  .etapa .n { margin-top: 0; }
+  .duas-colunas { grid-template-columns: 1fr; }
+}

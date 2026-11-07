@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Homologação solar{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..750&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/painel.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+</head>
+<body>
+  <header class="topo">
+    <a class="marca" href="/painel">Homologação solar</a>
+    <nav>
+      <a href="/painel">Carteira</a>
+    </nav>
+    <p class="relogio">Hoje no relógio simulado: <strong>{{ hoje.strftime('%d/%m/%Y') }}</strong></p>
+  </header>
+  <p class="selo-simulacao" role="note">Simulação: dados sintéticos e portal da Enel CE simulado</p>
+  <main>{% block conteudo %}{% endblock %}</main>
+</body>
+</html>

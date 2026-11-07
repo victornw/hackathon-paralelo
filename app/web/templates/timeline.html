@@ -1,0 +1,65 @@
+{% extends "layout.html" %}
+{% block titulo %}{{ c.titular }}: timeline{% endblock %}
+{% block conteudo %}
+<section class="cabeca">
+  <p><a href="/painel">Voltar à carteira</a></p>
+  <h1>{{ c.titular }}</h1>
+  <p class="resumo">UC {{ c.uc }}{% if c.kwp %}, {{ '%.2f'|format(c.kwp)|replace('.', ',') }} kWp{% endif %}. Etapa atual: <strong>{{ rotulos[c.p.etapa] }}</strong>{% if c.p.numero_solicitacao %}. Solicitação {{ c.p.numero_solicitacao }}{% endif %}.</p>
+</section>
+
+<div class="duas-colunas">
+  <section aria-labelledby="t-linha">
+    <h2 id="t-linha">O que aconteceu</h2>
+    {% if itens %}
+    <ol class="linha">
+      {% for i in itens %}
+      <li class="{{ i.tipo }}{% if i.passo and i.passo.erro %} erro{% endif %}">
+        <time datetime="{{ i.quando.isoformat() }}">{{ i.quando.strftime('%d/%m') }}</time>
+        {% if i.tipo == 'portal' %}
+          <p class="quem">Portal GD</p>
+          <h3>{{ i.titulo }}</h3>
+          <p>{{ i.ev.descricao }}</p>
+          {% if i.ev.motivo_pendencia %}<blockquote>{{ i.ev.motivo_pendencia }}</blockquote>{% endif %}
+          {% if i.ev.correcao_proposta %}<p class="correcao">Correção proposta: {{ i.ev.correcao_proposta }}</p>{% endif %}
+        {% else %}
+          <p class="quem">Agente</p>
+          <h3>{{ i.titulo }}</h3>
+          {% if i.passo.decisao %}<p>{{ i.passo.decisao }}</p>{% endif %}
+          {% if i.passo.erro %}<p class="falha">Falhou: {{ i.passo.erro }}</p>{% endif %}
+          <p class="custo">{{ i.passo.ms }} ms, {{ i.passo.tokens_entrada + i.passo.tokens_saida }} tokens, R$ {{ '%.4f'|format(i.passo.custo_brl)|replace('.', ',') }}</p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="vazio">Nada registrado ainda. Os passos do agente e as mudanças no portal aparecem aqui assim que o processo roda.</p>
+    {% endif %}
+  </section>
+
+  <aside>
+    <h2>Prazos correndo</h2>
+    {% for x in c.prazos %}
+    <div class="prazo {{ x.situacao }} {{ x.prazo.conta_contra }}">
+      <p><strong>{{ x.rotulo }}</strong></p>
+      <div class="pavio"><span style="width: {{ (x.fracao * 100)|round(0) }}%"></span></div>
+      <p>Vence em {{ x.prazo.vencimento.strftime('%d/%m/%Y') }}{% if x.situacao != 'vencido' %} ({{ x.restantes }} dia{{ 's' if x.restantes != 1 }}{{ ' úteis' if x.prazo.dias_uteis }}){% endif %}. Conta contra {{ 'o integrador' if x.prazo.conta_contra == 'integrador' else 'a distribuidora' }}.</p>
+      <p class="fonte">{{ x.prazo.fonte }}</p>
+    </div>
+    {% else %}
+    <p class="vazio">Nenhum prazo correndo nesta etapa.</p>
+    {% endfor %}
+
+    <h2>Custo do agente</h2>
+    {% if resumo.passos %}
+    <dl class="custo-total">
+      <dt>Passos</dt><dd>{{ resumo.passos }}{% if resumo.erros %} ({{ resumo.erros }} com erro){% endif %}</dd>
+      <dt>Tokens</dt><dd>{{ resumo.tokens_entrada + resumo.tokens_saida }}</dd>
+      <dt>Tempo</dt><dd>{{ '%.1f'|format(resumo.ms / 1000)|replace('.', ',') }} s</dd>
+      <dt>Custo</dt><dd>R$ {{ '%.2f'|format(resumo.custo_brl)|replace('.', ',') }}</dd>
+    </dl>
+    {% else %}
+    <p class="vazio">Sem execuções medidas ainda.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}
