@@ -1,0 +1,16 @@
+{
+  "_leia": "Catálogo de inversores cujo certificado INMETRO para 220 V foi conferido à mão (R05, passo 2). Só entradas com verificado_por e verificado_em contam. Preencha depois de abrir o certificado de conformidade e confirmar modelo, registro ativo e tensão de saída 220 V. Nunca preencha sem ter conferido.",
+  "inversores": [
+    {
+      "fabricante": "SUNGROW",
+      "modelo": "SG5.0RS-L",
+      "registro": "005485/2023",
+      "tensao_v": 220,
+      "url_registro": "https://registro.inmetro.gov.br/consulta/detalhe.aspx?NumeroRegistro=005485%2F2023&pag=1",
+      "url_certificado": null,
+      "observacao": "Candidato. Registro ativo e modelo incluído (consulta de 07/11/2026), mas a descrição atual não cita a tensão; linhas excluídas citavam 220/240 V. Falta conferir o certificado.",
+      "verificado_por": null,
+      "verificado_em": null
+    }
+  ]
+}

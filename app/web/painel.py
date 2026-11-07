@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
@@ -256,3 +256,24 @@ router.include_router(_portal_router)
 from app.web.chat import router as _chat_router
 
 router.include_router(_chat_router)
+
+
+@router.post("/processos/{processo_id}/regras/R05/confirmar")
+def confirmar_r05(processo_id: str, engenheiro: str = Form(...)):
+    """Clique do engenheiro na revisão: assume a R05 incerta (registro ativo sem
+    tensão no INMETRO e datasheet 220 V). Grava nome e data no resultado."""
+    from app.core import repositorio as repo
+    from app.core.parecer import r05_inmetro
+
+    try:
+        repo.carregar(processo_id)
+    except KeyError as exc:
+        raise HTTPException(404, "Processo não encontrado.") from exc
+    try:
+        atualizado = repo.atualizar(
+            processo_id, lambda p: r05_inmetro.confirmar(p, engenheiro)
+        )
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    r05 = next(r for r in atualizado.regras if r.regra_id == "R05")
+    return {"confirmado_por": r05.confirmado_por, "confirmado_em": r05.confirmado_em}

@@ -83,6 +83,7 @@ def _base(pid: str, titular: str, uc: str, inicio: date) -> Processo:
     p.campos["uc"] = _campo(uc)
     p.campos["consumo_medio_kwh"] = _campo("620")
     p.visita.bitola_ca_mm2 = 6
+    p.visita.area_concessao = "ceara"
     p.visita.relacao_cargas = [
         Carga(descricao="Geladeira", potencia_w=250),
         Carga(descricao="Ar-condicionado 12.000 BTU", potencia_w=1100),
