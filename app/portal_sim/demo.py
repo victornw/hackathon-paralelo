@@ -29,6 +29,7 @@ from app.schemas import (
     Carga,
     Etapa,
     Fonte,
+    Inversor,
     Pergunta,
     Processo,
     StatusRegra,
@@ -37,6 +38,26 @@ from app.tracing.db import conectar
 from app.tracing.trace import processo_atual
 
 RAIZ = Path(__file__).resolve().parents[2]
+
+# Inversor real dos casos prontos. Fonte: datasheet Sungrow SG4.0/5.0/6.0RS-L,
+# versão 14 (2025), coluna SG5.0RS-L. Registro INMETRO 005485/2023 (ativo; a
+# descrição atual não cita a tensão, então a R05 pede a confirmação do engenheiro).
+# Bornes CA: conector plug and play, máx. 6 mm². O módulo segue sintético.
+INVERSOR_DEMO = Inversor(
+    fabricante="SUNGROW",
+    modelo="SG5.0RS-L",
+    potencia_nominal_w=5000,
+    potencia_max_cc_w=7500,  # potência FV máxima recomendada: 7,5 kWp
+    tensao_max_cc_v=600,
+    mppt_min_v=40,
+    mppt_max_v=560,
+    num_mppt=2,
+    corrente_max_entrada_a=16,  # por MPPT (32 A no total)
+    corrente_max_saida_a=22.8,
+    tensao_saida_v=220,
+    certificado_inmetro="005485/2023",
+    terminal_ca_max_mm2=6,
+)
 DATA_PADRAO = date(2026, 11, 16)
 ENGENHEIRO = "Eng. Demonstração (CREA sintético)"
 EMAIL = "integrador.demo@exemplo.com"
@@ -82,6 +103,7 @@ def _base(pid: str, titular: str, uc: str, inicio: date) -> Processo:
     p.campos["titular"] = _campo(titular)
     p.campos["uc"] = _campo(uc)
     p.campos["consumo_medio_kwh"] = _campo("620")
+    p.kit.inversor = INVERSOR_DEMO.model_copy(deep=True)
     p.visita.bitola_ca_mm2 = 6
     p.visita.area_concessao = "ceara"
     p.visita.relacao_cargas = [
@@ -138,6 +160,11 @@ def _preparar_para_revisao(p: Processo) -> Processo:
 
 
 def _revisar(p: Processo, quando: date) -> None:
+    """O engenheiro revisou e assinou: confirma também a R05, se ela pedir."""
+    from app.core.parecer import r05_inmetro
+
+    if any(r.regra_id == "R05" and r.valores.get("confirmavel") for r in p.regras):
+        r05_inmetro.confirmar(p, ENGENHEIRO)
     p.revisado_por = ENGENHEIRO
     p.revisado_em = datetime.combine(quando, time(11, 0))
 

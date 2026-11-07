@@ -24,6 +24,7 @@ import hashlib
 import html
 import json
 import re
+import ssl
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -136,7 +137,10 @@ def _baixar(url: str) -> str:
     pedido = Request(
         url, headers={"User-Agent": "homologacao-solar/0.1 (consulta pontual)"}
     )
-    with urlopen(pedido, timeout=TIMEOUT_S) as resposta:
+    import certifi  # cadeia de certificados atualizada (o Python do sistema pode não ter)
+
+    contexto = ssl.create_default_context(cafile=certifi.where())
+    with urlopen(pedido, timeout=TIMEOUT_S, context=contexto) as resposta:
         return resposta.read().decode("utf-8", "replace")
 
 
@@ -333,20 +337,37 @@ def avaliar(processo: Processo) -> ResultadoRegra:
             f"220 V conferido por {entrada['verificado_por']} em {entrada['verificado_em']}."
         )
 
-    # 3. registro ativo sem tensão + datasheet 220 V: o engenheiro confirma
-    if modelo_registrado is not None and inv.tensao_saida_v == TENSAO_CONEXAO_V:
+    # 3. ninguém comprovou: o engenheiro resolve, vendo as evidências que existem.
+    #    a) registro ativo e modelo incluído, mas sem tensão na descrição;
+    #    b) consulta indisponível (site fora do ar) com número de registro real.
+    sintetico = bool(numero) and numero.upper().startswith("SIMULADO")
+    pode_confirmar = (
+        numero is not None
+        and not sintetico
+        and inv.tensao_saida_v == TENSAO_CONEXAO_V
+        and (modelo_registrado is not None or consulta is None)
+    )
+    if pode_confirmar:
         p.evidencias.append(
             Evidencia(
                 descricao=f"Datasheet do inversor: tensão de saída {TENSAO_CONEXAO_V} V",
                 fonte="datasheet",
             )
         )
-        chave = f"{numero}|{_normalizar(inv.modelo)}|{consulta.sha256[:16]}"
+        if consulta is not None:
+            chave = f"{numero}|{_normalizar(inv.modelo)}|{consulta.sha256[:16]}"
+            texto = (
+                f"Registro {numero} ativo e modelo incluído, mas a descrição no INMETRO "
+                "não cita a tensão; o datasheet diz 220 V. Confirme na revisão para assumir."
+            )
+        else:
+            chave = f"{numero}|{_normalizar(inv.modelo)}|sem-consulta"
+            texto = (
+                f"Não foi possível consultar o registro {numero} no INMETRO agora; o "
+                "datasheet diz 220 V. Confira o registro e confirme na revisão para assumir."
+            )
         p.valores.update({"confirmavel": "sim", "chave_confirmacao": chave})
-        resultado = p.incerta(
-            f"Registro {numero} ativo e modelo incluído, mas a descrição no INMETRO não "
-            "cita a tensão; o datasheet diz 220 V. Confirme na revisão para assumir."
-        )
+        resultado = p.incerta(texto)
         anterior = _confirmacao_anterior(processo, chave)
         if anterior is not None:
             resultado.confirmado_por = anterior.confirmado_por

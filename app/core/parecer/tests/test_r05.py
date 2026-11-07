@@ -183,3 +183,35 @@ def test_catalogo_do_repositorio_so_tem_candidatos_ate_alguem_conferir():
     dados = json.loads(r05.CATALOGO.read_text(encoding="utf-8"))["inversores"]
     for e in dados:
         assert bool(e["verificado_por"]) == bool(e["verificado_em"])
+
+
+def test_site_fora_do_ar_sem_catalogo_engenheiro_resolve(p, monkeypatch):
+    _site(monkeypatch, falha=True)
+    r = r05.avaliar(p)
+    assert r.status == StatusRegra.INCERTA
+    assert r.valores["confirmavel"] == "sim"
+    assert "Não foi possível consultar" in r.mensagem
+    assert [e.fonte for e in r.evidencias] == ["datasheet"]
+    p.regras = [r]
+    r05.confirmar(p, "Eng. Beltrano")
+    assert not r05.bloqueia(p.regras[0])
+
+
+def test_quando_o_site_volta_a_confirmacao_precisa_ser_refeita(p, monkeypatch):
+    _site(monkeypatch, falha=True)
+    p.regras = [r05.avaliar(p)]
+    r05.confirmar(p, "Eng. Beltrano")
+    _site(monkeypatch, _pagina())  # agora responde: evidência nova
+    de_novo = r05.avaliar(p)
+    assert de_novo.status == StatusRegra.INCERTA and de_novo.confirmado_por is None
+
+
+def test_sintetico_ou_tensao_diferente_nao_sao_confirmaveis(p, processo, monkeypatch):
+    _site(monkeypatch, falha=True)
+    p.kit.inversor.tensao_saida_v = 127
+    r = r05.avaliar(p)
+    assert r.status == StatusRegra.INCERTA and "confirmavel" not in r.valores
+    p.regras = [r]
+    with pytest.raises(ValueError):
+        r05.confirmar(p, "Eng. X")
+    assert r05.bloqueia(r)
