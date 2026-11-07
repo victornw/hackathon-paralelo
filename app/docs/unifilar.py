@@ -1,4 +1,4 @@
-"""Diagrama unifilar da microgeração FV (Enel CE), a partir de templates SVG.
+"""Diagrama unifilar da microgeração FV (Enel), a partir de templates SVG.
 
 Base: norma Enel CNC-NDBR-DBR-18-0122, Anexo B, conexão à BT através de
 inversor (forma de conexão 1). Há um template por número de MPPTs usados

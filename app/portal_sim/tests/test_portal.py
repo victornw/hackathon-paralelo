@@ -30,7 +30,7 @@ def pronto() -> Processo:
     p.visita.relacao_cargas = [Carga(descricao="Geladeira", potencia_w=250)]
     p.perguntas += [
         Pergunta(
-            id="t", campo="telefone", texto="Telefone?", resposta="(85) 90000-0000"
+            id="t", campo="telefone", texto="Telefone?", resposta="(00) 90000-0000"
         ),
         Pergunta(
             id="m",
@@ -81,7 +81,7 @@ def test_protocolo_exige_revisao_do_engenheiro(pronto):
 def test_protocolar_gera_numero_sequencial_e_trace(pronto):
     n1 = protocolar(pronto)
     n2 = protocolar(pronto)
-    assert n1 == "GD-CE-2026-000001" and n2 == "GD-CE-2026-000002"
+    assert n1 == "GD-2026-000001" and n2 == "GD-2026-000002"
     assert [p.passo for p in listar_passos(pronto.id)] == ["protocolar", "protocolar"]
 
 
@@ -94,7 +94,7 @@ def test_consulta_exige_uc_email_e_numero(pronto):
     with pytest.raises(SolicitacaoNaoEncontrada):
         consultar_status("999", "integrador@exemplo.com", n)
     with pytest.raises(SolicitacaoNaoEncontrada):
-        consultar_status("7000123456", "integrador@exemplo.com", "GD-CE-2026-999999")
+        consultar_status("7000123456", "integrador@exemplo.com", "GD-2026-999999")
 
 
 def test_roteiro_completo_com_pendencia_e_prazos(pronto):
