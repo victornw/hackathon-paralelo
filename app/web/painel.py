@@ -188,3 +188,8 @@ def documentos(request: Request, processo_id: str):
     return templates.TemplateResponse(
         request, "_documentos.html", contexto_documentos(proc)
     )
+
+
+from app.portal_sim.rotas import router as _portal_router
+
+router.include_router(_portal_router)

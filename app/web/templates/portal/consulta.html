@@ -1,0 +1,72 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Consultar solicitação - Portal GD (simulado){% endblock %}
+{% block conteudo %}
+{% if not encontrada %}
+<h1>Consultar solicitação</h1>
+{% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
+{% include "portal/_form_consulta.html" %}
+{% else %}
+<h1>Solicitação {{ numero }}</h1>
+<p class="etapa-atual">Etapa atual: <strong>{{ etapa_rotulo }}</strong></p>
+{% if erro %}<p class="erro" role="alert">{{ erro }}</p>{% endif %}
+
+<ol class="stepper" aria-label="Etapas da solicitação">
+  {% for p in passos %}
+  <li class="passo {{ p.estado }}"{% if p.estado == 'atual' %} aria-current="step"{% endif %}>
+    <span class="marca-passo" aria-hidden="true">{{ loop.index }}</span>
+    <span class="rotulo-passo">{{ p.rotulo }}</span>
+    <span class="so-leitor">{% if p.estado == 'feito' %}(concluída){% elif p.estado == 'futuro' %}(pendente){% endif %}</span>
+  </li>
+  {% endfor %}
+</ol>
+
+{% if etapa == Etapa.PENDENCIA or etapa == Etapa.ORCAMENTO_EMITIDO or etapa == Etapa.ORCAMENTO_APROVADO %}
+<section class="bloco acao" aria-labelledby="h-acao">
+  <h2 id="h-acao">Ação disponível</h2>
+  {% if etapa == Etapa.PENDENCIA %}
+  <form class="form" method="post" action="/portal-gd/acoes/reenviar">
+    <input type="hidden" name="uc" value="{{ uc }}">
+    <input type="hidden" name="email" value="{{ email }}">
+    <input type="hidden" name="numero" value="{{ numero }}">
+    <div class="campo">
+      <label for="correcao">Descreva a correção</label>
+      <textarea id="correcao" name="correcao" rows="4" required></textarea>
+    </div>
+    <button type="submit">Reenviar com a correção</button>
+  </form>
+  {% else %}
+  <form class="form" method="post" action="/portal-gd/acoes/{{ 'aprovar-orcamento' if etapa == Etapa.ORCAMENTO_EMITIDO else 'solicitar-vistoria' }}">
+    <input type="hidden" name="uc" value="{{ uc }}">
+    <input type="hidden" name="email" value="{{ email }}">
+    <input type="hidden" name="numero" value="{{ numero }}">
+    <button type="submit">{{ 'Aprovar orçamento' if etapa == Etapa.ORCAMENTO_EMITIDO else 'Solicitar vistoria' }}</button>
+  </form>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="bloco" aria-labelledby="h-hist">
+  <h2 id="h-hist">Histórico</h2>
+  <ul class="historico">
+    {% for e in eventos|reverse %}
+    <li>
+      <p class="linha-evento"><time datetime="{{ e.data.isoformat() }}">{{ e.data|data_br }}</time> <strong>{{ rotulos[e.etapa] }}</strong></p>
+      <p>{{ e.descricao }}</p>
+      {% if e.motivo_pendencia %}
+      <blockquote><p class="rotulo-citacao">Motivo informado pelo analista</p>{{ e.motivo_pendencia }}</blockquote>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="bloco" aria-labelledby="h-form">
+  <h2 id="h-form">Formulário básico</h2>
+  <dl class="definicoes">
+    {% for rotulo, valor in formulario %}
+    <div><dt>{{ rotulo }}</dt><dd>{{ valor }}</dd></div>
+    {% endfor %}
+  </dl>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "portal/base.html" %}
+{% block titulo %}Portal de geração distribuída (simulado){% endblock %}
+{% block conteudo %}
+<h1>Portal de geração distribuída (simulado)</h1>
+
+<section class="bloco" aria-labelledby="h-consulta">
+  <h2 id="h-consulta">Consultar solicitação</h2>
+  <p>Informe os dados da solicitação para ver a etapa atual.</p>
+  {% include "portal/_form_consulta.html" %}
+</section>
+
+<section class="bloco" aria-labelledby="h-nova">
+  <h2 id="h-nova">Como é uma nova solicitação</h2>
+  <ol class="passos-novos">
+    <li><strong>Formulário básico.</strong> Dados do titular, da unidade consumidora e da geração.</li>
+    <li><strong>Download da documentação.</strong> Baixe os modelos exigidos para a solicitação.</li>
+    <li><strong>Upload dos documentos.</strong> Envie os documentos preenchidos e assinados.</li>
+    <li><strong>Confirmação.</strong> Confira os dados e receba o número da solicitação.</li>
+  </ol>
+  <p class="nota">Nesta demonstração você não preenche as etapas aqui. O agente envia a solicitação depois que o engenheiro revisa e assina.</p>
+</section>
+{% endblock %}

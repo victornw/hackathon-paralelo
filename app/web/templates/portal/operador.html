@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+{% block titulo %}Operador do portal{% endblock %}
+{% block conteudo %}
+<link rel="stylesheet" href="/static/portal.css">
+<div class="operador">
+<h1>Operador do portal (simulado)</h1>
+<p>Esta tela representa a distribuidora na demonstração. Ela não faz parte do portal público.</p>
+
+<section class="bloco" aria-labelledby="h-rel">
+  <h2 id="h-rel">Avançar o relógio</h2>
+  <p>Data atual do relógio simulado: <strong>{{ hoje.strftime('%d/%m/%Y') }}</strong></p>
+  <div class="botoes">
+    <button type="button" data-dias="1">+1 dia</button>
+    <button type="button" data-dias="5">+5 dias</button>
+    <button type="button" data-dias="10">+10 dias</button>
+  </div>
+  <p id="erro-relogio" class="erro" role="alert" hidden></p>
+</section>
+
+<section class="bloco" aria-labelledby="h-sol">
+  <h2 id="h-sol">Solicitações</h2>
+  {% if aguardando %}<p class="erro" role="alert">Aguardando o integrador: a solicitação {{ aguardando }} não tem passo da distribuidora agora.</p>{% endif %}
+  {% if not linhas %}
+  <p>Nenhuma solicitação protocolada ainda.</p>
+  {% else %}
+  <div class="rolagem">
+  <table class="tabela">
+    <thead><tr><th>Número</th><th>UC</th><th>Titular</th><th>Etapa</th><th>Última atualização</th><th>Consulta</th><th>Ação</th></tr></thead>
+    <tbody>
+    {% for l in linhas %}
+      <tr>
+        <td>{{ l.r.numero }}</td>
+        <td>{{ l.r.uc }}</td>
+        <td>{{ l.r.titular }}</td>
+        <td>{{ rotulos[l.r.etapa] }}</td>
+        <td>{{ l.r.ultima_data.strftime('%d/%m/%Y') }}</td>
+        <td><a href="{{ l.url }}">Abrir consulta</a></td>
+        <td>
+          <form method="post" action="/portal-gd/operador/{{ l.r.numero }}/avancar">
+            <button type="submit">Próximo passo da distribuidora</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% endif %}
+</section>
+</div>
+<script>
+  document.querySelectorAll('button[data-dias]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var dias = parseInt(b.dataset.dias, 10);
+      var erro = document.getElementById('erro-relogio');
+      erro.hidden = true;
+      fetch('/api/relogio/avancar', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({dias: dias})})
+        .then(function (r) { if (!r.ok) { throw new Error(); } location.reload(); })
+        .catch(function () { erro.textContent = 'Não foi possível avançar o relógio. Tente de novo.'; erro.hidden = false; });
+    });
+  });
+</script>
+{% endblock %}

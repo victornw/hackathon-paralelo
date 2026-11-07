@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Portal GD (simulado){% endblock %}</title>
+  <link rel="stylesheet" href="/static/portal.css">
+</head>
+<body class="portal">
+  <p class="aviso-simulado" role="note">Portal simulado para demonstração. Não é o portal da Enel; dados sintéticos.</p>
+  <header class="cabeca-portal">
+    <a class="nome-portal" href="/portal-gd">Portal GD (simulado)</a>
+    <nav aria-label="Principal">
+      <a href="/portal-gd">Início</a>
+      <a href="/portal-gd/consulta">Consultar solicitação</a>
+    </nav>
+  </header>
+  <main class="miolo">{% block conteudo %}{% endblock %}</main>
+</body>
+</html>

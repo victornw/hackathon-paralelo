@@ -26,6 +26,7 @@ a:focus-visible { outline: 2px solid var(--prancha); outline-offset: 2px; }
   padding: 14px 24px; border-bottom: 1px solid var(--linha); background: #fff;
 }
 .marca { font-weight: 700; font-stretch: 112%; color: var(--tinta); text-decoration: none; }
+.topo nav { display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .topo nav a { text-decoration: none; }
 .relogio { margin: 0 0 0 auto; color: var(--tinta-2); font-size: 14px; }
 .selo-simulacao {
