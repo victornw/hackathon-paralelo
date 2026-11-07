@@ -46,3 +46,21 @@ def test_timeline_mostra_prompt_usado(cliente):
         passo()
     r = cliente.get("/processos/proc-demo-006/timeline")
     assert f"Prompt: classificar_pendencia v1 ({prompt.hash})" in r.text
+
+
+def test_faixa_de_prazos_vigiados_ordena_por_urgencia(cliente):
+    from datetime import date
+
+    from app.web.painel import carregar_processos, proximos_prazos
+
+    itens = proximos_prazos(carregar_processos(), date(2026, 11, 13))
+    situacoes = [i["x"].situacao for i in itens]
+    ordem = {"vencido": 0, "vence_hoje": 1, "atencao": 2, "no_prazo": 3}
+    assert situacoes == sorted(situacoes, key=ordem.get)
+    assert all(i["quem"] in ("Integrador", "Enel") for i in itens)
+    integrador = [i for i in itens if i["quem"] == "Integrador"]
+    assert integrador and all(i["link"].endswith("/chat") for i in integrador)
+
+    r = cliente.get("/painel")
+    assert "Prazos que o agente está vigiando" in r.text
+    assert "Venceu em 12/11" in r.text  # vistoria da Lucia: Enel fora do prazo
