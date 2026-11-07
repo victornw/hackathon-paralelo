@@ -7,8 +7,8 @@ novo sem entrada nova não faz nada. Os passos de montagem andam em estágios:
 um estágio só abre quando o anterior não tem nada pendente.
 
 O LLM nunca decide se uma regra passa nem se um passo pode rodar: só escolhe,
-entre os passos que as guardas liberaram, qual vem primeiro (e, sem LLM ou com
-falha, vale o primeiro da ordem canônica). Um passo calcula sobre um retrato do
+entre os passos que as guardas liberaram, qual vem primeiro, usando ToolLoopAgent
+do Vercel AI SDK. Sem modelo configurado, vale a ordem canônica determinística. Um passo calcula sobre um retrato do
 processo e devolve uma função `aplicar`; ela só entra se as entradas do passo
 não mudaram durante o cálculo (senão o resultado é descartado e o passo roda de
 novo), então a API pode gravar respostas a qualquer momento sem perder dados.
@@ -28,11 +28,10 @@ from enum import StrEnum
 from functools import lru_cache
 from itertools import chain
 from pathlib import Path
-from typing import Literal
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
 
-from app.core import arranjo, extracao, llm, perguntas
+from app.core import ai_sdk, arranjo, extracao, llm, perguntas
 from app.core import regras as conferidor
 from app.core import repositorio as repo
 from app.docs import gerar as gerador
@@ -43,11 +42,13 @@ from app.schemas import (
     DadosVisita,
     Etapa,
     EventoPortal,
+    PassoTrace,
     Pergunta,
     Processo,
     StatusRegra,
 )
 from app.tracing import processo_atual, registrar_uso, trace
+from app.tracing.trace import custo_por_tokens, gravar_passo
 
 MAX_PASSOS = 30
 TENTATIVAS = 3
@@ -648,11 +649,6 @@ def _executar_reenviar(p: Processo, arquivos: Arquivos) -> Aplicar:
 
 # --- decisão do próximo passo ----------------------------------------------------------
 
-_SISTEMA_DECISAO = (
-    "Você coordena a homologação de um sistema solar. Escolha qual dos passos disponíveis "
-    "deve rodar primeiro. Todos são seguros; você só define a ordem. Não decide regras nem prazos."
-)
-
 
 def _resumo_para_decisao(p: Processo, opcoes: list[Passo]) -> str:
     resumo = {
@@ -668,40 +664,115 @@ def _resumo_para_decisao(p: Processo, opcoes: list[Passo]) -> str:
     return json.dumps(resumo, ensure_ascii=False)
 
 
-def _esquema_decisao(opcoes: list[Passo]) -> type[BaseModel]:
-    return create_model(
-        "DecisaoDoPasso",
-        passo=(Literal[tuple(o.value for o in opcoes)], ...),
-        motivo=(str, ...),
-    )
+@trace("decidir_proximo_passo")
+def _decidir(p: Processo, opcoes: list[Passo]) -> Passo:
+    """Execução determinística quando nenhum modelo de decisão está configurado."""
+    quem = "unica_opcao" if len(opcoes) == 1 else "sem_modelo"
+    registrar_uso(decisao=f"{opcoes[0].value} ({quem}): {_DESCRICAO[opcoes[0]]}")
+    return opcoes[0]
 
 
 @trace("decidir_proximo_passo")
-def _decidir(p: Processo, opcoes: list[Passo]) -> Passo:
-    """Quem decide fica no trace: unica_opcao, llm ou fallback (primeiro da ordem)."""
-    escolhido, quem, motivo = opcoes[0], "unica_opcao", _DESCRICAO[opcoes[0]]
-    if len(opcoes) > 1:
-        escolhido, quem, motivo = opcoes[0], "fallback", "LLM de decisão indisponível"
-        if llm.disponivel("decisao"):
-            try:
-                resposta = llm.completar_json(
-                    "decisao",
-                    _SISTEMA_DECISAO,
-                    _resumo_para_decisao(p, opcoes),
-                    _esquema_decisao(opcoes),
-                )
-                if resposta.passo in {o.value for o in opcoes}:
-                    escolhido, quem, motivo = (
-                        Passo(resposta.passo),
-                        "llm",
-                        resposta.motivo,
-                    )
-                else:
-                    motivo = f"LLM escolheu um passo fora das opções: {resposta.passo}"
-            except Exception as exc:  # noqa: BLE001 - qualquer falha do LLM cai no fallback
-                motivo = f"{type(exc).__name__}: {exc}"
-    registrar_uso(decisao=f"{escolhido.value} ({quem}): {motivo}")
-    return escolhido
+def _registrar_decisao_sdk(passo: Passo, motivo: str) -> None:
+    registrar_uso(decisao=f"{passo.value} (vercel_ai_sdk): {motivo}")
+
+
+def _registrar_uso_sdk(processo_id: str, params: dict) -> None:
+    entrada, saida = params["inputTokens"], params["outputTokens"]
+    gravar_passo(
+        PassoTrace(
+            processo_id=processo_id,
+            passo="modelo_agente_ai_sdk",
+            tokens_entrada=entrada,
+            tokens_saida=saida,
+            ms=params.get("ms", 0),
+            custo_brl=custo_por_tokens(entrada, saida),
+            em=repo.agora(),
+            decisao=f"Vercel AI SDK: {params['model']}",
+        )
+    )
+
+
+def _laco_sdk(processo_id: str) -> None:
+    # Uma nova tentativa precisa liberar a falha anterior para alcançar a revisão.
+    repo.atualizar(
+        processo_id,
+        lambda q: setattr(
+            q, "perguntas", [x for x in q.perguntas if x.id != "falha:agente_ai_sdk"]
+        ),
+    )
+    execucoes = 0
+
+    def estado() -> dict:
+        p = repo.carregar(processo_id)
+        opcoes = passos_disponiveis(
+            p, repo.arquivos(processo_id), repo.memoria(processo_id)
+        )
+        return {
+            "options": [o.value for o in opcoes],
+            "summary": json.loads(_resumo_para_decisao(p, opcoes)),
+        }
+
+    def atender(method: str, params: dict) -> dict:
+        nonlocal execucoes
+        if method == "state":
+            return estado()
+        if method == "usage":
+            _registrar_uso_sdk(processo_id, params)
+            return {}
+        if method != "execute":
+            raise ValueError("Método desconhecido")
+        passo = Passo(params["name"])
+        p, arquivos, memoria = (
+            repo.carregar(processo_id),
+            repo.arquivos(processo_id),
+            repo.memoria(processo_id),
+        )
+        if execucoes >= MAX_PASSOS or passo not in passos_disponiveis(
+            p, arquivos, memoria
+        ):
+            raise ValueError("Passo não autorizado pelo estado atual")
+        execucoes += 1
+        _registrar_decisao_sdk(passo, params["motivo"])
+        _rodar(processo_id, passo, p, arquivos, memoria)
+        atualizado = repo.carregar(processo_id)
+        falhou = any(
+            q.id == f"falha:{passo}" and not q.resposta for q in atualizado.perguntas
+        )
+        return {"ok": not falhou, "state": estado()}
+
+    try:
+        ai_sdk.run(
+            {
+                "mode": "agent",
+                "models": llm._modelos("decisao"),
+                "tools": {p.value: d for p, d in _DESCRICAO.items()},
+                "maxSteps": MAX_PASSOS,
+            },
+            atender,
+        )
+    except ai_sdk.SDKError:
+        pergunta = Pergunta(
+            id="falha:agente_ai_sdk",
+            campo="falha:agente_ai_sdk",
+            destinatario="engenheiro",
+            texto="O agente Vercel AI SDK não concluiu a execução. O estado foi preservado; confira Node, npm ci e o provider antes de rodar novamente.",
+        )
+
+        def registrar(q: Processo) -> None:
+            q.perguntas = [x for x in q.perguntas if x.id != pergunta.id]
+            q.perguntas.append(pergunta)
+
+        repo.atualizar(processo_id, registrar)
+    else:
+        repo.atualizar(
+            processo_id,
+            lambda q: setattr(
+                q,
+                "perguntas",
+                [x for x in q.perguntas if x.id != "falha:agente_ai_sdk"],
+            ),
+        )
 
 
 # --- laço ---------------------------------------------------------------------------------
@@ -799,6 +870,9 @@ def _rodar(
 
 
 def _laco(processo_id: str) -> None:
+    if llm.disponivel("decisao"):
+        _laco_sdk(processo_id)
+        return
     for _ in range(MAX_PASSOS):
         p = repo.carregar(processo_id)
         arquivos = repo.arquivos(processo_id)

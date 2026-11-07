@@ -44,3 +44,79 @@ def confirmado(processo: Processo) -> Processo:
 def com_documentos(confirmado: Processo) -> Processo:
     confirmado.documentos = gerar_documentos(confirmado)
     return confirmado
+
+
+@pytest.fixture
+def provider_sdk_local(monkeypatch):
+    """API compatível simulada: exercita Node/AI SDK reais sem sair da máquina."""
+    import json
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    requests = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def do_POST(self):
+            request = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            requests.append(request)
+            tools = request.get("tools", [])
+            message = {"role": "assistant", "content": '{"nome":"Ana","idade":30}'}
+            if tools:
+                message = {
+                    "role": "assistant",
+                    "content": None,
+                    "tool_calls": [
+                        {
+                            "id": f"call-{len(requests)}",
+                            "type": "function",
+                            "function": {
+                                "name": tools[0]["function"]["name"],
+                                "arguments": '{"motivo":"passo disponível"}',
+                            },
+                        }
+                    ],
+                }
+            body = json.dumps(
+                {
+                    "id": "local",
+                    "object": "chat.completion",
+                    "created": 0,
+                    "model": "local",
+                    "choices": [
+                        {
+                            "index": 0,
+                            "message": message,
+                            "finish_reason": "tool_calls" if tools else "stop",
+                        }
+                    ],
+                    "usage": {
+                        "prompt_tokens": 10,
+                        "completion_tokens": 5,
+                        "total_tokens": 15,
+                    },
+                }
+            ).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    monkeypatch.setenv("FEATHERLESS_API_KEY", "fake-local")
+    monkeypatch.setenv(
+        "FEATHERLESS_BASE_URL", f"http://127.0.0.1:{server.server_port}/v1"
+    )
+    monkeypatch.setenv("MODELO_PRINCIPAL", "local")
+    monkeypatch.delenv("MODELO_FALLBACK", raising=False)
+    try:
+        yield requests
+    finally:
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=5)

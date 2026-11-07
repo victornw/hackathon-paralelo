@@ -1,4 +1,4 @@
-"""Cliente do LLM (Featherless, compatível com a API da OpenAI).
+"""Cliente do LLM via Vercel AI SDK (Featherless).
 
 Todo papel usa MODELO_PRINCIPAL, e MODELO_FALLBACK entra quando o principal
 falha (erro de API ou resposta fora do esquema mesmo após o reparo). Um papel
@@ -18,9 +18,9 @@ import os
 from collections.abc import Sequence
 from typing import Literal, TypeVar
 
-import openai
 from pydantic import BaseModel, ValidationError
 
+from app.core import ai_sdk
 from app.tracing import registrar_uso
 
 Papel = Literal["extracao", "visao", "decisao", "redacao", "pendencia"]
@@ -67,18 +67,6 @@ def disponivel(papel: Papel) -> bool:
     return bool(os.environ.get("FEATHERLESS_API_KEY")) and bool(_modelos(papel))
 
 
-def _cliente() -> openai.OpenAI:
-    chave = os.environ.get("FEATHERLESS_API_KEY")
-    if not chave:
-        raise LLMIndisponivel("FEATHERLESS_API_KEY não definida")
-    return openai.OpenAI(
-        api_key=chave,
-        base_url=os.environ.get("FEATHERLESS_BASE_URL") or URL_PADRAO,
-        timeout=TIMEOUT_S,
-        max_retries=0,
-    )
-
-
 def _data_url(imagem: bytes) -> str:
     mime = next(
         (m for ass, m in _ASSINATURAS_IMAGEM.items() if imagem.startswith(ass)),
@@ -115,19 +103,18 @@ def _com_fallback(papel: Papel, tentar):
 
 
 def _chamar(modelo: str, mensagens: list[dict]) -> str:
-    cliente = _cliente()
+    if not os.environ.get("FEATHERLESS_API_KEY"):
+        raise LLMIndisponivel("FEATHERLESS_API_KEY não definida")
     try:
-        resposta = cliente.chat.completions.create(model=modelo, messages=mensagens)
-    except openai.OpenAIError as exc:
-        raise LLMErro(f"{type(exc).__name__}: {exc}") from exc
-    uso = getattr(resposta, "usage", None)
-    registrar_uso(
-        getattr(uso, "prompt_tokens", 0) or 0,
-        getattr(uso, "completion_tokens", 0) or 0,
-    )
-    if not resposta.choices or not resposta.choices[0].message.content:
+        resposta = ai_sdk.run(
+            {"mode": "complete", "model": modelo, "messages": mensagens}
+        )
+    except ai_sdk.SDKError as exc:
+        raise LLMErro(str(exc)) from exc
+    registrar_uso(resposta.get("inputTokens", 0), resposta.get("outputTokens", 0))
+    if not resposta.get("text"):
         raise LLMErro("resposta vazia do modelo")
-    return resposta.choices[0].message.content
+    return resposta["text"]
 
 
 def _primeiro_objeto_json(texto: str) -> str | None:

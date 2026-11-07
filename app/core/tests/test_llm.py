@@ -1,9 +1,5 @@
 """Testes do cliente LLM com um cliente falso: nenhuma chamada de rede."""
 
-from types import SimpleNamespace
-
-import httpx
-import openai
 import pytest
 from pydantic import BaseModel
 
@@ -39,24 +35,21 @@ class ClienteFalso:
     def __init__(self, *respostas):
         self.respostas = list(respostas)
         self.chamadas: list[dict] = []
-        self.chat = SimpleNamespace(completions=SimpleNamespace(create=self._criar))
 
-    def _criar(self, **kwargs):
+    def _criar(self, request):
+        kwargs = {"model": request["model"], "messages": request["messages"]}
         self.chamadas.append({**kwargs, "messages": list(kwargs["messages"])})
         resposta = self.respostas.pop(0)
         if isinstance(resposta, Exception):
             raise resposta
-        return SimpleNamespace(
-            choices=[SimpleNamespace(message=SimpleNamespace(content=resposta))],
-            usage=SimpleNamespace(prompt_tokens=10, completion_tokens=5),
-        )
+        return {"text": resposta, "inputTokens": 10, "outputTokens": 5}
 
 
 @pytest.fixture
 def falso(monkeypatch):
     def instalar(*respostas):
         cliente = ClienteFalso(*respostas)
-        monkeypatch.setattr(llm, "_cliente", lambda: cliente)
+        monkeypatch.setattr(llm.ai_sdk, "run", cliente._criar)
         return cliente
 
     return instalar
@@ -69,22 +62,10 @@ def test_disponivel_exige_chave_e_modelo_do_papel(monkeypatch):
     assert not llm.disponivel("extracao")
 
 
-def test_cliente_usa_url_padrao_sem_retentativas_do_sdk():
-    cliente = llm._cliente()
-    assert str(cliente.base_url).startswith("https://api.featherless.ai/v1")
-    assert cliente.max_retries == 0
-    assert cliente.timeout == 60
-
-
-def test_cliente_respeita_base_url_do_ambiente(monkeypatch):
-    monkeypatch.setenv("FEATHERLESS_BASE_URL", "http://localhost:9999/v1")
-    assert str(llm._cliente().base_url).startswith("http://localhost:9999/v1")
-
-
 def test_cliente_sem_chave_levanta_indisponivel(monkeypatch):
     monkeypatch.delenv("FEATHERLESS_API_KEY")
     with pytest.raises(LLMIndisponivel):
-        llm._cliente()
+        llm._chamar("modelo", [])
 
 
 def test_papel_sem_modelo_levanta_indisponivel(falso):
@@ -124,7 +105,7 @@ def test_falha_depois_do_reparo_levanta_llmerro(falso):
 
 
 def test_erro_da_api_vira_llmerro(falso):
-    falso(openai.APIConnectionError(request=httpx.Request("POST", "http://x")))
+    falso(llm.ai_sdk.SDKError("rede indisponível"))
     with pytest.raises(LLMErro):
         llm.completar_json("extracao", "s", "u", Resposta)
 
@@ -168,7 +149,7 @@ def test_fallback_entra_quando_o_principal_falha_na_api(monkeypatch, falso):
     monkeypatch.delenv("MODELO_EXTRACAO")
     monkeypatch.setenv("MODELO_PRINCIPAL", "principal")
     monkeypatch.setenv("MODELO_FALLBACK", "reserva")
-    erro = openai.APIConnectionError(request=httpx.Request("POST", "http://x"))
+    erro = llm.ai_sdk.SDKError("rede indisponível")
     cliente = falso(erro, '{"nome": "Ana", "idade": 30}')
     assert llm.completar_json("decisao", "s", "u", Resposta).nome == "Ana"
     assert [c["model"] for c in cliente.chamadas] == ["principal", "reserva"]

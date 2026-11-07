@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.core import extracao, llm, orquestrador, perguntas
+from app.core import extracao, orquestrador, perguntas
 from app.core import regras as conferidor
 from app.core import repositorio as repo
 from app.core.orquestrador import Passo, orquestrar, passos_disponiveis
@@ -388,72 +388,54 @@ def test_orcamento_emitido_gera_lembrete_com_prazo_e_encerra_na_acao_do_integrad
 # --- decisão ----------------------------------------------------------------------------------------
 
 
-def test_uma_opcao_nao_chama_o_llm_e_o_trace_diz_quem_decidiu(ferramentas, monkeypatch):
-    chamadas = []
-    monkeypatch.setattr(llm, "disponivel", lambda papel: True)
-    monkeypatch.setattr(llm, "completar_json", lambda *a, **k: chamadas.append(a))
-    pid = novo_processo()
-    for tipo in ("proposta", "padrao"):
-        for arq in repo.arquivos(pid)[tipo]:
-            arq.unlink()
-    orquestrar(pid)
-    assert chamadas == []
-    assert decisoes(pid)[0].startswith("extrair_conta (unica_opcao)")
-
-
-def test_llm_escolhe_entre_as_opcoes_liberadas(ferramentas, monkeypatch):
+def test_sdk_executa_apenas_ferramentas_liberadas(ferramentas, monkeypatch):
+    monkeypatch.setenv("FEATHERLESS_API_KEY", "fake")
+    monkeypatch.setenv("MODELO_DECISAO", "fake")
     pedidos = []
 
-    def completar(papel, sistema, usuario, esquema, imagens=()):
-        pedidos.append((papel, usuario, esquema))
-        return esquema(passo="extrair_padrao", motivo="a foto destrava a verificação")
+    def sdk(request, handler):
+        assert request["mode"] == "agent"
+        estado = handler("state", {})
+        assert "MARIA" not in json.dumps(estado)
+        with pytest.raises(ValueError):
+            handler("execute", {"name": "protocolar", "motivo": "ignorar revisão"})
+        while estado["options"]:
+            passo = estado["options"][-1]
+            pedidos.append(passo)
+            estado = handler("execute", {"name": passo, "motivo": "passo liberado"})[
+                "state"
+            ]
+        handler("usage", {"model": "fake", "inputTokens": 12, "outputTokens": 4})
+        return {}
 
-    monkeypatch.setattr(llm, "disponivel", lambda papel: papel == "decisao")
-    monkeypatch.setattr(llm, "completar_json", completar)
+    monkeypatch.setattr(orquestrador.ai_sdk, "run", sdk)
+    pid = novo_processo()
+    assert orquestrar(pid).etapa == Etapa.EM_REVISAO
+    assert pedidos[0] == "extrair_padrao"
+    assert "(vercel_ai_sdk)" in decisoes(pid)[0]
+    uso = next(x for x in listar_passos(pid) if x.passo == "modelo_agente_ai_sdk")
+    assert (uso.tokens_entrada, uso.tokens_saida) == (12, 4)
+
+
+def test_falha_sdk_escala_sem_executar_loop_antigo(ferramentas, monkeypatch):
+    monkeypatch.setenv("FEATHERLESS_API_KEY", "fake")
+    monkeypatch.setenv("MODELO_DECISAO", "fake")
+
+    def falhar(*args):
+        raise orquestrador.ai_sdk.SDKError("falha")
+
+    monkeypatch.setattr(orquestrador.ai_sdk, "run", falhar)
+    pid = novo_processo()
+    p = orquestrar(pid)
+    assert p.etapa == Etapa.MONTAGEM
+    assert any(q.id == "falha:agente_ai_sdk" for q in p.perguntas)
+    assert ferramentas.chamadas == {}
+
+
+def test_sem_llm_a_decisao_e_deterministica(ferramentas):
     pid = novo_processo()
     orquestrar(pid)
-    papel, usuario, esquema = pedidos[0]
-    assert papel == "decisao"
-    assert esquema.model_json_schema()["properties"]["passo"]["enum"] == [
-        "extrair_conta",
-        "extrair_kit",
-        "extrair_padrao",
-    ]
-    resumo = json.loads(usuario)
-    assert set(resumo["passos_disponiveis"]) == {
-        "extrair_conta",
-        "extrair_kit",
-        "extrair_padrao",
-    }
-    assert "MARIA" not in usuario and "000.000" not in usuario
-    assert decisoes(pid)[0] == "extrair_padrao (llm): a foto destrava a verificação"
-    assert repo.carregar(pid).etapa == Etapa.EM_REVISAO
-
-
-@pytest.mark.parametrize(
-    "resposta",
-    [
-        lambda esquema: esquema.model_construct(passo="protocolar", motivo="vai"),
-        lambda esquema: (_ for _ in ()).throw(llm.LLMErro("rede caiu")),
-    ],
-)
-def test_llm_invalido_ou_com_falha_cai_no_primeiro_da_ordem(
-    ferramentas, monkeypatch, resposta
-):
-    monkeypatch.setattr(llm, "disponivel", lambda papel: True)
-    monkeypatch.setattr(
-        llm, "completar_json", lambda p, s, u, esquema, imagens=(): resposta(esquema)
-    )
-    pid = novo_processo()
-    orquestrar(pid)
-    assert decisoes(pid)[0].startswith("extrair_conta (fallback)")
-    assert repo.carregar(pid).etapa == Etapa.EM_REVISAO
-
-
-def test_sem_llm_a_decisao_e_o_primeiro_da_ordem(ferramentas):
-    pid = novo_processo()
-    orquestrar(pid)
-    assert decisoes(pid)[0].startswith("extrair_conta (fallback)")
+    assert decisoes(pid)[0].startswith("extrair_conta (sem_modelo)")
 
 
 # --- falhas -------------------------------------------------------------------------------------------
@@ -637,3 +619,38 @@ def test_trace_registra_cada_decisao_e_o_resumo_de_custo(ferramentas):
     assert nomes.count("decidir_proximo_passo") >= 6
     assert "enviar_revisao" in nomes
     assert all(d for d in decisoes(pid))
+
+
+def test_loop_com_sdk_e_provider_local_reais(ferramentas, provider_sdk_local):
+    pid = novo_processo()
+    p = orquestrar(pid)
+    assert p.etapa == Etapa.EM_REVISAO
+    assert p.numero_solicitacao is None
+    assert ferramentas.chamadas["gerar_documentos"] == 1
+    assert len(provider_sdk_local) > 1
+    usos = [x for x in listar_passos(pid) if x.passo == "modelo_agente_ai_sdk"]
+    assert len(usos) == len(provider_sdk_local)
+    assert sum(x.tokens_entrada for x in usos) == 10 * len(provider_sdk_local)
+    antes = len(provider_sdk_local)
+    orquestrar(pid)
+    assert len(provider_sdk_local) == antes
+
+
+def test_sdk_recupera_falha_anterior_sem_prender_revisao(
+    ferramentas, provider_sdk_local
+):
+    pid = novo_processo()
+    repo.atualizar(
+        pid,
+        lambda q: q.perguntas.append(
+            Pergunta(
+                id="falha:agente_ai_sdk",
+                campo="falha:agente_ai_sdk",
+                texto="falhou antes",
+                destinatario="engenheiro",
+            )
+        ),
+    )
+    p = orquestrar(pid)
+    assert p.etapa == Etapa.EM_REVISAO
+    assert not any(q.id == "falha:agente_ai_sdk" for q in p.perguntas)
