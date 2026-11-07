@@ -10,9 +10,11 @@ agente só prepara, lembra e, depois da aprovação, protocola e reenvia.
 from __future__ import annotations
 
 import json
+import logging
 import re
 import unicodedata
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from dataclasses import asdict
 from pathlib import Path
 from typing import Annotated
@@ -523,7 +525,23 @@ def trace_do_processo(processo_id: str) -> dict[str, object]:
 
 # --- aplicação ----------------------------------------------------------------------------
 
-app = FastAPI(title="Agente de homologação solar")
+
+@asynccontextmanager
+async def _ao_subir(_app: FastAPI):
+    """Plano grátis do Render não tem disco: o banco começa vazio a cada deploy
+    ou reinício. Os casos prontos da demonstração são recriados na hora."""
+    try:
+        from app.portal_sim.demo import garantir_demo
+
+        garantir_demo()
+    except Exception:  # a demo nunca impede o site de subir
+        logging.getLogger(__name__).exception(
+            "Não foi possível recriar os casos prontos."
+        )
+    yield
+
+
+app = FastAPI(title="Agente de homologação solar", lifespan=_ao_subir)
 app.include_router(painel.router)
 app.include_router(api)
 app.mount(
