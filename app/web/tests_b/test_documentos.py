@@ -75,9 +75,9 @@ def test_rota_devolve_fragmento_com_tres_linhas_e_links(cliente, db_path):
         "Diagrama unifilar",
     ):
         assert rotulo in r.text
-    base = f"/api/processos/{pid}/documentos/"
+    base = f"/processos/{pid}/documentos/"
     for nome in ("anexo_a.pdf", "memorial.pdf", "unifilar.pdf", "unifilar.svg"):
-        assert f'href="{base}{nome}"' in r.text
+        assert f'href="{base}{nome}/ver"' in r.text
     assert "05/11/2026 14:30" in r.text
     assert 'target="_blank" rel="noopener"' in r.text
     assert "Ainda não gerado" not in r.text
@@ -112,7 +112,7 @@ def test_timeline_inclui_bloco(cliente):
 def test_nome_com_espaco_e_codificado(cliente, db_path):
     pid = _inserir(db_path, [("memorial", "memorial final.pdf", "pdf")])
     r = cliente.get(f"/processos/{pid}/documentos")
-    assert f"/api/processos/{pid}/documentos/memorial%20final.pdf" in r.text
+    assert f"/processos/{pid}/documentos/memorial%20final.pdf/ver" in r.text
     assert "memorial final.pdf" not in r.text
 
 

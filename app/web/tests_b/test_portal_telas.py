@@ -285,7 +285,8 @@ def test_documento_abre_no_navegador(cliente, tmp_path, monkeypatch):
     monkeypatch.setenv("DOCS_DIR", str(tmp_path / "docs"))
     cliente.post("/portal-gd/operador/reiniciar")
     bloco = cliente.get("/processos/demo-01/documentos").text
-    assert "/ver" in bloco and "Baixar PDF" in bloco
+    assert "/ver" in bloco and "Ver PDF" in bloco
+    assert "Baixar" not in bloco  # o próprio visualizador do navegador baixa
     from app.core import repositorio as repo
 
     doc = next(d for d in repo.carregar("demo-01").documentos if d.formato == "pdf")
