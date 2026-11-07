@@ -33,10 +33,15 @@ def protocolado() -> Processo:
 
 @pytest.fixture
 def confirmado(processo: Processo) -> Processo:
-    """Exemplo com strings confirmadas, cabo informado e disjuntor CA de 25 A."""
+    """Exemplo com strings confirmadas, cabo informado e disjuntor CA de 25 A.
+
+    Cabo de 6 mm²: pelo parecer (R02, Iz corrigido em B2, 35 °C, 2 circuitos),
+    o disjuntor de 25 A pede 6 mm²; 4 mm² (22,6 A) reprova. Área de concessão
+    informada para a R03 ter a temperatura mínima."""
     for s in processo.kit.strings:
         s.sugerida = False
-    processo.visita.bitola_ca_mm2 = 4
+    processo.visita.bitola_ca_mm2 = 6
+    processo.visita.area_concessao = "ceara"
     return processo
 
 

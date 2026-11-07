@@ -22,7 +22,7 @@ class TestRepositorio:
 
     def test_conferir_cobre_todas_com_fonte_e_mensagem(self, confirmado):
         resultados = conferir(confirmado)
-        assert [r.regra_id for r in resultados] == [r.id for r in REGRAS]
+        assert [r.regra_id for r in resultados] == ["R00"] + [r.id for r in REGRAS]
         assert all(r.fonte_norma and r.mensagem for r in resultados)
 
     def test_camadas(self):
@@ -32,9 +32,10 @@ class TestRepositorio:
             Camada.DISTRIBUIDORA
         }
 
-    def test_criterios_ainda_nao_validados_por_engenheiro(self):
-        a_validar = {r.id for r in REGRAS if r.a_validar}
-        assert a_validar == {"R02", "R03"}
+    def test_parecer_do_engenheiro_fecha_os_criterios_a_validar(self, confirmado):
+        # R02 e R03 seguem o parecer (app/core/parecer): nada sai marcado a_validar;
+        # o que falta vira premissa declarada ou INCERTA.
+        assert [r.regra_id for r in conferir(confirmado) if r.a_validar] == []
 
     def test_conferir_registra_passo_de_trace(self, confirmado):
         conferir(confirmado)
@@ -115,12 +116,15 @@ class TestPoliticaDeQuatroEstados:
         assert r.status == INCERTA
 
     def test_valor_sugerido_aprovado_vira_incerta(self, processo):
+        processo.visita.area_concessao = "ceara"
         r = resultado(processo, "R03")  # strings do exemplo estão sugeridas
         assert r.status == INCERTA
         assert "sugerido" in r.mensagem
         assert "259" in r.mensagem  # a conta da regra continua visível
 
-    def test_strings_confirmadas_ainda_dependem_da_premissa_termica(self, confirmado):
+    def test_strings_confirmadas_com_area_informada_aprovam(self, confirmado):
+        assert resultado(confirmado, "R03").status == APROVADA
+        confirmado.visita.area_concessao = None
         assert resultado(confirmado, "R03").status == INCERTA
 
     def test_valor_sugerido_reprovado_continua_reprovado(self, confirmado):
@@ -132,7 +136,7 @@ class TestPoliticaDeQuatroEstados:
         [
             ("R02", lambda p: setattr(p.visita, "bitola_ca_mm2", None)),
             ("R02", lambda p: setattr(p.visita, "disjuntor_ca_a", None)),
-            ("R03", lambda p: setattr(p.kit.modulo, "coef_temp_voc_pct_c", None)),
+            ("R03", lambda p: setattr(p.visita, "area_concessao", None)),
             ("R03", lambda p: setattr(p.kit, "strings", [])),
             ("R03", lambda p: setattr(p, "kit", None)),
             ("R04", lambda p: setattr(p, "kit", None)),
@@ -147,23 +151,26 @@ class TestPoliticaDeQuatroEstados:
 
     def test_valores_trazem_as_entradas_usadas(self, confirmado):
         r = resultado(confirmado, "R02")
-        assert r.valores["corrente_saida_a"] == 22.7
-        assert r.valores["disjuntor_ca_a"] == 25
-        assert r.valores["bitola_ca_mm2"] == 4
-        assert r.valores["capacidade_cabo_a"] == 32
+        assert r.valores["ib_a"] == 22.7
+        assert r.valores["in_a"] == 25
+        assert r.valores["secao_mm2"] == 6
+        assert r.valores["iz_corrigido_a"] == 28.6  # B2, 35 °C, 2 circuitos
 
 
 class TestR02DisjuntorCa:
     def test_sem_bitola_fica_incerta_por_politica(self, processo):
         assert resultado(processo, "R02").status == INCERTA
 
-    def test_dentro_da_faixa_ainda_depende_da_validacao_da_tabela(self, confirmado):
-        assert resultado(confirmado, "R02").status == INCERTA
+    def test_dentro_da_faixa_aprova_com_premissas_declaradas(self, confirmado):
+        r = resultado(confirmado, "R02")
+        assert r.status == APROVADA
+        assert "premissa assumida" in r.mensagem and r.premissas
 
-    def test_disjuntor_igual_a_corrente_reprova(self, confirmado):
+    def test_disjuntor_igual_a_corrente_aprova_ib_menor_ou_igual_a_in(self, confirmado):
+        # Parecer: Ib <= In (não Ib < In)
         confirmado.visita.disjuntor_ca_a = confirmado.kit.inversor.corrente_max_saida_a
         r = resultado(confirmado, "R02")
-        assert r.status == REPROVADA
+        assert r.status == APROVADA
         assert "22,7 A" in r.mensagem
 
     def test_disjuntor_abaixo_da_corrente_reprova(self, confirmado):
@@ -181,7 +188,7 @@ class TestR02DisjuntorCa:
         assert "2,5 mm²" in r.mensagem
 
     def test_bitola_fora_da_tabela_fica_incerta(self, confirmado):
-        confirmado.visita.bitola_ca_mm2 = 35
+        confirmado.visita.bitola_ca_mm2 = 50  # Tabela 36 implementada até 35 mm²
         assert resultado(confirmado, "R02").status == INCERTA
 
 
@@ -193,22 +200,26 @@ class TestR03TensaoDasStrings:
         kit.inversor.tensao_max_cc_v = tensao * fator
         return confirmado
 
-    def test_abaixo_do_limite_ainda_depende_da_premissa_termica(self, confirmado):
-        assert resultado(self.kit_com_limite(confirmado, 1.01), "R03").status == INCERTA
+    def test_abaixo_do_limite_aprova_com_alerta_acima_de_95(self, confirmado):
+        r = resultado(self.kit_com_limite(confirmado, 1.01), "R03")
+        assert r.status == APROVADA
+        assert any("tensão máxima CC" in a for a in r.alertas)
 
     def test_um_por_cento_acima_do_limite_reprova(self, confirmado):
         assert (
             resultado(self.kit_com_limite(confirmado, 0.99), "R03").status == REPROVADA
         )
 
-    def test_no_limite_ainda_depende_da_premissa_termica(self, confirmado):
-        assert resultado(self.kit_com_limite(confirmado, 1.0), "R03").status == INCERTA
+    def test_no_limite_exato_aprova_com_alerta(self, confirmado):
+        # Parecer: reprova só acima de 100% da tensão máxima
+        r = resultado(self.kit_com_limite(confirmado, 1.0), "R03")
+        assert r.status == APROVADA and r.alertas
 
-    def test_mensagem_avisa_que_o_coeficiente_e_fixo_e_a_validar(self, confirmado):
+    def test_temperatura_minima_vem_da_area_e_a_mensagem_cita_beta(self, confirmado):
         r = resultado(confirmado, "R03")
-        assert "a validar com engenheiro" in r.mensagem
-        assert r.a_validar
-        assert r.valores["temperatura_minima_c"] == T_MIN_C
+        assert not r.a_validar
+        assert r.valores["tmin_c"] == T_MIN_C  # Ceará: 10 °C
+        assert "β" in r.mensagem
 
     def test_usa_a_pior_string_e_nomeia_o_mppt_que_falha(self, confirmado):
         confirmado.kit.strings = [
@@ -218,7 +229,7 @@ class TestR03TensaoDasStrings:
         r = resultado(confirmado, "R03")
         assert r.status == REPROVADA
         assert "MPPT 2" in r.mensagem and "MPPT 1" not in r.mensagem
-        assert r.valores["modulos_em_serie"] == 12
+        assert r.valores["modulos_em_serie_max"] == 12
 
 
 class TestR04PotenciaCc:
@@ -237,12 +248,13 @@ class TestR04PotenciaCc:
 class TestR05Inmetro:
     def test_numero_preenchido_nao_comprova_certificacao(self, confirmado):
         r = resultado(confirmado, "R05")
-        assert r.status == INCERTA
-        assert "não foi checado no registro" in r.mensagem
+        assert r.status == INCERTA  # número sintético: nunca "verificado"
+        assert "Não foi possível comprovar" in r.mensagem
 
-    def test_inversor_acima_de_75_kw_fica_incerta(self, confirmado):
+    def test_inversor_acima_de_75_kw_fica_fora_da_portaria(self, confirmado):
         confirmado.kit.inversor.potencia_nominal_w = 80_000
-        assert resultado(confirmado, "R05").status == INCERTA
+        r = resultado(confirmado, "R05")
+        assert r.status == NAO_VERIFICADA  # nunca aprovada
 
     def test_exatamente_75_kw_ainda_exige_certificado(self, confirmado):
         confirmado.kit.inversor.potencia_nominal_w = 75_000

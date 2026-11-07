@@ -89,8 +89,8 @@ def _texto_bitola(p: Processo) -> str:
     if sugerida is None:
         return base
     return (
-        f"{base} Para o disjuntor CA de {_numero(disjuntor)} A, a tabela de referência "
-        f"(NBR 5410, a validar com engenheiro) indica no mínimo {_numero(sugerida)} mm²."
+        f"{base} Para o disjuntor CA de {_numero(disjuntor)} A, a NBR 5410 (Iz corrigido "
+        f"para método B2, 35 °C e 2 circuitos) indica no mínimo {_numero(sugerida)} mm²."
     )
 
 
@@ -159,6 +159,16 @@ EXIGENCIAS: tuple[Exigencia, ...] = (
         ),
         "integrador",
         lambda p: p.visita.latitude is None or p.visita.longitude is None,
+    ),
+    Exigencia(
+        "area_concessao",
+        _fixo(
+            "Em qual área de concessão fica a instalação: Ceará, São Paulo, RJ Serra, "
+            "RJ Sul Fluminense ou RJ demais áreas? Ela define a temperatura mínima "
+            "usada na tensão das strings no frio."
+        ),
+        "integrador",
+        lambda p: p.visita.area_concessao is None,
     ),
     Exigencia(
         "tipo_ramal",

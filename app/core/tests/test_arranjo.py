@@ -25,18 +25,18 @@ def status(resultados) -> dict[str, StatusRegra]:
 class TestTabelas:
     @pytest.mark.parametrize(
         "corrente, esperado",
-        [(22.7, 25), (25, 32), (9.9, 10), (62.9, 63), (63, None), (80, None)],
+        [(22.7, 25), (25, 25), (25.1, 32), (9.9, 10), (63, 63), (63.1, None)],
     )
-    def test_disjuntor_e_o_menor_estritamente_acima_da_corrente(
-        self, corrente, esperado
-    ):
+    def test_disjuntor_e_o_menor_com_in_maior_ou_igual_a_ib(self, corrente, esperado):
         assert disjuntor_por_tabela(corrente) == esperado
 
     @pytest.mark.parametrize(
         "disjuntor, esperado",
-        [(25, 4), (32, 6), (24, 4), (16, 1.5), (17.5, 2.5), (101, None)],
+        # Iz corrigido (B2, 35 °C, 2 circuitos): 2,5 -> 17,3 A; 4 -> 22,6 A;
+        # 6 -> 28,6 A; 10 -> 39,1 A; 35 -> 83,5 A. Piso de 2,5 mm².
+        [(25, 6), (32, 10), (22.6, 4), (16, 2.5), (17.5, 4), (83.5, 35), (84, None)],
     )
-    def test_bitola_e_a_menor_com_capacidade_acima_do_disjuntor(
+    def test_bitola_e_a_menor_com_iz_corrigido_que_comporta_o_disjuntor(
         self, disjuntor, esperado
     ):
         assert bitola_por_tabela(disjuntor) == esperado

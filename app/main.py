@@ -240,6 +240,30 @@ def _definir_coef_temp(p: Processo, texto: str) -> None:
     p.kit.modulo.coef_temp_voc_pct_c = valor
 
 
+_AREAS = {
+    "ceara": "ceara",
+    "sao paulo": "sao_paulo",
+    "rj serra": "rj_serra",
+    "rj sul fluminense": "rj_sul_fluminense",
+    "sul fluminense": "rj_sul_fluminense",
+    "rj demais areas": "rj_demais",
+    "rj demais": "rj_demais",
+}
+
+
+def _definir_area(p: Processo, texto: str) -> None:
+    import unicodedata
+
+    chave = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode()
+    chave = " ".join(chave.lower().replace("-", " ").replace("_", " ").split())
+    if chave not in _AREAS:
+        raise ValueError(
+            "Responda com uma das áreas: Ceará, São Paulo, RJ Serra, "
+            "RJ Sul Fluminense ou RJ demais áreas."
+        )
+    p.visita.area_concessao = _AREAS[chave]
+
+
 def _definir_inmetro(p: Processo, texto: str) -> None:
     _exigir_kit(p)
     p.kit.inversor.certificado_inmetro = texto.strip()
@@ -278,6 +302,7 @@ RESPOSTAS: dict[str, Aplicador] = {
     "strings": _definir_strings,
     "coef_temp_voc_pct_c": _definir_coef_temp,
     "certificado_inmetro": _definir_inmetro,
+    "area_concessao": _definir_area,
 }
 
 # --- API --------------------------------------------------------------------------------

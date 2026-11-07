@@ -593,26 +593,68 @@ def _aplicar(regra: Regra, processo: Processo) -> ResultadoRegra:
     return _resultado(regra, veredito, usados)
 
 
+def _aplicar_parecer(regra_id: str, processo: Processo) -> ResultadoRegra:
+    """Regras revisadas pelo parecer do engenheiro (app/core/parecer), com os
+    mesmos princípios do motor: erro interno nunca aprova, e aprovação apoiada
+    em valor sugerido pelo agente fica INCERTA até a confirmação."""
+    from app.core.parecer import REGRAS_PARECER
+
+    try:
+        resultado = REGRAS_PARECER[regra_id](processo)
+    except Exception as erro:  # noqa: BLE001 - regra com erro nunca aprova nem derruba
+        base = _POR_ID.get(regra_id)
+        return ResultadoRegra(
+            regra_id=regra_id,
+            descricao=base.descricao if base else regra_id,
+            camada=base.camada if base else Camada.DISTRIBUIDORA,
+            status=StatusRegra.INCERTA,
+            mensagem=f"Erro interno na regra {regra_id} ({type(erro).__name__}); "
+            "resultado incerto.",
+            fonte_norma=base.fonte_norma if base else "",
+        )
+    _, sugerido = _strings(processo)
+    if regra_id == "R03" and sugerido and resultado.status is StatusRegra.APROVADA:
+        resultado.status = StatusRegra.INCERTA
+        resultado.mensagem = (
+            "Aprovada com valor sugerido pelo agente (configuração de strings); "
+            f"confirmar antes de seguir. {resultado.mensagem}"
+        )
+    return resultado
+
+
+# R00 roda antes de todas; R02, R03 e R05 seguem o parecer do engenheiro.
+IDS_PARECER = ("R00", "R02", "R03", "R05")
+
+
 def avaliar_regras(
     processo: Processo, ids: Iterable[str] | None = None
 ) -> list[ResultadoRegra]:
-    """Aplica as regras (todas ou só `ids`) na ordem do repositório."""
+    """Aplica as regras do repositório (todas ou só `ids`, que aceita "R00")."""
     if ids is None:
-        selecionadas = REGRAS
+        pedidas = None
     else:
         pedidas = set(ids)
-        desconhecidas = pedidas - _POR_ID.keys()
+        desconhecidas = pedidas - _POR_ID.keys() - {"R00"}
         if desconhecidas:
             raise ValueError(f"Regras desconhecidas: {sorted(desconhecidas)}")
-        selecionadas = tuple(r for r in REGRAS if r.id in pedidas)
-    return [_aplicar(regra, processo) for regra in selecionadas]
+    resultados = []
+    if pedidas is not None and "R00" in pedidas:
+        resultados.append(_aplicar_parecer("R00", processo))
+    for regra in REGRAS:
+        if pedidas is not None and regra.id not in pedidas:
+            continue
+        if regra.id in IDS_PARECER:
+            resultados.append(_aplicar_parecer(regra.id, processo))
+        else:
+            resultados.append(_aplicar(regra, processo))
+    return resultados
 
 
 @trace("conferir")
 def conferir(processo: Processo) -> list[ResultadoRegra]:
-    """Aplica R01 a R08 sobre o processo completo. Sem dado suficiente -> INCERTA;
+    """Aplica R00 e depois R01 a R08 sobre o processo completo. Sem dado suficiente -> INCERTA;
     R06 a R08 ficam NAO_VERIFICADA (fora da cobertura do MVP)."""
-    resultados = avaliar_regras(processo)
+    resultados = avaliar_regras(processo, ids=["R00"]) + avaliar_regras(processo)
     contagem: dict[str, int] = {}
     for r in resultados:
         contagem[r.status.value] = contagem.get(r.status.value, 0) + 1

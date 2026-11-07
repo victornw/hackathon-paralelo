@@ -95,7 +95,7 @@ def ferramentas(monkeypatch, modelo):
                 mensagem="ok",
                 fonte_norma="NBR",
             )
-            for i in range(1, 6)
+            for i in range(6)
         ]
 
     def gerar_documentos(p):
@@ -196,7 +196,7 @@ def test_leva_ate_a_revisao_e_espera_o_engenheiro(ferramentas):
     pid = novo_processo()
     p = orquestrar(pid)
     assert p.etapa == Etapa.EM_REVISAO
-    assert p.campos and p.kit and p.documentos and len(p.regras) == 5
+    assert p.campos and p.kit and p.documentos and len(p.regras) == 6
     assert p.numero_solicitacao is None
     assert ferramentas.chamadas["gerar_documentos"] == 1
     assert ferramentas.chamadas["conferir"] == 1

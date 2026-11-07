@@ -82,8 +82,8 @@ class TestBitola:
         self, processo
     ):
         texto = por_campo(perguntas_pendentes(processo))["bitola_ca_mm2"].texto
-        assert "25 A" in texto and "4 mm²" in texto
-        assert "a validar" in texto
+        assert "25 A" in texto and "6 mm²" in texto
+        assert "B2" in texto
 
     def test_sem_disjuntor_a_pergunta_nao_sugere_nada(self, processo):
         processo.visita.disjuntor_ca_a = None

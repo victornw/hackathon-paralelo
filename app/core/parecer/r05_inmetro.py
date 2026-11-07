@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import html
 import json
+import os
 import re
 import ssl
 import unicodedata
@@ -134,6 +135,8 @@ def ler_pagina(numero: str, url: str, pagina_html: str, quando: datetime) -> Con
 
 
 def _baixar(url: str) -> str:
+    if os.environ.get("INMETRO_CONSULTA") == "0":  # testes e ambientes sem rede
+        raise OSError("consulta ao INMETRO desligada (INMETRO_CONSULTA=0)")
     pedido = Request(
         url, headers={"User-Agent": "homologacao-solar/0.1 (consulta pontual)"}
     )

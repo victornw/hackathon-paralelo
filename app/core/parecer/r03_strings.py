@@ -115,7 +115,8 @@ def avaliar(processo: Processo) -> ResultadoRegra:
     )
 
     reprovas: list[str] = []
-    maior_n = max(s.modulos_em_serie for s in kit.strings)
+    pior = max(kit.strings, key=lambda s: s.modulos_em_serie)
+    maior_n = pior.modulos_em_serie
     tensao = maior_n * voc_frio
     uso = tensao / inv.tensao_max_cc_v
     p.valores.update(
@@ -127,12 +128,13 @@ def avaliar(processo: Processo) -> ResultadoRegra:
     )
     if uso > LIMIAR_REPROVA:
         reprovas.append(
-            f"string de {maior_n} módulos chega a {br(tensao)} V no frio "
+            f"MPPT {pior.mppt}: string de {maior_n} módulos chega a {br(tensao)} V no frio "
             f"({br(uso * 100)}% de {br(inv.tensao_max_cc_v, 0)} V)"
         )
     elif uso > LIMIAR_ALERTA:
         p.alertas.append(
-            f"String de {maior_n} módulos a {br(uso * 100)}% da tensão máxima CC no frio."
+            f"MPPT {pior.mppt}: string de {maior_n} módulos a {br(uso * 100)}% da tensão "
+            "máxima CC no frio."
         )
     if beta is not None and f_tab is not None:
         uso_tab = maior_n * mod.voc_v * f_tab / inv.tensao_max_cc_v

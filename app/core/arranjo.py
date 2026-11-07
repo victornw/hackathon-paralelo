@@ -42,14 +42,25 @@ def voc_corrigido_v(voc_v: float, coef_temp_pct_c: float) -> float:
 
 
 def disjuntor_por_tabela(corrente_a: float) -> float | None:
-    """Menor disjuntor padrão estritamente acima da corrente; None se nenhum serve."""
-    return next((d for d in DISJUNTORES_A if d > corrente_a), None)
+    """Menor disjuntor padrão com In >= Ib (parecer: Ib <= In); None se nenhum serve."""
+    return next((d for d in DISJUNTORES_A if d >= corrente_a), None)
 
 
 def bitola_por_tabela(disjuntor_a: float) -> float | None:
-    """Menor bitola cuja capacidade supera o disjuntor. Só serve de sugestão
-    em pergunta: nunca é gravada na visita."""
-    return next((b for b, iz in sorted(CABO_IZ_A.items()) if iz > disjuntor_a), None)
+    """Menor seção cujo Iz corrigido (premissas padrão da R02: B2, PVC, 35 °C,
+    2 circuitos) comporta o disjuntor. Só serve de sugestão em pergunta: nunca é
+    gravada na visita. Mesma conta da R02, para o agente não sugerir cabo que a
+    própria regra reprova."""
+    from app.core.parecer.r02_cabo import SECOES_MM2, iz_corrigido
+
+    return next(
+        (
+            s
+            for s in SECOES_MM2
+            if s >= 2.5 and iz_corrigido(s, "B2", "interno", 2)[3] >= disjuntor_a
+        ),
+        None,
+    )
 
 
 def _dividir(total: int, partes: int) -> list[int]:

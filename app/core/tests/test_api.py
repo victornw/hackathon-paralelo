@@ -418,7 +418,7 @@ def regras_simuladas_aprovadas():
     """Só para isolar os testes de revisão e portal da validação técnica."""
     return [
         regra(StatusRegra.APROVADA).model_copy(update={"regra_id": f"R0{i}"})
-        for i in range(1, 6)
+        for i in range(6)
     ]
 
 
@@ -546,7 +546,8 @@ def test_pagina_inicial_e_estaticos(cliente):
 
 RESPOSTAS_DO_INTEGRADOR = {
     "relacao_cargas": "geladeira 150 x1\nar-condicionado 1400 W x2\nchuveiro 5,5 kW",
-    "bitola_ca_mm2": "4 mm²",
+    "bitola_ca_mm2": "6 mm²",
+    "area_concessao": "Ceará",
     "distancia_inversor_quadro_m": "8 m",
     "coordenadas_padrao": "-3,7319, -38,5267",
     "tipo_ramal": "aéreo",
@@ -587,20 +588,22 @@ def test_pacote_com_premissas_e_inmetro_pendentes_nao_protocola(
     cliente, extracao_falsa
 ):
     pid, p = preparar_ate_revisao(cliente)
-    assert {
-        r["regra_id"]: r["status"] for r in p["regras"] if r["regra_id"] <= "R05"
-    } == {
+    regras_ = {r["regra_id"]: r for r in p["regras"] if r["regra_id"] <= "R05"}
+    assert {i: r["status"] for i, r in regras_.items()} == {
+        "R00": "aprovada",
         "R01": "aprovada",
-        "R02": "incerta",
-        "R03": "incerta",
+        "R02": "aprovada",  # com premissas declaradas (método, isolação...)
+        "R03": "aprovada",
         "R04": "aprovada",
-        "R05": "incerta",
+        "R05": "incerta",  # sem prova de 220 V e sem confirmação do engenheiro
     }
+    assert regras_["R02"]["premissas"]
     resposta = cliente.post(
         f"/api/processos/{pid}/revisao", json={"engenheiro": "Eng. Teste"}
     )
     assert resposta.status_code == 409
-    assert all(id_ in resposta.json()["detail"] for id_ in ("R02", "R03", "R05"))
+    detalhe = resposta.json()["detail"]
+    assert "R05" in detalhe and "R02" not in detalhe and "R03" not in detalhe
     atual = repo.carregar(pid)
     assert atual.revisado_por is None and atual.numero_solicitacao is None
 
@@ -616,7 +619,7 @@ def test_fluxo_portal_com_conferencia_simulada(cliente, extracao_falsa, monkeypa
     pid, p = preparar_ate_revisao(cliente)
     assert {
         r["regra_id"]: r["status"] for r in p["regras"] if r["regra_id"] <= "R05"
-    } == {f"R0{i}": "aprovada" for i in range(1, 6)}
+    } == {f"R0{i}": "aprovada" for i in range(6)}
     assert p["numero_solicitacao"] is None
 
     assert (
@@ -735,3 +738,47 @@ def test_aprovacao_refaz_conferencia_e_nao_confia_em_resultados_antigos(cliente)
     atual = repo.carregar(pid)
     assert atual.revisado_por is None and atual.numero_solicitacao is None
     assert any(x.status == StatusRegra.INCERTA for x in atual.regras)
+
+
+def test_cabo_de_4_mm2_com_disjuntor_de_25_a_reprova_e_nao_vai_para_revisao(
+    cliente, extracao_falsa
+):
+    respostas = dict(RESPOSTAS_DO_INTEGRADOR, bitola_ca_mm2="4 mm²")
+    pid = cliente.post(
+        "/api/processos", json={"email_contato": "integrador@exemplo.com"}
+    ).json()["id"]
+    for tipo, nome in (
+        ("conta", "conta.pdf"),
+        ("proposta", "proposta.pdf"),
+        ("padrao", "foto.jpg"),
+    ):
+        enviar(cliente, pid, tipo, nome)
+    p = cliente.get(f"/api/processos/{pid}").json()
+    corpo = [
+        {"id": q["id"], "resposta": respostas[q["campo"]]}
+        for q in p["perguntas"]
+        if not q["resposta"]
+    ]
+    cliente.post(f"/api/processos/{pid}/respostas", json=corpo)
+    p = cliente.get(f"/api/processos/{pid}").json()
+    r02 = next(r for r in p["regras"] if r["regra_id"] == "R02")
+    assert r02["status"] == "reprovada" and "capacidade corrigida" in r02["mensagem"]
+    assert p["etapa"] == "montagem"
+
+
+def test_area_de_concessao_invalida_e_recusada(cliente, extracao_falsa):
+    pid = cliente.post("/api/processos", json={}).json()["id"]
+    for tipo, nome in (("conta", "conta.pdf"), ("proposta", "proposta.pdf")):
+        enviar(cliente, pid, tipo, nome)
+    p = cliente.get(f"/api/processos/{pid}").json()
+    q = next(q for q in p["perguntas"] if q["campo"] == "area_concessao")
+    r = cliente.post(
+        f"/api/processos/{pid}/respostas", json=[{"id": q["id"], "resposta": "Marte"}]
+    )
+    assert r.status_code == 422
+    r = cliente.post(
+        f"/api/processos/{pid}/respostas",
+        json=[{"id": q["id"], "resposta": "RJ Sul Fluminense"}],
+    )
+    assert r.status_code == 200
+    assert repo.carregar(pid).visita.area_concessao == "rj_sul_fluminense"
