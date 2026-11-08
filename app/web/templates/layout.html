@@ -16,6 +16,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/painel.css">
+  {% block estilos %}{% endblock %}
+  <link rel="stylesheet" href="/static/horizonte.css">
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
 </head>
 <body class="horizonte {% block corpo_classe %}{% endblock %}">
@@ -64,6 +66,5 @@
   </script>
   <p class="selo-simulacao" role="note">Simulação: dados sintéticos e portal da Enel simulado</p>
   <main>{% block conteudo %}{% endblock %}</main>
-  <link rel="stylesheet" href="/static/horizonte.css">
 </body>
 </html>

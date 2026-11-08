@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block titulo %}Revisão do engenheiro: {{ titular }}{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="/static/revisao.css">{% endblock %}
 {% block conteudo %}
-<link rel="stylesheet" href="/static/revisao.css">
 <section class="cabeca rev">
   <p class="rev-links"><a href="/processos/{{ p.id }}">Voltar ao processo</a> <a href="/processos/{{ p.id }}/timeline">Ver a timeline</a></p>
   <h1>Revisão do engenheiro</h1>

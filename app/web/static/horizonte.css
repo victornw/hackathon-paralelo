@@ -139,6 +139,9 @@ body.horizonte { font:400 14px/1.55 var(--h-font); color:var(--h-ink); backgroun
   opacity:.055; filter:none; animation:none;
 }
 html.amanhecer .horizonte::after { animation:none; }
+@view-transition { navigation:auto; }
+::view-transition-old(root),::view-transition-new(root) { animation-duration:160ms; }
+@media(prefers-reduced-motion:reduce) { ::view-transition-old(root),::view-transition-new(root) { animation:none; } }
 .luz-ambiente {
   position:fixed; inset:0; overflow:clip; pointer-events:none; z-index:-1;
   -webkit-mask-image:linear-gradient(90deg,var(--h-paper),var(--h-caustic-clear) 22%,var(--h-caustic-clear) 78%,var(--h-paper));

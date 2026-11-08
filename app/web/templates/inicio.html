@@ -1,8 +1,8 @@
 {% extends "layout.html" %}
 {% block titulo %}Início{% endblock %}
 {% block corpo_classe %}inicio-pagina{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="/static/inicio.css">{% endblock %}
 {% block conteudo %}
-<link rel="stylesheet" href="/static/inicio.css">
 <div class="ini-ceu" aria-hidden="true"></div>
 <script>
   (function () {
@@ -137,9 +137,9 @@
 
 <section class="ini-chamada" aria-labelledby="ini-h-cta">
   <h2 id="ini-h-cta">Veja o agente montar um processo agora.</h2>
-  <p>Escolha um dos exemplos prontos e acompanhe cada passo ao vivo.</p>
+  <p>Abra a carteira e acompanhe cada processo passo a passo.</p>
   <div class="ini-acoes">
-    <a class="botao destaque" href="/processos/novo">Começar um processo</a>
+    <a class="botao destaque" href="/painel">Abrir a carteira</a>
     <a class="botao secundario" href="/portal-gd">Abrir o Portal GD simulado</a>
   </div>
 </section>
