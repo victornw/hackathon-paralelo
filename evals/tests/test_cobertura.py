@@ -161,3 +161,49 @@ def test_coluna_ausente_vira_nao_medido(tmp_path):
     (linha,) = run.cobertura_aneel(caminho)
     assert linha["valor"] == run.NAO_MEDIDO
     assert "DscMotivoSituacao" in linha["obs"]
+
+
+def _zip_csv(caminho, linhas):
+    """Escreve um ZIP com um CSV no formato do portal (separador ';', decimal ',')."""
+    import zipfile
+
+    df = pd.DataFrame(linhas)
+    df["MdaPotencia"] = df["MdaPotencia"].map(lambda v: str(v).replace(".", ","))
+    with zipfile.ZipFile(caminho, "w") as z:
+        z.writestr("pedidos.csv", df.to_csv(sep=";", index=False))
+
+
+def test_pasta_com_varias_regioes_junta_tudo_e_traz_o_brasil(tmp_path):
+    pasta = tmp_path / "zips"
+    pasta.mkdir()
+    # Equatorial AL dividida entre dois arquivos regionais, como na base real
+    _zip_csv(
+        pasta / "nordeste.zip",
+        [
+            _l(agente="Equatorial AL", protocolo=10, motivo=DOC_INC),
+            _l(agente="Enel CE", protocolo=11, status=CONECTADO, motivo=None),
+        ],
+    )
+    _zip_csv(
+        pasta / "norte.zip",
+        [
+            _l(agente="Equatorial AL", protocolo=12, motivo=DOC_INC),
+            _l(agente="Equatorial AL", protocolo=13, motivo=OUTRAS),
+        ],
+    )
+    _zip_csv(
+        pasta / "sudeste.zip", [_l(agente="Cemig-D", protocolo=20, motivo=DOC_ERR)]
+    )
+
+    linhas = run.secao_aneel(pasta)
+    texto = (
+        run.tabela_markdown(linhas) if hasattr(run, "tabela_markdown") else str(linhas)
+    )
+    assert "ANEEL Brasil: casos-problema" in texto
+    assert "Equatorial AL: 3 pedidos" in texto  # os dois arquivos somados
+    assert "Cemig-D" in texto and "Enel CE" in texto
+
+
+def test_pasta_inexistente_continua_nao_medido(tmp_path):
+    (linha,) = run.secao_aneel(tmp_path / "nao_existe")
+    assert "não encontrada" in str(linha)
