@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
 from app.core import repositorio as repo
-from app.core.aprovacao import bloqueios_regras
+from app.core.aprovacao import bloqueios_aprovacao
 from app.portal_sim.relogio import hoje
 from app.schemas import Etapa, PassoTrace, Processo, StatusRegra
 from app.tracing import listar_passos
@@ -76,7 +76,7 @@ def revisao(request: Request, processo_id: str):
         raise HTTPException(404, "Processo não encontrado.") from exc
     regras = sorted(p.regras, key=lambda r: _ordem(r.regra_id))
     kwp = (p.kit.potencia_total_wp / 1000) if p.kit else None
-    bloqueios = bloqueios_regras(p)
+    bloqueios = bloqueios_aprovacao(p)
     return templates.TemplateResponse(
         request,
         "processo_revisao.html",

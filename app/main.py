@@ -36,7 +36,7 @@ from pydantic import BaseModel, Field
 from app.core import orquestrador
 from app.core import regras as conferidor
 from app.core import repositorio as repo
-from app.core.aprovacao import bloqueios_regras
+from app.core.aprovacao import bloqueios_aprovacao
 from app.core.orquestrador import FONTE_RESPOSTA
 from app.portal_sim import portal
 from app.portal_sim.relogio import avancar_tempo
@@ -439,11 +439,11 @@ def revisar(processo_id: str, corpo: Revisao, fundo: BackgroundTasks) -> Process
             raise HTTPException(
                 409, f"Não há revisão a fazer na etapa '{q.etapa.value}'."
             )
-        bloqueios.extend(bloqueios_regras(q))
+        bloqueios.extend(bloqueios_aprovacao(q))
         if not bloqueios:
             # Releitura e recálculo sob a trava: aprovação não usa só o cache.
             q.regras = conferidor.conferir(q)
-            bloqueios.extend(bloqueios_regras(q))
+            bloqueios.extend(bloqueios_aprovacao(q))
         if bloqueios:
             q.revisado_por = None
             q.revisado_em = None

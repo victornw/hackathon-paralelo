@@ -34,7 +34,7 @@ from pydantic import BaseModel
 from app.core import ai_sdk, arranjo, extracao, llm, perguntas
 from app.core import regras as conferidor
 from app.core import repositorio as repo
-from app.core.aprovacao import REGRAS_OBRIGATORIAS, bloqueios_regras
+from app.core.aprovacao import REGRAS_OBRIGATORIAS, bloqueios_aprovacao
 from app.docs import gerar as gerador
 from app.portal_sim import pendencias, portal, prazos
 from app.portal_sim.relogio import hoje
@@ -245,7 +245,7 @@ def _entrada_protocolar(e: Estado) -> str | None:
     p = e.processo
     if p.etapa != Etapa.EM_REVISAO or not p.revisado_por or p.numero_solicitacao:
         return None
-    if bloqueios_regras(p):
+    if bloqueios_aprovacao(p):
         return None
     return _hash(p.revisado_por, p.revisado_em)
 
@@ -277,7 +277,7 @@ def _entrada_reenviar(e: Estado) -> str | None:
         return None
     if ev is None or not ev.categoria_pendencia:
         return None
-    if bloqueios_regras(p):
+    if bloqueios_aprovacao(p):
         return None
     return _hash(ev.data, ev.motivo_pendencia, p.revisado_em)
 
