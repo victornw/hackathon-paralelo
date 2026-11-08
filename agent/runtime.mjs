@@ -27,7 +27,7 @@ export async function complete(request, model) {
     model,
     instructions: request.messages.filter(m => m.role === 'system').map(m => m.content).join('\n\n') || undefined,
     messages: messagesForSDK(request.messages.filter(m => m.role !== 'system')),
-    maxRetries: 0, abortSignal: AbortSignal.timeout(60_000),
+    maxRetries: 0, abortSignal: AbortSignal.timeout(150_000),
   });
   return { text: result.text, inputTokens: result.usage.inputTokens || 0,
     outputTokens: result.usage.outputTokens || 0 };

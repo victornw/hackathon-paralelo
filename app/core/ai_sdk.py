@@ -13,6 +13,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKER = ROOT / "agent" / "worker.mjs"
+# A Featherless levou 69 s numa extração de kit medida; 90 s cortava chamadas válidas.
+SEM_RESPOSTA_S = 180
 
 
 class SDKError(Exception):
@@ -41,8 +43,8 @@ def run(request: dict, handler: Callable | None = None) -> dict:
         with selectors.DefaultSelector() as selector:
             selector.register(process.stdout, selectors.EVENT_READ)
             while True:
-                if not selector.select(timeout=90):
-                    raise SDKError("AI SDK sem resposta por 90 segundos")
+                if not selector.select(timeout=SEM_RESPOSTA_S):
+                    raise SDKError(f"AI SDK sem resposta por {SEM_RESPOSTA_S} segundos")
                 line = process.stdout.readline()
                 if not line:
                     raise SDKError(
