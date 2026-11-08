@@ -19,9 +19,6 @@
   {% block estilos %}{% endblock %}
   <link rel="stylesheet" href="/static/horizonte.css?v={{ v }}">
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
-  <script type="speculationrules">
-    {"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": "/api/*"}}, {"not": {"href_matches": "/*.zip"}}, {"not": {"href_matches": "/*.pdf"}}, {"not": {"href_matches": "/portal-gd/*/*"}}]}, "eagerness": "moderate"}]}
-  </script>
 </head>
 <body class="horizonte {% block corpo_classe %}{% endblock %}">
   <div class="luz-ambiente" aria-hidden="true"></div>

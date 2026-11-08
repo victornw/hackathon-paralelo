@@ -1,4 +1,4 @@
-"""O adaptador do Turso, rodando o cliente libsql sobre um arquivo local (sem rede)."""
+"""Banco local espelhado no Turso, com o cliente libsql sobre um arquivo local (sem rede)."""
 
 import sqlite3
 
@@ -10,36 +10,23 @@ from app.tracing import db
 @pytest.fixture
 def turso(tmp_path, monkeypatch):
     monkeypatch.setenv("TURSO_DATABASE_URL", str(tmp_path / "turso.db"))
-    monkeypatch.setattr(db, "_scripts_aplicados", set())
-    monkeypatch.setattr(db, "_por_thread", db.threading.local())
+    monkeypatch.setenv("DB_PATH", str(tmp_path / "local.db"))
+    monkeypatch.setattr(db, "_copiado_do_turso", False)
+    monkeypatch.setattr(db, "_fila", None)
+    monkeypatch.setattr(db, "_scripts_replicados", set())
     return tmp_path
 
 
-def test_mesma_conexao_e_esquema_uma_vez_por_processo(turso):
-    primeira = db.conectar()
-    primeira.close()
-    assert db.conectar() is primeira
-    assert db._ESQUEMA in db._scripts_aplicados
-    real = primeira._c
-    primeira._c = None
+def _no_turso(tmp_path, sql: str) -> list[tuple]:
+    db.aguardar_replicacao()
+    con = sqlite3.connect(tmp_path / "turso.db")
     try:
-        assert primeira.executescript(db._ESQUEMA) is None
+        return [tuple(r) for r in con.execute(sql)]
     finally:
-        primeira._c = real
-    with db.conectar() as con:
-        con.execute("INSERT INTO relogio (id, data) VALUES (1, '2026-11-08')")
-    assert [tuple(r) for r in db.conectar().execute("SELECT data FROM relogio")] == [
-        ("2026-11-08",)
-    ]
+        con.close()
 
 
-def test_conexao_parada_ha_tempo_e_trocada(turso, monkeypatch):
-    primeira = db.conectar()
-    monkeypatch.setattr(db, "_REUSO_TURSO_S", 0.0)
-    assert db.conectar() is not primeira
-
-
-def test_conexao_turso_se_comporta_como_sqlite(turso):
+def test_gravacao_confirmada_chega_ao_turso(turso):
     with db.conectar() as con:
         con.execute("INSERT INTO relogio (id, data) VALUES (1, '2026-11-08')")
     with db.conectar() as con:
@@ -50,6 +37,42 @@ def test_conexao_turso_se_comporta_como_sqlite(turso):
             con.execute("INSERT INTO relogio (id, data) VALUES (1, 'x')")
         with pytest.raises(sqlite3.OperationalError):
             con.execute("SELECT * FROM tabela_que_nao_existe")
+    assert _no_turso(turso, "SELECT id, data FROM relogio") == [(1, "2026-11-08")]
+
+
+def test_gravacao_desfeita_nao_vai_ao_turso(turso):
+    with pytest.raises(RuntimeError), db.conectar() as con:
+        con.execute("INSERT INTO relogio (id, data) VALUES (1, '2026-11-08')")
+        raise RuntimeError
+    con = db.conectar()
+    con.execute("INSERT INTO relogio (id, data) VALUES (1, '2026-11-09')")
+    con.close()
+    assert _no_turso(turso, "SELECT data FROM relogio") == []
+    assert list(db.conectar().execute("SELECT data FROM relogio")) == []
+
+
+def test_partida_copia_o_turso_para_o_banco_local(turso, monkeypatch):
+    remoto = sqlite3.connect(turso / "turso.db")
+    remoto.executescript(db._ESQUEMA)
+    remoto.execute("INSERT INTO relogio (id, data) VALUES (1, '2026-12-01')")
+    remoto.execute(
+        "INSERT INTO passos_trace (processo_id, json) VALUES ('p1', '{}'), ('p1', '{}')"
+    )
+    remoto.commit()
+    remoto.close()
+    local = sqlite3.connect(turso / "local.db")
+    local.executescript(db._ESQUEMA)
+    local.execute("INSERT INTO relogio (id, data) VALUES (1, '2020-01-01')")
+    local.commit()
+    local.close()
+    with db.conectar() as con:
+        assert list(con.execute("SELECT data FROM relogio")) == [("2026-12-01",)]
+        con.execute("INSERT INTO passos_trace (processo_id, json) VALUES ('p1', '{}')")
+    assert _no_turso(turso, "SELECT id FROM passos_trace ORDER BY id") == [
+        (1,),
+        (2,),
+        (3,),
+    ]
 
 
 def test_arquivo_espelhado_volta_ao_disco(turso):
@@ -61,6 +84,7 @@ def test_arquivo_espelhado_volta_ao_disco(turso):
     assert db.restaurar_arquivos() == 1
     assert arquivo.read_bytes() == b"%PDF-1.4 conteudo"
     assert db.restaurar_arquivos() == 0  # o que já está no disco fica como está
+    assert len(_no_turso(turso, "SELECT caminho FROM arquivos")) == 1
 
 
 def test_sem_turso_nada_muda(tmp_path, monkeypatch):
