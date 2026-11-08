@@ -133,7 +133,8 @@ def test_valor_que_nao_sai_do_trecho_limita_a_0_5(monkeypatch, conta_fora_do_lay
     resposta["uc"]["valor"] = "87654321"
     LLMFalso(monkeypatch, resposta)
     campo = extrair_conta(conta_fora_do_layout)["uc"]
-    assert campo.valor == "87654321"
+    # A IA inventou outro número: fica o valor literal da conta, como incerto.
+    assert campo.valor == "12345678"
     assert campo.confianca <= 0.5
 
 
@@ -160,16 +161,16 @@ def test_campo_ilegivel_volta_none_e_confianca_zero(monkeypatch, conta_fora_do_l
     ("chave", "linha", "valor", "esperado"),
     [
         ("tensao_atendimento_v", "Tensão de atendimento: 230 V", 230, 0.3),
-        ("tensao_atendimento_v", "Tensão de atendimento: 220 V", "220 V", 0.95),
+        ("tensao_atendimento_v", "Tensão de atendimento: 220 V", "220 V", 1.0),
         ("uc", "Código da UC: 123", "123", 0.3),
-        ("uc", "Código da UC: 0/1234567-8", "0/1234567-8", 0.95),
+        ("uc", "Código da UC: 0/1234567-8", "0/1234567-8", 1.0),
         ("subgrupo", "Subgrupo: Z9", "Z9", 0.3),
-        ("subgrupo", "Subgrupo: b 1", "b 1", 0.95),
+        ("subgrupo", "Subgrupo: b 1", "b 1", 0.95),  # rótulo leu "b"; vale a IA
         ("cpf_cnpj", "CPF: 12.345", "12.345", 0.3),
-        ("cpf_cnpj", "CNPJ: 12.345.678/0001-95", "12.345.678/0001-95", 0.95),
-        ("cpf_cnpj", "CPF: ***.456.789-**", "***.456.789-**", 0.95),
+        ("cpf_cnpj", "CNPJ: 12.345.678/0001-95", "12.345.678/0001-95", 1.0),
+        ("cpf_cnpj", "CPF: ***.456.789-**", "***.456.789-**", 1.0),
         ("consumo_medio_kwh", "Consumo médio: 0 kWh", 0, 0.3),
-        ("consumo_medio_kwh", "Consumo médio: 1.250,5 kWh", "1.250,5", 0.95),
+        ("consumo_medio_kwh", "Consumo médio: 1.250,5 kWh", "1.250,5", 1.0),
         ("tipo_ligacao", "Ligação: TRIFÁSICA", "trifásica", 0.95),
         ("tipo_ligacao", "Ligação: monofásico", "Monofásico", 0.95),
         ("tipo_ligacao", "Ligação: tipo especial", "tipo especial", 0.3),
@@ -469,16 +470,50 @@ def test_padrao_ilegivel_volta_none(monkeypatch, tmp_path):
 
 
 @pytest.mark.parametrize("n", CLIENTES)
-def test_conta_no_layout_da_enel_e_lida_sem_chamar_o_llm(monkeypatch, n):
-    llm = LLMFalso(monkeypatch, LLMErro("não devia ser chamado"))
+def test_rotulos_conferidos_pela_ia_valem_1(monkeypatch, n):
+    llm = LLMFalso(monkeypatch, resposta_conta(n))
+    with processo_atual(f"proc-confere-{n}"):
+        campos = extrair_conta(FIXTURES / f"cliente_{n}_conta.pdf")
+    assert len(llm.chamadas) == 1  # a IA sempre lê, mesmo com os rótulos completos
+    for chave, c in gabarito(n)["campos"].items():
+        assert campos[chave].valor == c["valor"], chave
+        assert campos[chave].confianca == 1.0, chave
+    (passo,) = listar_passos(f"proc-confere-{n}")
+    assert "conferidos pela IA" in passo.decisao
+
+
+@pytest.mark.parametrize("n", CLIENTES)
+def test_ia_fora_do_ar_fica_a_leitura_por_rotulos(monkeypatch, n):
+    LLMFalso(monkeypatch, LLMErro("fora do ar"))
     with processo_atual(f"proc-leitor-{n}"):
         campos = extrair_conta(FIXTURES / f"cliente_{n}_conta.pdf")
-    assert llm.chamadas == []
     for chave, c in gabarito(n)["campos"].items():
         assert campos[chave].valor == c["valor"], chave
         assert campos[chave].confianca == 1.0, chave
     (passo,) = listar_passos(f"proc-leitor-{n}")
-    assert "sem IA" in passo.decisao and passo.tokens_entrada == 0
+    assert "sem IA" in passo.decisao
+
+
+def test_ia_divergente_deixa_o_campo_incerto(monkeypatch):
+    resposta = resposta_conta(1)
+    resposta["titular"]["valor"] = "MARIA DAS GRACAS LINS"
+    LLMFalso(monkeypatch, resposta)
+    with processo_atual("proc-diverge"):
+        campos = extrair_conta(FIXTURES / "cliente_1_conta.pdf")
+    assert campos["titular"].valor == "MARIA DAS GRAÇAS LIMA"  # o literal da conta
+    assert campos["titular"].incerto
+    assert campos["uc"].confianca == 1.0
+    (passo,) = listar_passos("proc-diverge")
+    assert "divergência em titular" in passo.decisao
+
+
+def test_duvida_da_ia_derruba_o_campo(monkeypatch):
+    resposta = resposta_conta(1)
+    resposta["endereco"]["confianca"] = 0.4
+    LLMFalso(monkeypatch, resposta)
+    campos = extrair_conta(FIXTURES / "cliente_1_conta.pdf")
+    assert campos["endereco"].confianca == 0.4 and campos["endereco"].incerto
+    assert campos["cidade"].confianca == 1.0
 
 
 def test_layout_desconhecido_sem_llm_usa_o_que_o_leitor_achou(
@@ -500,4 +535,5 @@ def test_layout_desconhecido_com_llm_usa_extracao_por_texto(
     assert llm.chamadas[0][2] == []
     for chave, c in gabarito(1)["campos"].items():
         assert campos[chave].valor == c["valor"], chave
-        assert campos[chave].confianca == 0.95, chave  # via IA: teto 0,95
+        # Achado pelos rótulos e conferido: 1; só a IA achou: teto 0,95.
+        assert campos[chave].confianca in (1.0, 0.95), chave

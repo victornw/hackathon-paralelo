@@ -2,7 +2,8 @@
 
 O LLM só lê. A confiança de cada campo é calculada aqui: o que o modelo diz
 vale no máximo 0,95; o leitor por rótulos, que tira o valor literal do texto do
-PDF, vale 1. Nos dois casos cai se o trecho citado não existe no texto de origem,
+PDF, vale 1, e a IA lê a mesma conta para conferir (divergência ou dúvida dela
+derruba o campo). Nos dois casos cai se o trecho citado não existe no texto de origem,
 se o valor não sai do trecho ou se o formato/faixa não confere. Na leitura por
 visão o teto é 0,8. Campo ilegível volta com valor None e confiança 0.
 """
@@ -415,6 +416,44 @@ def _montar_conta(
     }
 
 
+def _mesmo_valor(a: object, b: object) -> bool:
+    return _compacto(str(a)) == _compacto(str(b))
+
+
+def _conferir_com_ia(
+    rotulos: dict[str, CampoExtraido], ia: dict[str, CampoExtraido]
+) -> tuple[dict[str, CampoExtraido], str]:
+    """Os rótulos dão o valor literal; a IA lê a mesma conta e confere. Batendo,
+    vale 1, a menos que a própria IA tenha dúvida; divergindo, o campo fica
+    incerto e vira pergunta. Campo que só um dos dois achou (ou que o rótulo leu
+    num formato que não confere) fica com a leitura de quem acertou."""
+    campos: dict[str, CampoExtraido] = {}
+    divergentes: list[str] = []
+    duvidas: list[str] = []
+    for chave, r in rotulos.items():
+        a = ia[chave]
+        if r.valor is None or (r.incerto and not a.incerto):
+            campos[chave] = a  # rótulo ausente ou com formato que não confere
+        elif a.valor is None:
+            campos[chave] = r
+        elif not _mesmo_valor(r.valor, a.valor):
+            divergentes.append(chave)
+            campos[chave] = r.model_copy(
+                update={"confianca": min(r.confianca, TETO_TRECHO_NAO_CONFERE)}
+            )
+        elif a.confianca < LIMIAR_CONFIAVEL:
+            duvidas.append(chave)
+            campos[chave] = r.model_copy(update={"confianca": a.confianca})
+        else:
+            campos[chave] = r
+    via = "rótulos conferidos pela IA"
+    if divergentes:
+        via += f"; divergência em {', '.join(divergentes)}"
+    if duvidas:
+        via += f"; IA com dúvida em {', '.join(duvidas)}"
+    return campos, via
+
+
 @trace("extrair_conta")
 def extrair_conta(arquivo: Path) -> dict[str, CampoExtraido]:
     arquivo = Path(arquivo)
@@ -424,17 +463,29 @@ def extrair_conta(arquivo: Path) -> dict[str, CampoExtraido]:
 
     paginas = _paginas_pdf(arquivo) if sufixo == ".pdf" else []
     if sum(len(p.strip()) for p in paginas) >= MIN_CARACTERES_TEXTO:
+        compactas = [_compacto(p) for p in paginas]
         leitura = _ler_por_rotulos(paginas)
-        if _completo(leitura) or not disponivel("extracao"):
-            resposta, via, teto = leitura, "sem IA", TETO_ROTULO
+        rotulos = _montar_conta(leitura, arquivo.name, compactas, False, TETO_ROTULO)
+        ia = None
+        if disponivel("extracao"):
+            try:
+                ia = _montar_conta(
+                    completar_json(
+                        "extracao", _SISTEMA_CONTA, _texto_para_prompt(paginas), _ContaLLM
+                    ),
+                    arquivo.name,
+                    compactas,
+                    False,
+                )
+            except Exception:  # noqa: BLE001 - com os rótulos completos, a IA só confere
+                if not _completo(leitura):
+                    raise
+        if ia is None:
+            campos, via = rotulos, "sem IA"
+        elif not any(c.valor is not None for c in rotulos.values()):
+            campos, via = ia, "IA"
         else:
-            resposta = completar_json(
-                "extracao", _SISTEMA_CONTA, _texto_para_prompt(paginas), _ContaLLM
-            )
-            via, teto = "texto", TETO
-        campos = _montar_conta(
-            resposta, arquivo.name, [_compacto(p) for p in paginas], False, teto
-        )
+            campos, via = _conferir_com_ia(rotulos, ia)
     else:
         imagens = _imagens_pdf(arquivo) if sufixo == ".pdf" else [arquivo.read_bytes()]
         if imagens and disponivel("visao"):
