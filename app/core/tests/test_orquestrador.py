@@ -725,3 +725,13 @@ def test_resposta_do_engenheiro_refaz_os_documentos(ferramentas):
     assert p.etapa == Etapa.EM_REVISAO
     assert ferramentas.chamadas["gerar_documentos"] == 2
     assert not orquestrador.trabalhando(p)
+
+
+def test_pacote_assinado_conta_como_agente_trabalhando(ferramentas):
+    """Entre a assinatura e o protocolo a tela espera, sem oferecer revisar de novo."""
+    pid = novo_processo()
+    orquestrar(pid)
+    repo.atualizar(pid, lambda q: setattr(q, "revisado_por", "Eng."))
+    assert orquestrador.trabalhando(repo.carregar(pid))
+    p = orquestrar(pid)
+    assert p.etapa == Etapa.PROTOCOLADO and not orquestrador.trabalhando(p)

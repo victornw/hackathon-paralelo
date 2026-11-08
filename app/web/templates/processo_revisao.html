@@ -6,12 +6,14 @@
   <p class="rev-links"><a href="/processos/{{ p.id }}">Voltar ao processo</a> <a href="/processos/{{ p.id }}/timeline">Ver a timeline</a></p>
   <h1>Revisão do engenheiro</h1>
   <p class="resumo">{{ titular }}, UC <span class="mono">{{ uc }}</span>, {% if kwp is not none %}{{ '%.2f'|format(kwp)|replace('.', ',') }} kWp{% else %}kWp não informado{% endif %}. Etapa: <strong>{{ etapa_rotulo }}</strong>.</p>
-  {% if not revisavel %}
+  {% if not revisavel and p.revisado_por %}
+  <p class="rev-aviso ok" role="note">Aprovado e assinado por {{ p.revisado_por }}{% if p.revisado_em %} em {{ p.revisado_em.strftime('%d/%m/%Y às %H:%M') }}{% endif %}.{% if p.numero_solicitacao %} Protocolado no portal da Enel com o número <span class="mono">{{ p.numero_solicitacao }}</span>.{% endif %} <a href="/processos/{{ p.id }}">Voltar ao processo</a></p>
+  {% elif not revisavel %}
   <p class="rev-aviso" role="note">Este processo não está aguardando revisão. O conteúdo abaixo é somente para consulta.</p>
   {% endif %}
 </section>
 
-{% if trabalhando %}{% with aguardando_titulo="Atualizando o pacote com a sua resposta.", aguardando_texto="O agente está gerando os documentos e conferindo as regras de novo. Leva uns 30 segundos; a página se atualiza sozinha." %}{% include "_aguardando.html" %}{% endwith %}{% endif %}
+{% if trabalhando %}{% include "_aguardando.html" %}{% endif %}
 
 <section class="rev-resumo" aria-labelledby="rev-resumo-t">
   <h2 id="rev-resumo-t">Resumo da conferência</h2>

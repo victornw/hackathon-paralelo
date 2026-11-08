@@ -86,7 +86,7 @@ def _contexto(p: Processo) -> dict:
         else "Processo novo",
         "uc": uc.valor if uc and uc.valor else "—",
         "etapa_rotulo": ROTULOS[p.etapa],
-        "em_revisao": p.etapa == Etapa.EM_REVISAO,
+        "em_revisao": p.etapa == Etapa.EM_REVISAO and not p.revisado_por,
         "trabalhando": trabalhando,
         "linhas": _linhas_campos(p),
         "kit": kit,

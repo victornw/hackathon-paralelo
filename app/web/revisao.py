@@ -87,7 +87,8 @@ def revisao(request: Request, processo_id: str):
             "uc": _campo(p, "uc"),
             "kwp": kwp,
             "etapa_rotulo": ROTULOS.get(p.etapa, p.etapa.value),
-            "revisavel": p.etapa in (Etapa.EM_REVISAO, Etapa.PENDENCIA),
+            "revisavel": p.etapa == Etapa.PENDENCIA
+            or (p.etapa == Etapa.EM_REVISAO and not p.revisado_por),
             "trabalhando": orquestrador.trabalhando(p),
             "regras": [
                 {

@@ -878,8 +878,10 @@ def _rodar(
 
 
 def trabalhando(p: Processo) -> bool:
-    """Há passo do agente a rodar agora na montagem: a tela mostra espera e se atualiza."""
-    if p.etapa != Etapa.MONTAGEM:
+    """Há passo do agente a rodar agora (montando o pacote, ou protocolando o que o
+    engenheiro acabou de assinar): a tela mostra espera e se atualiza."""
+    assinado = p.etapa == Etapa.EM_REVISAO and p.revisado_por
+    if p.etapa != Etapa.MONTAGEM and not assinado:
         return False
     return bool(passos_disponiveis(p, repo.arquivos(p.id), repo.memoria(p.id)))
 

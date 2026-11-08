@@ -2,8 +2,7 @@
    recarrega a página sozinha quando a etapa, as perguntas ou os documentos mudam. #}
 <div class="trabalhando aguardando" role="status" aria-live="polite" data-processo="{{ p.id }}">
   <span class="girando" aria-hidden="true"></span>
-  <p><strong>{{ aguardando_titulo or "O agente está trabalhando." }}</strong>
-    <span class="aguardando-texto">{{ aguardando_texto or "Lendo os documentos e montando o pedido. Leva uns 30 segundos; a página se atualiza sozinha." }}</span></p>
+  <p><strong>O agente está trabalhando.</strong> <span class="aguardando-texto"></span></p>
 </div>
 <script>
 (function () {

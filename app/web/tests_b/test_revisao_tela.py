@@ -53,7 +53,7 @@ def test_somente_leitura_concluido(cliente):
     reiniciar_demo()
     r = cliente.get("/processos/demo-04/revisao")
     assert r.status_code == 200
-    assert "não está aguardando revisão" in r.text
+    assert "Aprovado e assinado por" in r.text
     assert "Aprovar e assinar" not in r.text
     assert 'id="form-aprovar"' not in r.text
 
