@@ -56,9 +56,6 @@ As regras ficam em [`app/core/regras.py`](app/core/regras.py) e [`app/core/parec
 | R03 | Tensão das strings no frio, corrente e janela do MPPT | Datasheets do módulo e do inversor | Implementada |
 | R04 | Potência dos módulos ≤ potência máxima CC do inversor | Datasheets | Implementada |
 | R05 | Inversor com registro INMETRO ativo para 220 V | Norma Enel 7.6.1.4, Tabelas 10 e 11; Portarias INMETRO 140/2022 e 515/2023 | Implementada: consulta o INMETRO; sem resposta, o engenheiro confirma |
-| R06 | Coordenada do padrão coerente com o endereço | Cartilha Cemig 2025 | Fora do MVP |
-| R07 | Tensão e tipo de ligação coerentes com a potência | Norma Enel, Tabela 4 | Fora do MVP |
-| R08 | Ajustes de proteção do inversor | Norma Enel, Anexo G | Fora do MVP |
 
 Onde estão as normas:
 
@@ -157,4 +154,4 @@ docs/            fontes normativas, matriz de cobertura, evidências e material 
 
 - Distribuidora coberta: Enel Ceará, residencial, monofásico, até 10 kW. O portal é simulado; não há integração com o portal real.
 - A assinatura digital e a ART são feitas fora do dia, pelo engenheiro.
-- R06 a R08 não são verificadas, e as NBRs não foram revisadas item a item (ver a matriz normativa).
+- As NBRs não foram revisadas item a item (ver a matriz normativa).
