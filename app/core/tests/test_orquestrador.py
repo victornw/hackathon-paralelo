@@ -435,6 +435,34 @@ def test_modelo_de_decisao_que_falha_nao_trava_o_processo(ferramentas, monkeypat
     assert any("(ordem_padrao)" in d for d in decisoes(pid))
 
 
+def test_agente_que_executa_passos_e_depois_falha_nao_prende_a_revisao(
+    ferramentas, monkeypatch
+):
+    # Caso visto no site: o modelo executa um passo, depois estoura (limite de
+    # passos, tempo, passo não autorizado). Antes, a pendência "falha:agente_ai_sdk"
+    # ficava aberta e segurava o envio para revisão com o pacote pronto.
+    monkeypatch.setenv("FEATHERLESS_API_KEY", "fake")
+    monkeypatch.setenv("MODELO_DECISAO", "fake")
+    chamadas_sdk = []
+
+    def executa_um_e_falha(request, handler):
+        chamadas_sdk.append(1)
+        estado = handler("state", {})
+        handler("execute", {"name": estado["options"][0], "motivo": "primeiro passo"})
+        raise orquestrador.ai_sdk.SDKError("limite de passos")
+
+    monkeypatch.setattr(orquestrador.ai_sdk, "run", executa_um_e_falha)
+    pid = novo_processo()
+    p = orquestrar(pid)
+    assert p.etapa == Etapa.EM_REVISAO
+    assert not any(q.id.startswith("falha:") and not q.resposta for q in p.perguntas)
+    assert len(chamadas_sdk) == 1  # depois da falha, a rodada segue na ordem padrão
+    falha = [
+        x for x in listar_passos(pid) if x.passo == "modelo_agente_ai_sdk" and x.erro
+    ]
+    assert falha and "limite de passos" in falha[0].erro
+
+
 def test_passo_unico_roda_sem_chamar_o_modelo(ferramentas, monkeypatch):
     monkeypatch.setenv("FEATHERLESS_API_KEY", "fake")
     monkeypatch.setenv("MODELO_DECISAO", "fake")

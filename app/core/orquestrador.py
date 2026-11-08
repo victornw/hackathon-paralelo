@@ -697,7 +697,10 @@ def _registrar_uso_sdk(processo_id: str, params: dict) -> None:
     )
 
 
-def _laco_sdk(processo_id: str) -> None:
+def _laco_sdk(processo_id: str) -> bool:
+    """Rodada com o modelo de decisão. Devolve False quando o agente falhou: a
+    falha vai para o trace e o laço segue pela ordem padrão, sem prender o
+    processo numa pendência que ninguém consegue resolver."""
     # Uma nova tentativa precisa liberar a falha anterior para alcançar a revisão.
     repo.atualizar(
         processo_id,
@@ -755,28 +758,28 @@ def _laco_sdk(processo_id: str) -> None:
             },
             atender,
         )
-    except ai_sdk.SDKError:
-        pergunta = Pergunta(
-            id="falha:agente_ai_sdk",
-            campo="falha:agente_ai_sdk",
-            destinatario="engenheiro",
-            texto="O agente Vercel AI SDK não concluiu a execução. O estado foi preservado; confira Node, npm ci e o provider antes de rodar novamente.",
+    except ai_sdk.SDKError as exc:
+        gravar_passo(
+            PassoTrace(
+                processo_id=processo_id,
+                passo="modelo_agente_ai_sdk",
+                em=repo.agora(),
+                erro=f"SDKError: {exc}"[:500],
+                decisao="Agente de decisão não concluiu; o processo segue pela ordem padrão.",
+            )
         )
-
-        def registrar(q: Processo) -> None:
-            q.perguntas = [x for x in q.perguntas if x.id != pergunta.id]
-            q.perguntas.append(pergunta)
-
-        repo.atualizar(processo_id, registrar)
+        ok = False
     else:
-        repo.atualizar(
-            processo_id,
-            lambda q: setattr(
-                q,
-                "perguntas",
-                [x for x in q.perguntas if x.id != "falha:agente_ai_sdk"],
-            ),
-        )
+        ok = True
+    repo.atualizar(
+        processo_id,
+        lambda q: setattr(
+            q,
+            "perguntas",
+            [x for x in q.perguntas if x.id != "falha:agente_ai_sdk"],
+        ),
+    )
+    return ok
 
 
 # --- laço ---------------------------------------------------------------------------------
@@ -873,7 +876,9 @@ def _rodar(
         )
 
 
-def _estado_atual(processo_id: str) -> tuple[Processo, Arquivos, dict[str, str], list[Passo]]:
+def _estado_atual(
+    processo_id: str,
+) -> tuple[Processo, Arquivos, dict[str, str], list[Passo]]:
     p = repo.carregar(processo_id)
     arquivos = repo.arquivos(processo_id)
     memoria = repo.memoria(processo_id)
@@ -881,25 +886,18 @@ def _estado_atual(processo_id: str) -> tuple[Processo, Arquivos, dict[str, str],
 
 
 def _laco(processo_id: str) -> None:
+    usar_sdk = True  # depois de uma falha do agente, a rodada segue na ordem padrão
     for _ in range(MAX_PASSOS):
         p, arquivos, memoria, opcoes = _estado_atual(processo_id)
         if not opcoes:
             return
         quem = "sem_modelo"
-        if len(opcoes) > 1 and llm.disponivel("decisao"):
+        if len(opcoes) > 1 and usar_sdk and llm.disponivel("decisao"):
             quem = "ordem_padrao"
-            _laco_sdk(processo_id)
-            if repo.memoria(processo_id) != memoria:
+            usar_sdk = _laco_sdk(processo_id)
+            if usar_sdk and repo.memoria(processo_id) != memoria:
                 continue
-            # O modelo não executou nenhum passo: a ordem padrão garante que o processo anda.
-            repo.atualizar(
-                processo_id,
-                lambda q: setattr(
-                    q,
-                    "perguntas",
-                    [x for x in q.perguntas if x.id != "falha:agente_ai_sdk"],
-                ),
-            )
+            # O modelo falhou ou não executou nenhum passo: a ordem padrão garante que o processo anda.
             p, arquivos, memoria, opcoes = _estado_atual(processo_id)
             if not opcoes:
                 return
