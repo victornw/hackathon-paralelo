@@ -131,6 +131,12 @@ def _base(pid: str, titular: str, uc: str, inicio: date) -> Processo:
             inicio,
         ),
         _respondida(
+            "dps_especificacao",
+            "Qual é a especificação do DPS CA da instalação interna (classe, Uc e In)?",
+            "classe II, 275 V, 20 kA",
+            inicio,
+        ),
+        _respondida(
             "qtd_ucs_credito",
             "Quantas unidades consumidoras vão receber os créditos? Se for só esta casa, a resposta é 1.",
             "1",
