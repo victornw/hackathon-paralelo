@@ -20,7 +20,7 @@
   <div class="luz-ambiente" aria-hidden="true"></div>
   {% set caminho = request.url.path %}
   <header class="topo">
-    <a class="marca" href="/painel" aria-label="dia, gestão e homologação: ir para a carteira">
+    <a class="marca" href="/" aria-label="dia, gestão e homologação: ir para o início">
       <span class="marca-sinal" aria-hidden="true"></span>
       <span class="marca-nome"><svg class="marca-logotipo" viewBox="0 0 98 48" aria-hidden="true" focusable="false">
         <path fill="currentColor" fill-rule="evenodd" d="M25 3h8v41h-8v-4c-2.6 3.3-6 5-10 5C6 45 1 38.4 1 29.5S6.5 14 15 14c4.1 0 7.4 1.6 10 4.7V3ZM17 21c-5 0-8 3.5-8 8.5s3 8.5 8 8.5 8-3.5 8-8.5-3-8.5-8-8.5Z"/>
@@ -31,6 +31,7 @@
       <span class="marca-sub">gestão e homologação</span>
     </a>
     <nav aria-label="Principal">
+      <a href="/"{% if caminho == '/' %} aria-current="page"{% endif %}>Início</a>
       <a href="/painel"{% if caminho == '/painel' or (caminho.startswith('/processos/') and not caminho.startswith('/processos/novo')) %} aria-current="page"{% endif %}>Carteira</a>
       <a href="/metricas"{% if caminho == '/metricas' %} aria-current="page"{% endif %}>Métricas</a>
       <a href="/processos/novo"{% if caminho.startswith('/processos/novo') %} aria-current="page"{% endif %}>Novo processo</a>

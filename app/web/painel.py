@@ -208,6 +208,13 @@ def _foco(p: Processo, dia: date) -> dict:
     }
 
 
+@router.get("/", include_in_schema=False)
+def inicio(request: Request):
+    return templates.TemplateResponse(
+        request, "inicio.html", {"hoje": hoje(), "total": len(carregar_processos())}
+    )
+
+
 @router.get("/painel")
 def painel(request: Request, tarefas: BackgroundTasks, p: str | None = None):
     dia = hoje()

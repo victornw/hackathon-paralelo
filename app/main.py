@@ -30,7 +30,7 @@ from fastapi import (
     Request,
     UploadFile,
 )
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -610,7 +610,3 @@ def _processo_nao_encontrado(
 ) -> JSONResponse:
     return JSONResponse({"detail": "Processo não encontrado."}, status_code=404)
 
-
-@app.get("/", include_in_schema=False)
-def raiz() -> RedirectResponse:
-    return RedirectResponse("/painel")

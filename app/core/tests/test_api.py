@@ -536,7 +536,8 @@ def test_documento_so_serve_o_que_esta_no_processo(cliente, tmp_path):
 
 
 def test_pagina_inicial_e_estaticos(cliente):
-    assert cliente.get("/", follow_redirects=False).status_code in (302, 307)
+    inicio = cliente.get("/", follow_redirects=False)
+    assert inicio.status_code == 200 and "Começar um processo" in inicio.text
     assert cliente.get("/painel").status_code == 200
     assert cliente.get("/static/painel.css").status_code == 200
 

@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+{% block titulo %}Início{% endblock %}
+{% block corpo_classe %}inicio-pagina{% endblock %}
+{% block conteudo %}
+<link rel="stylesheet" href="/static/inicio.css">
+
+<section class="ini-heroi" aria-labelledby="ini-titulo">
+  <div class="ini-sol" aria-hidden="true"></div>
+  <div class="ini-heroi-texto">
+    <p class="ini-sobrelinha">Homologação solar operada por IA</p>
+    <h1 id="ini-titulo">Da conta de luz ao pacote pronto para assinar.</h1>
+    <p class="ini-lead">O dia lê os documentos do cliente, pergunta só o que falta, gera o pacote técnico no padrão da Enel e confere tudo contra a norma antes do envio. O engenheiro revisa e assina. O agente faz o resto.</p>
+    <div class="ini-acoes">
+      <a class="botao destaque" href="/processos/novo">Começar um processo</a>
+      <a class="botao secundario" href="/painel">Ver a carteira{% if total %} · {{ total }} processo{{ 's' if total != 1 }}{% endif %}</a>
+    </div>
+  </div>
+
+  <figure class="ini-dossie" aria-label="Exemplo de processo conferido pelo agente">
+    <div class="ini-dossie-topo">
+      <span>Processo sintético · UC 7012 4486</span>
+      <span class="ini-selo">Em revisão</span>
+    </div>
+    <p class="ini-dossie-nome">Residência Marina Albuquerque</p>
+    <p class="ini-dossie-meta">Fortaleza, CE · 6,6 kWp · ligação bifásica</p>
+    <ol class="ini-trilho" aria-label="Etapas">
+      <li class="feito"><span>1</span>Conta</li>
+      <li class="feito"><span>2</span>Perguntas</li>
+      <li class="feito"><span>3</span>Pacote</li>
+      <li class="atual"><span>4</span>Revisão</li>
+      <li><span>5</span>Protocolo</li>
+    </ol>
+    <ul class="ini-checks">
+      <li><span class="ini-ok" aria-hidden="true"></span><div><strong>Potência do inversor compatível com o disjuntor de entrada</strong><small>R00 · norma Enel CNC-NDBR-DBR-18-0122</small></div></li>
+      <li><span class="ini-ok" aria-hidden="true"></span><div><strong>Cabo CA e disjuntor dimensionados, com queda de tensão</strong><small>R02 · NBR 5410</small></div></li>
+      <li><span class="ini-duvida" aria-hidden="true"></span><div><strong>Registro INMETRO do inversor a confirmar</strong><small>R05 · Portaria INMETRO 140/2022 · virou pergunta ao engenheiro</small></div></li>
+    </ul>
+    <figcaption>Regra incerta bloqueia a aprovação até alguém confirmar.</figcaption>
+  </figure>
+</section>
+
+<section class="ini-problema" aria-labelledby="ini-h-problema">
+  <h2 id="ini-h-problema">Homologar ainda é trabalho manual, processo por processo.</h2>
+  <dl class="ini-numeros">
+    <div><dt>pedidos residenciais negados por documentação incompleta em Alagoas</dt><dd>1 em 6</dd><small>ANEEL, pedidos de conexão 2022–2023</small></div>
+    <div><dt>dos integradores terceirizam projeto e engenharia</dt><dd>37%</dd><small>Greener, 2025</small></div>
+    <div><dt>pagos a homologadoras por processo</dt><dd>R$ 400–690</dd><small>preço de mercado</small></div>
+  </dl>
+</section>
+
+<section class="ini-como" aria-labelledby="ini-h-como">
+  <div class="ini-secao-cabeca">
+    <p class="ini-sobrelinha">Como o agente trabalha</p>
+    <h2 id="ini-h-como">Um horizonte por processo, do primeiro documento à ligação.</h2>
+  </div>
+  <ol class="ini-passos">
+    <li><span>01</span><h3>Lê a conta e a proposta</h3><p>Leitor por rótulos conferido pela IA. Divergência ou dúvida vira pergunta, nunca chute.</p></li>
+    <li><span>02</span><h3>Pergunta só o que falta</h3><p>As exigências do pacote da Enel geram perguntas objetivas ao integrador e ao engenheiro.</p></li>
+    <li><span>03</span><h3>Gera o pacote técnico</h3><p>Formulário, memorial descritivo e diagrama unifilar no padrão da distribuidora.</p></li>
+    <li><span>04</span><h3>Confere contra a norma</h3><p>Regras em código com a fonte normativa de cada uma. Campo "A INFORMAR" bloqueia o envio.</p></li>
+    <li><span>05</span><h3>Acompanha o protocolo</h3><p>Classifica pendências, corrige, reenvia após nova revisão e vigia os prazos.</p></li>
+  </ol>
+</section>
+
+<section class="ini-humano" aria-labelledby="ini-h-humano">
+  <div class="ini-humano-texto">
+    <p class="ini-sobrelinha">Responsabilidade técnica</p>
+    <h2 id="ini-h-humano">O engenheiro assina. O agente prepara.</h2>
+    <p>A decisão continua com quem responde por ela. O dia entrega o pacote conferido, mostra cada regra com a fonte e registra o que fez. Assim cada engenheiro atende muito mais processos.</p>
+  </div>
+  <div class="ini-colunas">
+    <div class="ini-coluna">
+      <h3>O agente faz</h3>
+      <ul>
+        <li>Extrai dados com confiança calculada por campo</li>
+        <li>Escolhe o próximo passo entre os permitidos pelo estado</li>
+        <li>Tenta de novo quando uma ferramenta falha</li>
+        <li>Grava decisão, tokens, tempo e custo de cada passo</li>
+      </ul>
+    </div>
+    <div class="ini-coluna humano">
+      <h3>A pessoa decide</h3>
+      <ul>
+        <li>Confirma premissas que a norma não fecha sozinha</li>
+        <li>Revisa o pacote e assina a responsabilidade técnica</li>
+        <li>Autoriza cada reenvio depois de pendência</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="ini-resultados" aria-labelledby="ini-h-res">
+  <div class="ini-secao-cabeca">
+    <p class="ini-sobrelinha">Medido com o modelo real</p>
+    <h2 id="ini-h-res">Rápido, barato e com rastro auditável.</h2>
+  </div>
+  <dl class="ini-metricas">
+    <div><dt>de acerto na classificação de pendências</dt><dd>93,8%</dd><small>48 textos rotulados; palavras-chave: 50%</small></div>
+    <div><dt>de LLM por processo completo</dt><dd>30–40 s</dd><small>cerca de 3 mil tokens</small></div>
+    <div><dt>de custo de IA por processo</dt><dd>~R$ 0,005</dd><small>preço de referência de mercado</small></div>
+  </dl>
+  <p class="ini-nota">Dados de clientes, contas e kits da demonstração são sintéticos. <a href="/metricas">Ver as métricas ao vivo</a></p>
+</section>
+
+<section class="ini-chamada" aria-labelledby="ini-h-cta">
+  <h2 id="ini-h-cta">Veja o agente montar um processo agora.</h2>
+  <p>Escolha um dos exemplos prontos e acompanhe cada passo ao vivo.</p>
+  <div class="ini-acoes">
+    <a class="botao destaque" href="/processos/novo">Começar um processo</a>
+    <a class="botao secundario" href="/portal-gd">Abrir o Portal GD simulado</a>
+  </div>
+</section>
+
+<footer class="ini-rodape">
+  <span>dia · gestão e homologação</span>
+  <span>Converge Challenge · Porto Digital, Recife</span>
+</footer>
+{% endblock %}
