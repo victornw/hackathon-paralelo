@@ -278,9 +278,14 @@ def confirmar_r05(processo_id: str, engenheiro: str = Form(...)):
     r05 = next(r for r in atualizado.regras if r.regra_id == "R05")
     return {"confirmado_por": r05.confirmado_por, "confirmado_em": r05.confirmado_em}
 
+
 # Telas de novo processo, detalhe e revisão do engenheiro
 from app.web.processo import router as _processo_router
 from app.web.revisao import router as _revisao_router
 
 router.include_router(_processo_router)
 router.include_router(_revisao_router)
+
+from app.web.saude import router as _saude_router
+
+router.include_router(_saude_router)
