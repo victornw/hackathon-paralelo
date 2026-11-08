@@ -44,7 +44,7 @@ def test_novo_mostra_formulario_e_exemplos(cliente):
         assert trecho in r.text
     for n in (1, 2, 3):
         assert f"Usar exemplo {n}" in r.text
-        assert f'action="/processos/novo/exemplo/{n}"' in r.text
+        assert f'href="/processos/novo/exemplo/{n}"' in r.text
     assert 'role="alert"' in r.text
 
 
@@ -56,6 +56,20 @@ def test_exemplo_cria_processo_com_dois_arquivos(cliente):
     arqs = repositorio.arquivos(pid)
     assert len(arqs["conta"]) == 1 and len(arqs["proposta"]) == 1
     assert cliente.get(r.headers["location"]).status_code == 200
+
+
+def test_exemplo_mostra_os_documentos_antes_de_comecar(cliente):
+    antes = len(repositorio.listar())
+    r = cliente.get("/processos/novo/exemplo/1")
+    assert r.status_code == 200
+    assert 'action="/processos/novo/exemplo/1"' in r.text and "Começar" in r.text
+    for sufixo in ("conta", "proposta"):
+        assert f"/processos/novo/exemplo/1/{sufixo}.pdf" in r.text
+        pdf = cliente.get(f"/processos/novo/exemplo/1/{sufixo}.pdf")
+        assert pdf.status_code == 200 and pdf.content.startswith(b"%PDF")
+    assert len(repositorio.listar()) == antes  # ver não cria processo
+    assert cliente.get("/processos/novo/exemplo/1/outro.pdf").status_code == 404
+    assert cliente.get("/processos/novo/exemplo/4").status_code == 404
 
 
 def test_exemplo_invalido_404(cliente):

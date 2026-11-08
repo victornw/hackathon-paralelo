@@ -32,15 +32,15 @@
 .exemplos h2, .form-novo h2 { font-size: 17px; margin: 0; }
 .exemplos > .resumo { font-size: 14px; margin: 4px 0 16px; }
 .exemplos-botoes { display: grid; gap: 10px; }
-.exemplo { display: block; margin: 0; padding: 0; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.exemplo button {
+.exemplo-link {
   width: 100%; min-height: 0; display: grid; grid-template-columns: auto 1fr; justify-content: stretch; gap: 2px 14px;
   padding: 14px 16px; text-align: left; border-radius: 14px;
   background: var(--processo-surface-5); border: 1px solid var(--processo-surface-2);
   box-shadow: inset 0 1px 0 var(--processo-surface-6), 0 1px 2px var(--processo-surface-3);
-  font-weight: 600; color: var(--tinta);
+  font-weight: 600; color: var(--tinta); text-decoration: none;
+  transition: background-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
 }
-.exemplo button:hover {
+.exemplo-link:hover {
   color: var(--tinta);
   background: linear-gradient(150deg, var(--processo-surface-7), var(--processo-surface-8));
   box-shadow: inset 0 1px 0 var(--processo-surface-6), 0 10px 24px -14px var(--processo-surface-9);
@@ -51,6 +51,25 @@
   font: 600 14px/1 var(--mono); color: var(--tinta);
   background: radial-gradient(circle at 35% 30%, var(--processo-surface-10), var(--ceu-alto));
 }
+/* Prévia do exemplo: os documentos que vão para o agente, e "Começar". */
+.exemplo-docs { max-width: 760px; }
+.docs-envio { list-style: none; margin: 0 0 20px; padding: 0; display: grid; gap: 10px; }
+.docs-envio a {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px;
+  padding: 14px 16px; border-radius: 14px; color: var(--tinta); text-decoration: none;
+  background: var(--processo-surface-5); border: 1px solid var(--processo-surface-2);
+  transition: background-color 180ms var(--ease-out), box-shadow 180ms var(--ease-out);
+}
+.docs-envio a:hover { background: var(--processo-surface-7); box-shadow: 0 10px 24px -14px var(--processo-surface-9); }
+.doc-icone {
+  display: grid; place-items: center; width: 40px; height: 48px; border-radius: 8px;
+  font: 700 11px/1 var(--mono); color: #fff; background: var(--tinta);
+}
+.doc-texto { display: grid; gap: 2px; }
+.doc-texto small { color: var(--tinta-2); font-size: 13px; }
+.doc-abrir { font-size: 13px; font-weight: 600; color: var(--azul); }
+.comecar { display: grid; gap: 8px; justify-items: start; }
+.comecar button { min-width: 180px; }
 .exemplo-legenda { font-size: 13px; font-weight: 400; color: var(--tinta-2); line-height: 1.45; }
 
 .form-novo { display: grid; gap: 16px; padding: 22px; margin: 0; }

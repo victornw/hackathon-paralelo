@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.core import orquestrador, repositorio
@@ -106,16 +106,62 @@ def _contexto(p: Processo) -> dict:
 
 @router.get("/processos/novo")
 def novo(request: Request):
-    return templates.TemplateResponse(request, "processo_novo.html", {"hoje": hoje()})
+    return templates.TemplateResponse(
+        request, "processo_novo.html", {"hoje": hoje(), "exemplos": EXEMPLOS}
+    )
+
+
+EXEMPLOS = {
+    1: "10 módulos, inversor de 5 kW: caminho completo até o protocolo",
+    2: "Microinversor: o agente para e explica que está fora do escopo",
+    3: "14 módulos, inversor de 8 kW, duas strings informadas na proposta",
+}
+# Tipo do arquivo no processo, sufixo do PDF de exemplo, rótulo e o que ele traz.
+DOCUMENTOS_EXEMPLO = (
+    ("conta", "conta", "Conta de luz", "Titular, UC, ligação, tensão e consumo"),
+    (
+        "proposta",
+        "proposta",
+        "Proposta com o kit",
+        "Módulos, inversor, strings e a ficha da visita técnica",
+    ),
+)
+
+
+def _exemplo(n: int) -> str:
+    if n not in EXEMPLOS:
+        raise HTTPException(404, "Exemplo não encontrado.")
+    return EXEMPLOS[n]
+
+
+@router.get("/processos/novo/exemplo/{n}")
+def ver_exemplo(request: Request, n: int):
+    """Mostra o que vai para o agente; nada roda até "Começar"."""
+    return templates.TemplateResponse(
+        request,
+        "processo_exemplo.html",
+        {"hoje": hoje(), "n": n, "legenda": _exemplo(n), "documentos": DOCUMENTOS_EXEMPLO},
+    )
+
+
+@router.get("/processos/novo/exemplo/{n}/{sufixo}.pdf")
+def pdf_do_exemplo(n: int, sufixo: str):
+    _exemplo(n)
+    if sufixo not in {d[1] for d in DOCUMENTOS_EXEMPLO}:
+        raise HTTPException(404, "Documento não encontrado.")
+    return FileResponse(
+        RAIZ / "fixtures" / "contas" / f"cliente_{n}_{sufixo}.pdf",
+        media_type="application/pdf",
+        content_disposition_type="inline",
+    )
 
 
 @router.post("/processos/novo/exemplo/{n}")
 def novo_exemplo(n: int, tarefas: BackgroundTasks):
-    if n not in (1, 2, 3):
-        raise HTTPException(404, "Exemplo não encontrado.")
+    _exemplo(n)
     pasta = RAIZ / "fixtures" / "contas"
     p = repositorio.criar(email_contato=EMAIL_EXEMPLO)
-    for tipo, sufixo in (("conta", "conta"), ("proposta", "proposta")):
+    for tipo, sufixo, *_ in DOCUMENTOS_EXEMPLO:
         arq = pasta / f"cliente_{n}_{sufixo}.pdf"
         repositorio.guardar_arquivo(p.id, tipo, arq.name, arq.read_bytes())
     tarefas.add_task(orquestrador.orquestrar, p.id)

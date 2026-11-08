@@ -31,9 +31,9 @@
       <span class="marca-sub">gestão e homologação</span>
     </a>
     <nav aria-label="Principal">
-      <a href="/painel"{% if caminho == '/painel' or (caminho.startswith('/processos/') and caminho != '/processos/novo') %} aria-current="page"{% endif %}>Carteira</a>
+      <a href="/painel"{% if caminho == '/painel' or (caminho.startswith('/processos/') and not caminho.startswith('/processos/novo')) %} aria-current="page"{% endif %}>Carteira</a>
       <a href="/metricas"{% if caminho == '/metricas' %} aria-current="page"{% endif %}>Métricas</a>
-      <a href="/processos/novo"{% if caminho == '/processos/novo' %} aria-current="page"{% endif %}>Novo processo</a>
+      <a href="/processos/novo"{% if caminho.startswith('/processos/novo') %} aria-current="page"{% endif %}>Novo processo</a>
       <a href="/portal-gd">Portal GD</a>
       <a href="/portal-gd/operador"{% if caminho.startswith('/portal-gd/operador') %} aria-current="page"{% endif %}>Operador</a>
     </nav>

@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+{% block titulo %}Exemplo {{ n }}{% endblock %}
+{% block conteudo %}
+<link rel="stylesheet" href="/static/processo.css">
+<section class="cabeca">
+  <p class="rev-links"><a href="/processos/novo">Voltar</a></p>
+  <h1>Exemplo {{ n }}</h1>
+  <p class="resumo">{{ legenda }}</p>
+</section>
+
+<section class="bloco exemplo-docs" aria-labelledby="h-docs">
+  <h2 id="h-docs">O que vai para o agente</h2>
+  <ul class="docs-envio">
+    {% for tipo, sufixo, rotulo, conteudo in documentos %}
+    <li>
+      <a href="/processos/novo/exemplo/{{ n }}/{{ sufixo }}.pdf" target="_blank" rel="noopener">
+        <span class="doc-icone" aria-hidden="true">PDF</span>
+        <span class="doc-texto"><strong>{{ rotulo }}</strong><small>{{ conteudo }}</small></span>
+        <span class="doc-abrir">Abrir</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+  <form method="post" action="/processos/novo/exemplo/{{ n }}" class="comecar">
+    <button type="submit">Começar</button>
+    <p class="sugestao-nota">O agente lê os documentos e monta o pedido. Você acompanha cada passo.</p>
+  </form>
+</section>
+{% endblock %}
