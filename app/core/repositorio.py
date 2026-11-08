@@ -132,6 +132,9 @@ def guardar_arquivo(processo_id: str, tipo: str, nome: str, conteudo: bytes) -> 
     destino = pasta_uploads() / processo_id / tipo / nome_limpo
     destino.parent.mkdir(parents=True, exist_ok=True)
     destino.write_bytes(conteudo)
+    from app.tracing.db import espelhar_arquivo
+
+    espelhar_arquivo(destino)  # com Turso, a conta enviada sobrevive ao reinício
     return destino
 
 

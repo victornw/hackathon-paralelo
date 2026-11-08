@@ -40,6 +40,10 @@ def gerar_documentos(processo: Processo) -> list[DocumentoGerado]:
         _doc("unifilar", pdf_unifilar),
         _doc("unifilar", svg),
     ]
+    from app.tracing.db import espelhar_arquivo
+
+    for d in docs:
+        espelhar_arquivo(d.caminho)  # com Turso, o PDF sobrevive ao reinício do Render
     registrar_uso(
         decisao=f"Gerados {len(docs)} documentos (Anexo A, memorial e unifilar)."
     )

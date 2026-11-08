@@ -7,3 +7,4 @@ fpdf2==2.9.0
 holidays==0.108
 pypdf
 certifi
+libsql==0.1.11

@@ -561,6 +561,12 @@ async def _ao_subir(_app: FastAPI):
     ou reinício. Os casos prontos da demonstração são recriados na hora, e o site
     se mantém acordado para não reiniciar sozinho (app/web/acordado.py)."""
     try:
+        from app.tracing.db import restaurar_arquivos
+
+        restaurar_arquivos()  # com Turso: contas e PDFs voltam ao disco vazio
+    except Exception:  # o site sobe mesmo assim; os documentos podem ser gerados de novo
+        logging.getLogger(__name__).exception("Não foi possível restaurar os arquivos.")
+    try:
         from app.portal_sim.demo import garantir_demo
 
         garantir_demo()
