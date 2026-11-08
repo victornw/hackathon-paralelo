@@ -213,9 +213,21 @@ def _canal_integrador(processo: Processo, hoje: date) -> list[Mensagem]:
                 )
             )
 
-    if processo.etapa == Etapa.EM_REVISAO:
+    if processo.etapa == Etapa.EM_REVISAO and processo.revisado_por:
+        saida.append(Mensagem(
+            "integrador", hoje, "agente",
+            f"{processo.revisado_por} aprovou o pacote assinado. Falta protocolar no "
+            "Portal GD e informar aqui o número da solicitação; depois disso eu "
+            "acompanho o portal.",
+            "aguardando_protocolo",
+            link=f"/processos/{processo.id}/revisao#protocolo", link_texto="Protocolar",
+        ))
+    elif processo.etapa == Etapa.EM_REVISAO:
         abertas = [q for q in processo.perguntas if not q.resposta]
-        texto = "O processo está em revisão. Confira os documentos antes de aprovar e assinar."
+        texto = (
+            "O pacote está pronto para o engenheiro: baixar, assinar com certificado "
+            "digital, aprovar e protocolar no Portal GD."
+        )
         if abertas:
             texto += " Ainda há confirmações pendentes; a revisão mostra o que falta."
         saida.append(Mensagem(

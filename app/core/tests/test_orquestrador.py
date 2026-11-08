@@ -142,6 +142,12 @@ def aprovar(pid: str, engenheiro: str = "Eng. Teste") -> None:
     repo.atualizar(pid, mudar)
 
 
+def assinar_e_protocolar(pid: str) -> None:
+    """Aprovação do engenheiro seguida do protocolo simulado (ação humana)."""
+    aprovar(pid)
+    orquestrador.registrar_protocolo(pid)
+
+
 def decisoes(pid: str) -> list[str]:
     return [p.decisao for p in listar_passos(pid) if p.passo == "decidir_proximo_passo"]
 
@@ -269,10 +275,14 @@ def test_regra_incerta_vai_para_o_engenheiro_com_a_incerteza_visivel(ferramentas
 # --- protocolo e portal --------------------------------------------------------------------------
 
 
-def test_protocola_so_depois_da_aprovacao_e_consulta_o_portal(ferramentas):
+def test_agente_nao_protocola_sozinho_e_acompanha_o_numero_informado(ferramentas):
     pid = novo_processo()
     orquestrar(pid)
     aprovar(pid)
+    p = orquestrar(pid)
+    assert p.etapa == Etapa.EM_REVISAO and p.numero_solicitacao is None
+    assert orquestrador.aguardando_protocolo(p) and not orquestrador.trabalhando(p)
+    orquestrador.registrar_protocolo(pid)
     p = orquestrar(pid)
     assert p.numero_solicitacao.startswith("GD-2026-")
     assert p.etapa == Etapa.PROTOCOLADO
@@ -285,7 +295,7 @@ def test_consulta_do_portal_roda_uma_vez_por_mudanca_de_relogio(
 ):
     pid = novo_processo()
     orquestrar(pid)
-    aprovar(pid)
+    assinar_e_protocolar(pid)
     consultas = []
     original = portal.consultar_status
     monkeypatch.setattr(
@@ -306,7 +316,7 @@ def test_pendencia_do_portal_vira_pergunta_ao_engenheiro_e_so_reenvia_apos_nova_
 ):
     pid = novo_processo()
     orquestrar(pid)
-    aprovar(pid)
+    assinar_e_protocolar(pid)
     numero = orquestrar(pid).numero_solicitacao
     from app.portal_sim.relogio import avancar_tempo
 
@@ -340,7 +350,7 @@ def test_pendencia_do_portal_vira_pergunta_ao_engenheiro_e_so_reenvia_apos_nova_
 def test_classificacao_da_pendencia_sobrevive_a_nova_consulta(ferramentas):
     pid = novo_processo()
     orquestrar(pid)
-    aprovar(pid)
+    assinar_e_protocolar(pid)
     numero = orquestrar(pid).numero_solicitacao
     from app.portal_sim.relogio import avancar_tempo
 
@@ -358,7 +368,7 @@ def test_orcamento_emitido_gera_lembrete_com_prazo_e_encerra_na_acao_do_integrad
 ):
     pid = novo_processo()
     orquestrar(pid)
-    aprovar(pid)
+    assinar_e_protocolar(pid)
     numero = orquestrar(pid).numero_solicitacao
     from app.portal_sim.relogio import avancar_tempo
 
@@ -567,23 +577,40 @@ def test_refazer_libera_o_passo_que_falhou(ferramentas, monkeypatch):
     assert orquestrar(pid).campos
 
 
-def test_erro_de_negocio_nao_tem_nova_tentativa(ferramentas, monkeypatch):
-    chamadas = []
-
+def test_portal_recusa_o_protocolo_simulado_e_o_processo_fica_aguardando(
+    ferramentas, monkeypatch
+):
     def recusa(p):
-        chamadas.append(p.id)
         raise portal.PortalErro("Campos obrigatórios não preenchidos: telefone")
 
     monkeypatch.setattr(portal, "protocolar", recusa)
     pid = novo_processo()
     orquestrar(pid)
     aprovar(pid)
-    p = orquestrar(pid)
-    assert len(chamadas) == 1
-    falha = next(q for q in p.perguntas if q.id == "falha:protocolar")
-    assert "telefone" in falha.texto
+    with pytest.raises(portal.PortalErro, match="telefone"):
+        orquestrador.registrar_protocolo(pid)
+    p = repo.carregar(pid)
     assert p.etapa == Etapa.EM_REVISAO and p.numero_solicitacao is None
 
+
+def test_numero_informado_precisa_existir_e_ser_da_mesma_uc(ferramentas):
+    pid = novo_processo()
+    orquestrar(pid)
+    with pytest.raises(orquestrador.ProtocoloRecusado, match="depois da aprovação"):
+        orquestrador.registrar_protocolo(pid, "GD-2026-000001")
+    aprovar(pid)
+    with pytest.raises(orquestrador.ProtocoloRecusado, match="não existe"):
+        orquestrador.registrar_protocolo(pid, "GD-2026-999999")
+    outro = novo_processo()
+    orquestrar(outro)
+    aprovar(outro)
+    numero = orquestrador.registrar_protocolo(outro).numero_solicitacao
+    repo.atualizar(pid, lambda q: setattr(q.campos["uc"], "valor", "0000000000"))
+    with pytest.raises(orquestrador.ProtocoloRecusado, match="outra unidade"):
+        orquestrador.registrar_protocolo(pid, numero)
+    repo.atualizar(pid, lambda q: setattr(q.campos["uc"], "valor", repo.carregar(outro).campos["uc"].valor))
+    p = orquestrador.registrar_protocolo(pid, f" {numero.lower()} ")
+    assert p.etapa == Etapa.PROTOCOLADO and p.numero_solicitacao == numero
 
 def test_kit_incompleto_vira_pergunta_ao_integrador_sem_falha(ferramentas, monkeypatch):
     lido_ok = extracao.extrair_kit
@@ -727,11 +754,11 @@ def test_resposta_do_engenheiro_refaz_os_documentos(ferramentas):
     assert not orquestrador.trabalhando(p)
 
 
-def test_pacote_assinado_conta_como_agente_trabalhando(ferramentas):
-    """Entre a assinatura e o protocolo a tela espera, sem oferecer revisar de novo."""
+def test_pacote_assinado_espera_o_protocolo_do_engenheiro(ferramentas):
+    """Entre a assinatura e o protocolo quem age é o engenheiro: o agente não roda."""
     pid = novo_processo()
     orquestrar(pid)
     repo.atualizar(pid, lambda q: setattr(q, "revisado_por", "Eng."))
-    assert orquestrador.trabalhando(repo.carregar(pid))
-    p = orquestrar(pid)
-    assert p.etapa == Etapa.PROTOCOLADO and not orquestrador.trabalhando(p)
+    p = repo.carregar(pid)
+    assert not orquestrador.trabalhando(p) and orquestrador.aguardando_protocolo(p)
+    assert orquestrar(pid).etapa == Etapa.EM_REVISAO

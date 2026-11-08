@@ -67,7 +67,7 @@
         {% endfor %}
       </ol>
       <p class="acoes">
-        {% if f.em_revisao %}<a class="destaque" href="/processos/{{ f.p.id }}/revisao">Revisar e assinar</a>{% endif %}
+        {% if f.em_revisao %}<a class="destaque" href="/processos/{{ f.p.id }}/revisao">Revisar e assinar</a>{% elif f.aguardando_protocolo %}<a class="destaque" href="/processos/{{ f.p.id }}/revisao#protocolo">Protocolar no portal</a>{% endif %}
         <a href="/processos/{{ f.p.id }}">Dados e kit</a>
         <a href="/processos/{{ f.p.id }}/timeline">Timeline e custo</a>
       </p>

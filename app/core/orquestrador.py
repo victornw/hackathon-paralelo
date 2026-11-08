@@ -66,7 +66,6 @@ class Passo(StrEnum):
     gerar_documentos = "gerar_documentos"
     conferir = "conferir"
     enviar_revisao = "enviar_revisao"
-    protocolar = "protocolar"
     consultar_portal = "consultar_portal"
     tratar_pendencia = "tratar_pendencia"
     reenviar = "reenviar"
@@ -79,7 +78,7 @@ _ESTAGIOS: tuple[tuple[Passo, ...], ...] = (
     (Passo.gerar_documentos,),
     (Passo.conferir,),
     (Passo.enviar_revisao,),
-    (Passo.protocolar, Passo.consultar_portal, Passo.tratar_pendencia, Passo.reenviar),
+    (Passo.consultar_portal, Passo.tratar_pendencia, Passo.reenviar),
 )
 assert set(chain.from_iterable(_ESTAGIOS)) == set(Passo)
 
@@ -98,7 +97,6 @@ _DESCRICAO: dict[Passo, str] = {
     Passo.gerar_documentos: "gerar solicitação, memorial e unifilar",
     Passo.conferir: "aplicar as regras R01 a R05",
     Passo.enviar_revisao: "enviar o pacote conferido para a revisão do engenheiro",
-    Passo.protocolar: "protocolar no portal depois da aprovação do engenheiro",
     Passo.consultar_portal: "consultar o status no portal",
     Passo.tratar_pendencia: "classificar a pendência apontada pela distribuidora",
     Passo.reenviar: "reenviar a documentação corrigida ao portal",
@@ -242,15 +240,6 @@ def _entrada_enviar_revisao(e: Estado) -> str | None:
     return _hash(conferido, [(r.regra_id, r.status.value) for r in p.regras])
 
 
-def _entrada_protocolar(e: Estado) -> str | None:
-    p = e.processo
-    if p.etapa != Etapa.EM_REVISAO or not p.revisado_por or p.numero_solicitacao:
-        return None
-    if bloqueios_aprovacao(p):
-        return None
-    return _hash(p.revisado_por, p.revisado_em)
-
-
 def _entrada_consultar(e: Estado) -> str | None:
     p = e.processo
     if not p.numero_solicitacao or p.etapa == Etapa.CONCLUIDO:
@@ -292,7 +281,6 @@ _ENTRADAS: dict[Passo, Callable[[Estado], str | None]] = {
     Passo.gerar_documentos: _entrada_gerar,
     Passo.conferir: _entrada_conferir,
     Passo.enviar_revisao: _entrada_enviar_revisao,
-    Passo.protocolar: _entrada_protocolar,
     Passo.consultar_portal: _entrada_consultar,
     Passo.tratar_pendencia: _entrada_tratar,
     Passo.reenviar: _entrada_reenviar,
@@ -540,17 +528,6 @@ def _executar_enviar_revisao(p: Processo, arquivos: Arquivos) -> Aplicar:
 
     def aplicar(q: Processo) -> None:
         q.etapa = Etapa.EM_REVISAO
-
-    return aplicar
-
-
-@_executor(Passo.protocolar)
-def _executar_protocolar(p: Processo, arquivos: Arquivos) -> Aplicar:
-    numero = portal.protocolar(p)
-
-    def aplicar(q: Processo) -> None:
-        q.numero_solicitacao = numero
-        q.etapa = Etapa.PROTOCOLADO
 
     return aplicar
 
@@ -878,10 +855,10 @@ def _rodar(
 
 
 def trabalhando(p: Processo) -> bool:
-    """Há passo do agente a rodar agora (montando o pacote, ou protocolando o que o
-    engenheiro acabou de assinar): a tela mostra espera e se atualiza."""
-    assinado = p.etapa == Etapa.EM_REVISAO and p.revisado_por
-    if p.etapa not in (Etapa.MONTAGEM, Etapa.PENDENCIA) and not assinado:
+    """Há passo do agente a rodar agora (montando o pacote, ou tratando e reenviando
+    uma pendência): a tela mostra espera e se atualiza. Depois da primeira
+    assinatura quem age é o engenheiro, que protocola."""
+    if p.etapa not in (Etapa.MONTAGEM, Etapa.PENDENCIA):
         return False
     return bool(passos_disponiveis(p, repo.arquivos(p.id), repo.memoria(p.id)))
 
@@ -970,3 +947,52 @@ def sincronizar_portal(processo_id: str) -> Processo:
         aplicar = _executar_consultar_portal(p, {})
         _consolidar(processo_id, Passo.consultar_portal, antes, aplicar)
     return repo.carregar(processo_id)
+
+
+# --- protocolo (ação humana) -----------------------------------------------------------
+
+
+class ProtocoloRecusado(ValueError):
+    """O protocolo não pode ser registrado agora; a mensagem diz o porquê."""
+
+
+def aguardando_protocolo(p: Processo) -> bool:
+    """Assinado e aprovado, falta o engenheiro protocolar no portal."""
+    return p.etapa == Etapa.EM_REVISAO and bool(p.revisado_por) and not p.numero_solicitacao
+
+
+def _pode_protocolar(p: Processo) -> None:
+    if not aguardando_protocolo(p):
+        raise ProtocoloRecusado("O protocolo vem depois da aprovação do engenheiro.")
+    if bloqueios := bloqueios_aprovacao(p):
+        raise ProtocoloRecusado("Pacote com bloqueios: " + "; ".join(bloqueios))
+
+
+def registrar_protocolo(processo_id: str, numero: str | None = None) -> Processo:
+    """O engenheiro protocola no Portal GD (com os documentos assinados fora do dia)
+    e informa o número da solicitação; daí em diante o agente acompanha o portal.
+    Sem número, a simulação protocola agora no portal simulado em nome dele."""
+    p = repo.carregar(processo_id)
+    _pode_protocolar(p)
+    if numero is None:
+        numero = portal.protocolar(p)
+    else:
+        numero = numero.strip().upper()
+        try:
+            uc_portal = portal.uc_da_solicitacao(numero)
+        except portal.SolicitacaoNaoEncontrada as exc:
+            raise ProtocoloRecusado(
+                f"A solicitação {numero} não existe no Portal GD simulado."
+            ) from exc
+        uc = p.campos.get("uc")
+        if uc is None or str(uc.valor).strip() != uc_portal:
+            raise ProtocoloRecusado(
+                f"A solicitação {numero} é de outra unidade consumidora."
+            )
+
+    def aplicar(q: Processo) -> None:
+        _pode_protocolar(q)
+        q.numero_solicitacao = numero
+        q.etapa = Etapa.PROTOCOLADO
+
+    return repo.atualizar(processo_id, aplicar)

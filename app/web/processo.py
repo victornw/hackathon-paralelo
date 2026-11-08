@@ -104,6 +104,7 @@ def _contexto(p: Processo) -> dict:
         "em_revisao": p.etapa in (Etapa.EM_REVISAO, Etapa.PENDENCIA)
         and not p.revisado_por
         and not trabalhando,
+        "aguardando_protocolo": orquestrador.aguardando_protocolo(p),
         "trabalhando": trabalhando,
         "linhas": _linhas_campos(p),
         "kit": kit,

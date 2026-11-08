@@ -326,6 +326,10 @@ class Revisao(BaseModel):
     engenheiro: str = Field(min_length=1)
 
 
+class Protocolo(BaseModel):
+    numero_solicitacao: str = Field(min_length=1)
+
+
 class AvancoRelogio(BaseModel):
     dias: int = Field(ge=1)
 
@@ -461,6 +465,29 @@ def revisar(processo_id: str, corpo: Revisao, fundo: BackgroundTasks) -> Process
 
     fundo.add_task(orquestrador.orquestrar, processo_id)
     return atualizado
+
+
+def _protocolar(processo_id: str, numero: str | None, fundo: BackgroundTasks) -> Processo:
+    try:
+        p = orquestrador.registrar_protocolo(processo_id, numero)
+    except KeyError as exc:
+        raise HTTPException(404, "Processo não encontrado.") from exc
+    except orquestrador.ProtocoloRecusado as exc:
+        raise HTTPException(409, str(exc)) from exc
+    fundo.add_task(orquestrador.orquestrar, processo_id)  # passa a acompanhar o portal
+    return p
+
+
+@api.post("/processos/{processo_id}/protocolo")
+def informar_protocolo(processo_id: str, corpo: Protocolo, fundo: BackgroundTasks) -> Processo:
+    """O engenheiro protocolou no Portal GD e informa o número da solicitação."""
+    return _protocolar(processo_id, corpo.numero_solicitacao, fundo)
+
+
+@api.post("/processos/{processo_id}/protocolo/simular")
+def simular_protocolo(processo_id: str, fundo: BackgroundTasks) -> Processo:
+    """Só na simulação: protocola agora no portal simulado, em nome do engenheiro."""
+    return _protocolar(processo_id, None, fundo)
 
 
 def _acao_do_integrador(

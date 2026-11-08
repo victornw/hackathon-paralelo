@@ -6,7 +6,9 @@
   <p class="rev-links"><a href="/processos/{{ p.id }}">Voltar ao processo</a> <a href="/processos/{{ p.id }}/timeline">Ver a timeline</a></p>
   <h1>Revisão do engenheiro</h1>
   <p class="resumo">{{ titular }}, UC <span class="mono">{{ uc }}</span>, {% if kwp is not none %}{{ '%.2f'|format(kwp)|replace('.', ',') }} kWp{% else %}kWp não informado{% endif %}. Etapa: <strong>{{ etapa_rotulo }}</strong>.</p>
-  {% if not revisavel and p.revisado_por %}
+  {% if aguardando_protocolo %}
+  <p class="rev-aviso ok" role="note">Aprovado por {{ p.revisado_por }}{% if p.revisado_em %} em {{ p.revisado_em.strftime('%d/%m/%Y às %H:%M') }}{% endif %}. Falta protocolar no Portal GD: veja <a href="#protocolo">o último passo</a>.</p>
+  {% elif not revisavel and p.revisado_por %}
   <p class="rev-aviso ok" role="note">Aprovado e assinado por {{ p.revisado_por }}{% if p.revisado_em %} em {{ p.revisado_em.strftime('%d/%m/%Y às %H:%M') }}{% endif %}.{% if p.numero_solicitacao %} Protocolado no portal da Enel com o número <span class="mono">{{ p.numero_solicitacao }}</span>.{% endif %} <a href="/processos/{{ p.id }}">Voltar ao processo</a></p>
   {% elif not revisavel %}
   <p class="rev-aviso" role="note">Este processo não está aguardando revisão. O conteúdo abaixo é somente para consulta.</p>
@@ -120,17 +122,50 @@
 
 {% if revisavel %}
 <section class="rev-aprovar" aria-labelledby="rev-apr-t">
-  <h2 id="rev-apr-t">Aprovar e assinar</h2>
+  <h2 id="rev-apr-t">Assinar e aprovar</h2>
   {% if bloqueios %}
   <p class="rev-aviso">A aprovação está desabilitada até resolver os bloqueios listados no resumo.</p>
   {% endif %}
-  <form id="form-aprovar" class="rev-form">
-    <label for="apr-eng">Nome do engenheiro</label>
-    <input id="apr-eng" name="engenheiro" required autocomplete="name"{% if bloqueios %} disabled{% endif %}>
-    <div class="check"><input type="checkbox" id="apr-ciente" name="ciente" required{% if bloqueios %} disabled{% endif %}> <label for="apr-ciente">Revisei os documentos e as regras e assumo a responsabilidade técnica (ART)</label></div>
-    <button type="submit" class="destaque"{% if bloqueios %} disabled{% endif %}>Aprovar e assinar</button>
+  <ol class="rev-passos">
+    <li>
+      <h3>Baixe o pacote</h3>
+      <p>Anexo A, memorial descritivo e diagrama unifilar, em PDF, na versão conferida acima.</p>
+      {% if documentos %}<a class="botao secundario" href="/processos/{{ p.id }}/pacote-para-assinatura.zip" download>Baixar pacote para assinatura</a>{% else %}<p class="vazio">O pacote aparece aqui quando o agente gerar os documentos.</p>{% endif %}
+    </li>
+    <li>
+      <h3>Assine fora do dia</h3>
+      <p>Assine cada PDF com certificado digital ICP-Brasil ou pela assinatura do gov.br e emita a ART no CREA. O dia não assina por você: uma assinatura feita aqui não teria validade.</p>
+    </li>
+    <li>
+      <h3>Aprove</h3>
+      <form id="form-aprovar" class="rev-form">
+        <label for="apr-eng">Nome do engenheiro</label>
+        <input id="apr-eng" name="engenheiro" required autocomplete="name"{% if bloqueios %} disabled{% endif %}>
+        <div class="check"><input type="checkbox" id="apr-ciente" name="ciente" required{% if bloqueios %} disabled{% endif %}> <label for="apr-ciente">Revisei os documentos e as regras, assinei com certificado digital e emiti a ART; assumo a responsabilidade técnica</label></div>
+        <button type="submit" class="destaque"{% if bloqueios %} disabled{% endif %}>Aprovar pacote assinado</button>
+        <p class="erro-form" role="alert"></p>
+      </form>
+    </li>
+  </ol>
+</section>
+{% endif %}
+
+{% if aguardando_protocolo %}
+<section class="rev-aprovar" id="protocolo" aria-labelledby="rev-prot-t">
+  <h2 id="rev-prot-t">Protocolar no Portal GD</h2>
+  <p>Envie os documentos assinados e a ART pelo Portal GD da Enel e informe aqui o número da solicitação. A partir daí o agente acompanha o portal, trata as pendências e vigia os prazos.</p>
+  <p><a href="/processos/{{ p.id }}/pacote-para-assinatura.zip" download>Baixar o pacote de novo</a></p>
+  <form id="form-protocolo" class="rev-form">
+    <label for="prot-numero">Número da solicitação</label>
+    <input id="prot-numero" name="numero_solicitacao" required placeholder="GD-2026-000123" autocomplete="off" spellcheck="false">
+    <button type="submit" class="destaque">Registrar protocolo</button>
     <p class="erro-form" role="alert"></p>
   </form>
+  <div class="rev-simulacao">
+    <p><strong>Simulação.</strong> Para testar sem ir ao portal, o dia protocola agora no Portal GD simulado em nome do engenheiro.</p>
+    <button type="button" class="secundario" id="protocolar-simulado">Protocolar automaticamente (simulação)</button>
+    <p class="erro-form" id="erro-simulado" role="alert"></p>
+  </div>
 </section>
 {% endif %}
 
@@ -200,8 +235,41 @@
       });
     } catch (e) {}
     try { localStorage.removeItem(chave); } catch (e) {}
+    var aprovado = await r.json().catch(function () { return {}; });
+    // Na revisão inicial o próximo passo é o protocolo, nesta mesma página.
+    if (aprovado.etapa === "em_revisao") { location.reload(); return; }
     location.href = "/processos/" + encodeURIComponent(pid);
   });
+  async function protocolar(url, corpo, erro, botao) {
+    botao.disabled = true;
+    try {
+      var r = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: corpo ? JSON.stringify(corpo) : undefined,
+      });
+      if (r.ok) { location.href = "/processos/" + encodeURIComponent(pid); return; }
+      erro.textContent = detalhe(await r.json().catch(function () { return {}; }), "Não foi possível registrar o protocolo.");
+    } catch (e) {
+      erro.textContent = "Não foi possível registrar o protocolo. Tente de novo.";
+    }
+    botao.disabled = false;
+  }
+  ligar("#form-protocolo", async function (form, erro) {
+    await protocolar(
+      "/api/processos/" + encodeURIComponent(pid) + "/protocolo",
+      { numero_solicitacao: form.elements.numero_solicitacao.value },
+      erro, form.querySelector("button")
+    );
+  });
+  var simulado = document.getElementById("protocolar-simulado");
+  if (simulado) {
+    simulado.addEventListener("click", function () {
+      var erro = document.getElementById("erro-simulado");
+      erro.textContent = "";
+      protocolar("/api/processos/" + encodeURIComponent(pid) + "/protocolo/simular", null, erro, simulado);
+    });
+  }
 })();
 </script>
 {% endblock %}

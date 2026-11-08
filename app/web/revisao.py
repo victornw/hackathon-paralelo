@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import io
+import zipfile
 from datetime import datetime
 from pathlib import Path
 from typing import Literal
@@ -93,6 +95,7 @@ def revisao(request: Request, processo_id: str, tarefas: BackgroundTasks):
             "revisavel": p.etapa == Etapa.PENDENCIA
             or (p.etapa == Etapa.EM_REVISAO and not p.revisado_por),
             "trabalhando": trabalhando,
+            "aguardando_protocolo": orquestrador.aguardando_protocolo(p),
             "regras": [
                 {
                     "r": r,
@@ -115,6 +118,32 @@ def revisao(request: Request, processo_id: str, tarefas: BackgroundTasks):
             "hoje": hoje(),
             **contexto_documentos(p),
         },
+    )
+
+
+@router.get("/processos/{processo_id}/pacote-para-assinatura.zip")
+def pacote_para_assinatura(processo_id: str):
+    """PDFs mais recentes do pacote (Anexo A, memorial, unifilar) para o engenheiro
+    assinar fora do dia, com certificado ICP-Brasil ou gov.br."""
+    try:
+        p = repo.carregar(processo_id)
+    except KeyError as exc:
+        raise HTTPException(404, "Processo não encontrado.") from exc
+    ultimos = {}
+    for d in sorted(p.documentos, key=lambda d: d.gerado_em):
+        if d.formato == "pdf" and Path(d.caminho).is_file():
+            ultimos[d.tipo] = d
+    if not ultimos:
+        raise HTTPException(404, "O pacote ainda não foi gerado.")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
+        for d in ultimos.values():
+            z.write(d.caminho, d.nome_arquivo)
+    nome = f"pacote-{processo_id}-para-assinatura.zip"
+    return Response(
+        buf.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{nome}"'},
     )
 
 

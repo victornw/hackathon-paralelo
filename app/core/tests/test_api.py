@@ -629,9 +629,16 @@ def test_fluxo_portal_com_conferencia_simulada(cliente, extracao_falsa, monkeypa
         == 200
     )
     p = cliente.get(f"/api/processos/{pid}").json()
+    assert p["etapa"] == "em_revisao" and p["numero_solicitacao"] is None
+    errado = cliente.post(
+        f"/api/processos/{pid}/protocolo", json={"numero_solicitacao": "GD-2026-999999"}
+    )
+    assert errado.status_code == 409 and "não existe" in errado.json()["detail"]
+    p = cliente.post(f"/api/processos/{pid}/protocolo/simular").json()
     assert p["etapa"] == "protocolado" and p["numero_solicitacao"].startswith(
         "GD-2026-"
     )
+    assert cliente.post(f"/api/processos/{pid}/protocolo/simular").status_code == 409
 
     assert cliente.post("/api/relogio/avancar", json={"dias": 1}).json() == {
         "hoje": "2026-11-10"

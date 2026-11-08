@@ -49,13 +49,17 @@ def test_aprovacao_antiga_com_criterio_a_validar_tambem_bloqueia(pacote):
     assert "R02" in " ".join(bloqueios_aprovacao(pacote))
 
 
-def test_aprovacao_humana_gravada_nao_contorna_guarda_de_protocolo(pacote):
+def test_aprovacao_humana_gravada_nao_contorna_guarda_de_protocolo(pacote, monkeypatch):
+    from app.core import orquestrador
+    from app.core import repositorio as repo
+
     pacote.etapa = Etapa.EM_REVISAO
     pacote.revisado_por = "Engenheiro"
     pacote.revisado_em = pacote.criado_em
     pacote.regras[5].status = StatusRegra.INCERTA  # R05 sem confirmação
-    assert _ENTRADAS[Passo.protocolar](Estado(pacote, {}, {}, hoje())) is None
-
+    monkeypatch.setattr(repo, "carregar", lambda pid: pacote)
+    with pytest.raises(orquestrador.ProtocoloRecusado, match="R05"):
+        orquestrador.registrar_protocolo(pacote.id)
 
 def test_reenvio_tambem_bloqueia_incerteza_depois_da_revisao(pacote):
     pacote.etapa = Etapa.PENDENCIA

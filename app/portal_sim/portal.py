@@ -211,6 +211,12 @@ def protocolar(processo: Processo, com_pendencia: bool = True) -> str:
     return numero
 
 
+def uc_da_solicitacao(numero_solicitacao: str) -> str:
+    """UC de uma solicitação existente; levanta SolicitacaoNaoEncontrada se não há."""
+    meta, _ = _carregar(numero_solicitacao.strip())
+    return meta["uc"]
+
+
 def consultar_status(
     uc: str, email: str, numero_solicitacao: str
 ) -> list[EventoPortal]:

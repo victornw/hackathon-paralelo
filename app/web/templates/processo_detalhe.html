@@ -15,7 +15,7 @@
   <p class="acoes">
     <a href="/processos/{{ p.id }}/timeline">Timeline</a>
     <a href="/processos/{{ p.id }}/chat">Mensagens</a>
-    {% if em_revisao %}<a class="destaque" href="/processos/{{ p.id }}/revisao">Revisar e assinar</a>{% endif %}
+    {% if em_revisao %}<a class="destaque" href="/processos/{{ p.id }}/revisao">Revisar e assinar</a>{% elif aguardando_protocolo %}<a class="destaque" href="/processos/{{ p.id }}/revisao#protocolo">Protocolar no portal</a>{% endif %}
   </p>
 </section>
 
@@ -74,6 +74,9 @@
   {% if em_revisao %}
   <p class="pronto">{% if p.etapa.value == 'pendencia' %}A Enel apontou uma pendência. O agente preparou a correção; o engenheiro revisa e assina para reenviar.{% else %}O pacote está pronto para a revisão do engenheiro.{% endif %}</p>
   <p><a class="botao destaque" href="/processos/{{ p.id }}/revisao">Revisar e assinar</a></p>
+  {% elif aguardando_protocolo %}
+  <p class="pronto">Pacote aprovado. Falta protocolar no Portal GD e informar o número da solicitação.</p>
+  <p><a class="botao destaque" href="/processos/{{ p.id }}/revisao#protocolo">Protocolar no portal</a></p>
   {% elif trabalhando %}<p class="vazio">Nada pendente com você. O agente está terminando o pacote.</p>
   {% elif not abertas and not falhas %}<p class="vazio">Nada pendente com você agora.</p>{% endif %}
   {% if abertas %}

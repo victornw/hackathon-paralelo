@@ -1,4 +1,6 @@
+import io
 import re
+import zipfile
 from pathlib import Path
 
 import pytest
@@ -34,7 +36,7 @@ def test_pagina_demo_01(cliente):
     assert "Resumo da conferência" in html
     assert "Nada bloqueia a aprovação" not in html
     assert 'class="rev-bloqueios"' in html
-    assert re.search(r'<button type="submit"[^>]* disabled>Aprovar e assinar', html)
+    assert re.search(r'<button type="submit"[^>]* disabled>Aprovar pacote assinado', html)
     assert "demo:strings" in html and "configuração sugerida" in html
     assert "Documentos gerados" in html
     assert "Premissas assumidas" in html or "Alertas" in html
@@ -54,8 +56,33 @@ def test_somente_leitura_concluido(cliente):
     r = cliente.get("/processos/demo-04/revisao")
     assert r.status_code == 200
     assert "Aprovado e assinado por" in r.text
-    assert "Aprovar e assinar" not in r.text
+    assert "Aprovar pacote assinado" not in r.text
     assert 'id="form-aprovar"' not in r.text
+    assert 'id="protocolo"' not in r.text
+
+
+def test_baixa_o_pacote_para_assinatura(cliente):
+    reiniciar_demo()
+    html = cliente.get("/processos/demo-01/revisao").text
+    assert "/processos/demo-01/pacote-para-assinatura.zip" in html
+    r = cliente.get("/processos/demo-01/pacote-para-assinatura.zip")
+    assert r.status_code == 200 and r.headers["content-type"] == "application/zip"
+    nomes = zipfile.ZipFile(io.BytesIO(r.content)).namelist()
+    assert len(nomes) == 3 and all(n.endswith(".pdf") for n in nomes)
+
+
+def test_depois_de_aprovar_pede_o_protocolo_com_opcao_simulada(cliente):
+    reiniciar_demo()
+
+    def aprovar(q):
+        q.revisado_por = "Eng. Ana"
+        q.revisado_em = repo.agora()
+
+    repo.atualizar("demo-01", aprovar)
+    html = cliente.get("/processos/demo-01/revisao").text
+    assert 'id="protocolo"' in html and 'id="form-protocolo"' in html
+    assert "Protocolar automaticamente (simulação)" in html
+    assert 'id="form-aprovar"' not in html
 
 
 def test_processo_exemplo(cliente):

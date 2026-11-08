@@ -192,6 +192,8 @@ def _foco(p: Processo, dia: date) -> dict:
         agora = "lendo os documentos e montando o pacote"
     elif ctx["abertas"]:
         agora = "esperando resposta do integrador"
+    elif ctx["aguardando_protocolo"]:
+        agora = "aprovado e assinado; esperando o protocolo no Portal GD"
     msgs = mensagens(p, dia)
     return {
         **ctx,
