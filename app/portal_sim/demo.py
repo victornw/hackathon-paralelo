@@ -77,7 +77,8 @@ def data_demo() -> date:
 
 
 def _campo(valor: str, documento: str = "conta_luz.pdf") -> CampoExtraido:
-    return CampoExtraido(valor=valor, confianca=0.97, fonte=Fonte(documento=documento))
+    # Conta no layout da Enel: lida pelos rótulos, sem modelo (confiança 1).
+    return CampoExtraido(valor=valor, confianca=1.0, fonte=Fonte(documento=documento))
 
 
 def _respondida(campo: str, texto: str, resposta: str, quando: date) -> Pergunta:
@@ -100,6 +101,7 @@ def _base(pid: str, titular: str, uc: str, inicio: date) -> Processo:
     p.criado_em = datetime.combine(inicio, time(9, 0))
     p.etapa = Etapa.MONTAGEM
     p.email_contato = EMAIL
+    p.campos = {k: _campo(c.valor) for k, c in p.campos.items()}
     p.campos["titular"] = _campo(titular)
     p.campos["uc"] = _campo(uc)
     p.campos["consumo_medio_kwh"] = _campo("620")

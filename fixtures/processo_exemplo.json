@@ -7,7 +7,7 @@
   "campos": {
     "uc": {
       "valor": "7000123456",
-      "confianca": 0.98,
+      "confianca": 0.95,
       "fonte": {
         "documento": "conta_luz_exemplo.pdf",
         "pagina": 1,
@@ -16,7 +16,7 @@
     },
     "titular": {
       "valor": "MARIA SINTETICA DA SILVA",
-      "confianca": 0.97,
+      "confianca": 0.95,
       "fonte": {
         "documento": "conta_luz_exemplo.pdf",
         "pagina": 1,
@@ -43,7 +43,7 @@
     },
     "cidade": {
       "valor": "CIDADE EXEMPLO",
-      "confianca": 0.97,
+      "confianca": 0.95,
       "fonte": {
         "documento": "conta_luz_exemplo.pdf",
         "pagina": 1,

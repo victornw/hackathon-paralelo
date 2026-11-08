@@ -1,7 +1,8 @@
 """Extração de dados dos documentos: conta de luz, kit vendido e foto do padrão.
 
 O LLM só lê. A confiança de cada campo é calculada aqui: o que o modelo diz
-vale no máximo 0,95, e cai se o trecho citado não existe no texto de origem,
+vale no máximo 0,95; o leitor por rótulos, que tira o valor literal do texto do
+PDF, vale 1. Nos dois casos cai se o trecho citado não existe no texto de origem,
 se o valor não sai do trecho ou se o formato/faixa não confere. Na leitura por
 visão o teto é 0,8. Campo ilegível volta com valor None e confiança 0.
 """
@@ -44,6 +45,7 @@ CHAVES_CONTA = (
 )
 
 TETO = 0.95
+TETO_ROTULO = 1.0  # rótulo e valor literais no texto do PDF, sem modelo no meio
 TETO_VISAO = 0.8
 TETO_TRECHO_NAO_CONFERE = 0.5
 TETO_FORMATO = 0.3
@@ -270,8 +272,9 @@ def _confianca(
     trecho: str | None,
     fonte_compacta: str | None,
     via_visao: bool,
+    teto: float = TETO,
 ) -> float:
-    c = min(max(bruta or 0.0, 0.0), TETO)
+    c = min(max(bruta or 0.0, 0.0), teto)
     if via_visao:
         c = min(c, TETO_VISAO)
     if not trecho:
@@ -292,6 +295,7 @@ def _campo(
     documento: str,
     paginas_compactas: list[str] | None,
     via_visao: bool,
+    teto: float = TETO,
 ) -> CampoExtraido:
     valor = _normalizar_valor(chave, bruto.valor)
     if valor is None:
@@ -302,7 +306,7 @@ def _campo(
         "".join(paginas_compactas) if paginas_compactas is not None else None
     )
     confianca = _confianca(
-        chave, valor, bruto.confianca, bruto.trecho, fonte_compacta, via_visao
+        chave, valor, bruto.confianca, bruto.trecho, fonte_compacta, via_visao, teto
     )
     pagina = None
     if bruto.trecho and paginas_compactas:
@@ -380,7 +384,7 @@ def _ler_por_rotulos(paginas: list[str]) -> BaseModel:
         for chave, padrao in _ROTULOS_CONTA.items():
             if chave not in lidos and (m := padrao.search(linha)):
                 lidos[chave] = _CampoLLM(
-                    valor=m.group(1).strip(), confianca=TETO, trecho=linha
+                    valor=m.group(1).strip(), confianca=TETO_ROTULO, trecho=linha
                 )
     return _ContaLLM(**lidos)
 
@@ -403,9 +407,10 @@ def _montar_conta(
     documento: str,
     paginas_compactas: list[str] | None,
     via_visao: bool,
+    teto: float = TETO,
 ) -> dict[str, CampoExtraido]:
     return {
-        c: _campo(c, getattr(resposta, c), documento, paginas_compactas, via_visao)
+        c: _campo(c, getattr(resposta, c), documento, paginas_compactas, via_visao, teto)
         for c in CHAVES_CONTA
     }
 
@@ -421,14 +426,14 @@ def extrair_conta(arquivo: Path) -> dict[str, CampoExtraido]:
     if sum(len(p.strip()) for p in paginas) >= MIN_CARACTERES_TEXTO:
         leitura = _ler_por_rotulos(paginas)
         if _completo(leitura) or not disponivel("extracao"):
-            resposta, via = leitura, "sem IA"
+            resposta, via, teto = leitura, "sem IA", TETO_ROTULO
         else:
             resposta = completar_json(
                 "extracao", _SISTEMA_CONTA, _texto_para_prompt(paginas), _ContaLLM
             )
-            via = "texto"
+            via, teto = "texto", TETO
         campos = _montar_conta(
-            resposta, arquivo.name, [_compacto(p) for p in paginas], False
+            resposta, arquivo.name, [_compacto(p) for p in paginas], False, teto
         )
     else:
         imagens = _imagens_pdf(arquivo) if sufixo == ".pdf" else [arquivo.read_bytes()]

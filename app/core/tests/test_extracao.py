@@ -110,7 +110,7 @@ def test_conta_sintetica_vira_campos_com_confianca_no_teto(monkeypatch, n):
     for chave, c in esperado.items():
         campo = campos[chave]
         assert campo.valor == c["valor"], chave
-        assert campo.confianca == 0.95, chave
+        assert campo.confianca == 1.0, chave  # leitor por rótulos, sem modelo
         assert campo.fonte.documento == f"cliente_{n}_conta.pdf"
         assert campo.fonte.pagina == 1
         assert campo.fonte.trecho == c["trecho"]
@@ -476,7 +476,7 @@ def test_conta_no_layout_da_enel_e_lida_sem_chamar_o_llm(monkeypatch, n):
     assert llm.chamadas == []
     for chave, c in gabarito(n)["campos"].items():
         assert campos[chave].valor == c["valor"], chave
-        assert campos[chave].confianca == 0.95, chave
+        assert campos[chave].confianca == 1.0, chave
     (passo,) = listar_passos(f"proc-leitor-{n}")
     assert "sem IA" in passo.decisao and passo.tokens_entrada == 0
 
@@ -500,4 +500,4 @@ def test_layout_desconhecido_com_llm_usa_extracao_por_texto(
     assert llm.chamadas[0][2] == []
     for chave, c in gabarito(1)["campos"].items():
         assert campos[chave].valor == c["valor"], chave
-        assert campos[chave].confianca == 0.95, chave
+        assert campos[chave].confianca == 0.95, chave  # via IA: teto 0,95
