@@ -9,6 +9,7 @@ agente só prepara, lembra e, depois da aprovação, protocola e reenvia.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -530,7 +531,8 @@ def trace_do_processo(processo_id: str) -> dict[str, object]:
 @asynccontextmanager
 async def _ao_subir(_app: FastAPI):
     """Plano grátis do Render não tem disco: o banco começa vazio a cada deploy
-    ou reinício. Os casos prontos da demonstração são recriados na hora."""
+    ou reinício. Os casos prontos da demonstração são recriados na hora, e o site
+    se mantém acordado para não reiniciar sozinho (app/web/acordado.py)."""
     try:
         from app.portal_sim.demo import garantir_demo
 
@@ -539,7 +541,14 @@ async def _ao_subir(_app: FastAPI):
         logging.getLogger(__name__).exception(
             "Não foi possível recriar os casos prontos."
         )
+    from app.web.acordado import manter_acordado, url_publica
+
+    tarefa = (
+        asyncio.create_task(manter_acordado(url)) if (url := url_publica()) else None
+    )
     yield
+    if tarefa:
+        tarefa.cancel()
 
 
 app = FastAPI(title="Agente de homologação solar", lifespan=_ao_subir)
