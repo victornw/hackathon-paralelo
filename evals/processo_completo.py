@@ -100,10 +100,11 @@ RESPOSTAS: dict[str, Resposta] = {
     "telefone": _fixa("(85) 90000-0000"),
     "qtd_ucs_credito": _fixa("1"),
     "modalidade_compensacao": _fixa("Autoconsumo local"),
+    "dps_especificacao": _fixa("classe II, 275 V, 20 kA"),
 }
 
 # Perguntas do engenheiro que o script responde (o resto dele é aprovar).
-CAMPOS_DO_ENGENHEIRO = frozenset({"strings"})
+CAMPOS_DO_ENGENHEIRO = frozenset({"strings", "dps_especificacao"})
 
 
 def _falhas_abertas(p: Processo) -> list[str]:
