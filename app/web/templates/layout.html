@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="dia: gestão e homologação de projetos solares, documentos e prazos.">
   <meta name="theme-color" content="#ddf1f8">
   <title>{% block titulo %}Carteira{% endblock %} · dia</title>
   <script>
@@ -15,12 +16,18 @@
   <link rel="stylesheet" href="/static/painel.css">
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
 </head>
-<body class="{% block corpo_classe %}{% endblock %}">
+<body class="horizonte {% block corpo_classe %}{% endblock %}">
+  <div class="luz-ambiente" aria-hidden="true"></div>
   {% set caminho = request.url.path %}
   <header class="topo">
     <a class="marca" href="/painel" aria-label="dia, gestão e homologação: ir para a carteira">
       <span class="marca-sinal" aria-hidden="true"></span>
-      <span class="marca-nome">dia</span>
+      <span class="marca-nome"><svg class="marca-logotipo" viewBox="0 0 98 48" aria-hidden="true" focusable="false">
+        <path fill="currentColor" fill-rule="evenodd" d="M25 3h8v41h-8v-4c-2.6 3.3-6 5-10 5C6 45 1 38.4 1 29.5S6.5 14 15 14c4.1 0 7.4 1.6 10 4.7V3ZM17 21c-5 0-8 3.5-8 8.5s3 8.5 8 8.5 8-3.5 8-8.5-3-8.5-8-8.5Z"/>
+        <path fill="currentColor" d="M43 15h8v29h-8z"/>
+        <circle class="marca-ponto" cx="47" cy="6" r="4.5"/>
+        <path fill="currentColor" fill-rule="evenodd" d="M82 15h8v29h-8v-4c-2.5 3.3-6 5-10 5-9 0-14-6.6-14-15.5S63.5 14 72 14c4 0 7.5 1.6 10 4.7V15ZM74 21c-5 0-8 3.5-8 8.5s3 8.5 8 8.5 8-3.5 8-8.5-3-8.5-8-8.5Z"/>
+      </svg><span class="marca-texto">dia</span></span>
       <span class="marca-sub">gestão e homologação</span>
     </a>
     <nav aria-label="Principal">
@@ -54,5 +61,6 @@
   </script>
   <p class="selo-simulacao" role="note">Simulação: dados sintéticos e portal da Enel simulado</p>
   <main>{% block conteudo %}{% endblock %}</main>
+  <link rel="stylesheet" href="/static/horizonte.css">
 </body>
 </html>

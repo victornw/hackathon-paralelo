@@ -16,7 +16,7 @@
       {% for k in cartoes %}
       <li>
         <a class="proc" href="/painel?p={{ k.p.id }}"{% if f and f.p.id == k.p.id %} aria-current="true"{% endif %}>
-          <span class="proc-nome">{{ k.titular }}</span>
+          <span class="proc-indice" aria-hidden="true">{{ "%02d"|format(loop.index) }}</span><span class="proc-nome">{{ k.titular }}</span>
           <span class="proc-meta">{% if k.kwp %}{{ '%.2f'|format(k.kwp)|replace('.', ',') }} kWp{% else %}kWp a definir{% endif %}, UC {{ k.uc }}</span>
           <span class="proc-etapa">{{ rotulos[k.p.etapa] }}</span>
           {% if k.incertas or k.perguntas %}
@@ -53,15 +53,16 @@
     {% if f %}
     {% if f.trabalhando %}<script>setTimeout(function () { location.reload(); }, 4000);</script>{% endif %}
     <header class="foco-cabeca vidro">
-      <p class="kicker">Processo em foco</p>
-      <h2 class="foco-titulo">{{ f.titular }}{% if f.cidade %}, {{ f.cidade }}{% endif %}</h2>
+      <p class="processo-identificador">Processo em foco <span>{{ f.p.id }}</span></p>
+      <h2 class="foco-titulo">{{ f.titular }}</h2>
+      {% if f.cidade %}<p class="foco-cidade">{{ f.cidade }}</p>{% endif %}
       <p class="foco-meta">
         UC <span class="mono">{{ f.uc }}</span>{% if f.ligacao %}, ligação {{ f.ligacao }}{% endif %}{% if f.kit %}. {{ f.kit.qtd_modulos }} módulos {{ f.kit.modulo.fabricante }} {{ f.kit.modulo.potencia_wp|round|int }} Wp, inversor {{ f.kit.inversor.fabricante }} {{ f.kit.inversor.modelo }}, {{ f.kwp }} kWp{% endif %}.
       </p>
       <p class="agora"><span>Agora:</span> {{ f.agora }}</p>
-      <ol class="trilho" aria-label="Etapas do processo">
+      <ol class="trilho" aria-label="Etapas do processo" data-processo="{{ f.p.id }}">
         {% for t in f.trilho %}
-        <li class="{{ t.estado }}"{% if t.estado == 'atual' %} aria-current="step"{% endif %}>{{ t.rotulo }}</li>
+        <li class="{{ t.estado }}"{% if t.estado == 'atual' %} aria-current="step"{% endif %}><span aria-hidden="true">{{ "%02d"|format(loop.index) }}</span>{{ t.rotulo }}</li>
         {% endfor %}
       </ol>
       <p class="acoes">
@@ -191,4 +192,17 @@
   </script>
   {% endif %}
 </div>
+<script id="carteira-mobile">
+  (function () {
+    const lista = document.querySelector('.lista-proc');
+    const atual = lista && lista.querySelector('[aria-current="true"]');
+    function posicionar() {
+      if (atual && matchMedia('(max-width: 800px)').matches) {
+        lista.scrollLeft += atual.getBoundingClientRect().left - lista.getBoundingClientRect().left - 12;
+      }
+    }
+    window.addEventListener('load', posicionar, { once: true });
+  })();
+</script>
+<script src="/static/horizonte.js" defer></script>
 {% endblock %}
