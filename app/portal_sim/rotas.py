@@ -7,6 +7,7 @@ app.web.painel (que inclui este router), então não há import circular.
 from __future__ import annotations
 
 import logging
+import threading
 from pathlib import Path
 from urllib.parse import urlencode
 
@@ -149,6 +150,10 @@ def _sincronizar(numero: str) -> None:
         for p in repo.listar():
             if p.numero_solicitacao == numero:
                 orquestrador.sincronizar_portal(p.id)
+                # O agente reage ao que mudou (ex.: trata a pendência) sem segurar a tela.
+                threading.Thread(
+                    target=orquestrador.orquestrar, args=(p.id,), daemon=True
+                ).start()
     except Exception:
         log.warning(
             "Falha ao sincronizar o processo do portal %s", numero, exc_info=True

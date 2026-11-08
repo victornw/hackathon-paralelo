@@ -86,7 +86,9 @@ def _contexto(p: Processo) -> dict:
         else "Processo novo",
         "uc": uc.valor if uc and uc.valor else "—",
         "etapa_rotulo": ROTULOS[p.etapa],
-        "em_revisao": p.etapa == Etapa.EM_REVISAO and not p.revisado_por,
+        "em_revisao": p.etapa in (Etapa.EM_REVISAO, Etapa.PENDENCIA)
+        and not p.revisado_por
+        and not trabalhando,
         "trabalhando": trabalhando,
         "linhas": _linhas_campos(p),
         "kit": kit,
@@ -118,7 +120,7 @@ def novo_exemplo(n: int, tarefas: BackgroundTasks):
 
 
 @router.get("/processos/{processo_id}")
-def detalhe(request: Request, processo_id: str):
+def detalhe(request: Request, processo_id: str, tarefas: BackgroundTasks):
     try:
         p = repositorio.carregar(processo_id)
     except repositorio.ProcessoNaoEncontrado:
@@ -128,4 +130,8 @@ def detalhe(request: Request, processo_id: str):
             {"hoje": hoje(), "p": None, "titular": "Processo não encontrado"},
             status_code=404,
         )
-    return templates.TemplateResponse(request, "processo_detalhe.html", _contexto(p))
+    ctx = _contexto(p)
+    if ctx["trabalhando"]:
+        # Há passo a rodar e talvez ninguém rodando (ex.: caso recriado na partida).
+        tarefas.add_task(orquestrador.orquestrar, p.id)
+    return templates.TemplateResponse(request, "processo_detalhe.html", ctx)

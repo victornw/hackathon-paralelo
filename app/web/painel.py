@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
-from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Form, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
@@ -207,7 +207,7 @@ def _foco(p: Processo, dia: date) -> dict:
 
 
 @router.get("/painel")
-def painel(request: Request, p: str | None = None):
+def painel(request: Request, tarefas: BackgroundTasks, p: str | None = None):
     dia = hoje()
     processos = sorted(carregar_processos(), key=lambda x: list(Etapa).index(x.etapa))
     cartoes = [_cartao(x, dia) for x in processos]
@@ -221,6 +221,11 @@ def painel(request: Request, p: str | None = None):
         (x for x in processos if x.etapa == Etapa.EM_REVISAO),
         processos[0] if processos else None,
     )
+    f = _foco(foco, dia) if foco else None
+    if f and f["trabalhando"]:
+        from app.core import orquestrador
+
+        tarefas.add_task(orquestrador.orquestrar, foco.id)
     return templates.TemplateResponse(
         request,
         "painel.html",
@@ -231,7 +236,7 @@ def painel(request: Request, p: str | None = None):
             "total": len(processos),
             "vencendo": vencendo,
             "proximos": proximos_prazos(processos, dia),
-            "f": _foco(foco, dia) if foco else None,
+            "f": f,
         },
     )
 

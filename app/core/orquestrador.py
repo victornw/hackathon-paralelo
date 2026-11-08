@@ -881,7 +881,7 @@ def trabalhando(p: Processo) -> bool:
     """Há passo do agente a rodar agora (montando o pacote, ou protocolando o que o
     engenheiro acabou de assinar): a tela mostra espera e se atualiza."""
     assinado = p.etapa == Etapa.EM_REVISAO and p.revisado_por
-    if p.etapa != Etapa.MONTAGEM and not assinado:
+    if p.etapa not in (Etapa.MONTAGEM, Etapa.PENDENCIA) and not assinado:
         return False
     return bool(passos_disponiveis(p, repo.arquivos(p.id), repo.memoria(p.id)))
 

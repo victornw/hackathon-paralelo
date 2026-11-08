@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, Response
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
@@ -70,7 +70,7 @@ def contar(p: Processo) -> dict[str, int]:
 
 
 @router.get("/processos/{processo_id}/revisao")
-def revisao(request: Request, processo_id: str):
+def revisao(request: Request, processo_id: str, tarefas: BackgroundTasks):
     try:
         p = repo.carregar(processo_id)
     except KeyError as exc:
@@ -78,6 +78,9 @@ def revisao(request: Request, processo_id: str):
     regras = sorted(p.regras, key=lambda r: _ordem(r.regra_id))
     kwp = (p.kit.potencia_total_wp / 1000) if p.kit else None
     bloqueios = bloqueios_aprovacao(p)
+    trabalhando = orquestrador.trabalhando(p)
+    if trabalhando:
+        tarefas.add_task(orquestrador.orquestrar, p.id)
     return templates.TemplateResponse(
         request,
         "processo_revisao.html",
@@ -89,7 +92,7 @@ def revisao(request: Request, processo_id: str):
             "etapa_rotulo": ROTULOS.get(p.etapa, p.etapa.value),
             "revisavel": p.etapa == Etapa.PENDENCIA
             or (p.etapa == Etapa.EM_REVISAO and not p.revisado_por),
-            "trabalhando": orquestrador.trabalhando(p),
+            "trabalhando": trabalhando,
             "regras": [
                 {
                     "r": r,

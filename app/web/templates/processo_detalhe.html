@@ -72,7 +72,7 @@
 <section class="bloco" aria-labelledby="h-falta">
   <h2 id="h-falta">O que falta</h2>
   {% if em_revisao %}
-  <p class="pronto">O pacote está pronto para a revisão do engenheiro.</p>
+  <p class="pronto">{% if p.etapa.value == 'pendencia' %}A Enel apontou uma pendência. O agente preparou a correção; o engenheiro revisa e assina para reenviar.{% else %}O pacote está pronto para a revisão do engenheiro.{% endif %}</p>
   <p><a class="botao destaque" href="/processos/{{ p.id }}/revisao">Revisar e assinar</a></p>
   {% elif trabalhando %}<p class="vazio">Nada pendente com você. O agente está terminando o pacote.</p>
   {% elif not abertas and not falhas %}<p class="vazio">Nada pendente com você agora.</p>{% endif %}
