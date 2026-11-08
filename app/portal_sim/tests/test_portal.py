@@ -144,3 +144,13 @@ def test_roteiro_completo_com_pendencia_e_prazos(pronto):
 def test_roteiro_sem_pendencia(pronto):
     n = protocolar(pronto, com_pendencia=False)
     assert avancar_distribuidora(n).etapa == Etapa.ORCAMENTO_EMITIDO
+
+
+def test_numero_nao_repete_quando_uma_solicitacao_some(pronto):
+    """Reiniciar a demo apaga solicitações; o próximo número não pode colidir."""
+    from app.tracing.db import conectar
+
+    n1, n2 = protocolar(pronto), protocolar(pronto)
+    with conectar() as con:
+        con.execute("DELETE FROM portal_solicitacoes WHERE numero = ?", (n1,))
+    assert protocolar(pronto) not in {n1, n2}

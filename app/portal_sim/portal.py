@@ -161,8 +161,11 @@ def _salvar_eventos(numero: str, eventos: list[EventoPortal]) -> None:
 def _proximo_numero() -> str:
     ano = hoje().year
     with _con() as con:
+        # O maior número + 1, não a contagem: reiniciar a demo apaga solicitações
+        # e a contagem repetiria um número que ainda existe.
         (n,) = con.execute(
-            "SELECT COUNT(*) FROM portal_solicitacoes WHERE numero LIKE ?",
+            "SELECT COALESCE(MAX(CAST(substr(numero, -6) AS INTEGER)), 0)"
+            " FROM portal_solicitacoes WHERE numero LIKE ?",
             (f"GD-{ano}-%",),
         ).fetchone()
     return f"GD-{ano}-{n + 1:06d}"
