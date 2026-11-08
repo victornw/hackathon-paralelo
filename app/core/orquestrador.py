@@ -192,10 +192,11 @@ def _entrada_perguntar(e: Estado) -> str | None:
 
 
 def _entradas_documentos(p: Processo) -> str:
+    # Respostas do engenheiro também vão para os documentos (ex.: DPS no memorial).
     respostas = sorted(
         (q.id, q.resposta)
         for q in p.perguntas
-        if q.destinatario == "integrador" and q.resposta
+        if q.resposta and not q.id.startswith("falha:")
     )
     return _hash(
         {k: _dump(v) for k, v in p.campos.items()},
@@ -874,6 +875,13 @@ def _rodar(
         _registrar_falha(
             processo_id, passo, antes, exc, _contexto_da_falha(passo, p, arquivos)
         )
+
+
+def trabalhando(p: Processo) -> bool:
+    """Há passo do agente a rodar agora na montagem: a tela mostra espera e se atualiza."""
+    if p.etapa != Etapa.MONTAGEM:
+        return False
+    return bool(passos_disponiveis(p, repo.arquivos(p.id), repo.memoria(p.id)))
 
 
 def _estado_atual(

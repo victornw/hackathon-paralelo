@@ -8,8 +8,7 @@
   <p class="resumo">Esse processo não existe. <a href="/processos/novo">Criar um novo processo</a> ou voltar à <a href="/painel">carteira</a>.</p>
 </section>
 {% else %}
-{% if trabalhando %}<noscript><meta http-equiv="refresh" content="4"></noscript>
-<script>setTimeout(function () { location.reload(); }, 4000);</script>{% endif %}
+{% if trabalhando %}<noscript><meta http-equiv="refresh" content="4"></noscript>{% endif %}
 <section class="cabeca">
   <h1>{{ titular }}</h1>
   <p class="resumo">UC <span class="mono">{{ uc }}</span>. Etapa: <strong>{{ etapa_rotulo }}</strong>.</p>
@@ -20,9 +19,7 @@
   </p>
 </section>
 
-{% if trabalhando %}
-<p class="trabalhando" role="status">O agente está trabalhando. Lendo os documentos e montando o pedido; esta página atualiza sozinha.</p>
-{% endif %}
+{% if trabalhando %}{% include "_aguardando.html" %}{% endif %}
 
 <section class="bloco" aria-labelledby="h-campos">
   <h2 id="h-campos">Dados da conta de luz</h2>
@@ -74,7 +71,11 @@
 
 <section class="bloco" aria-labelledby="h-falta">
   <h2 id="h-falta">O que falta</h2>
-  {% if not abertas and not falhas %}<p class="vazio">Nada pendente com você agora.</p>{% endif %}
+  {% if em_revisao %}
+  <p class="pronto">O pacote está pronto para a revisão do engenheiro.</p>
+  <p><a class="botao destaque" href="/processos/{{ p.id }}/revisao">Revisar e assinar</a></p>
+  {% elif trabalhando %}<p class="vazio">Nada pendente com você. O agente está terminando o pacote.</p>
+  {% elif not abertas and not falhas %}<p class="vazio">Nada pendente com você agora.</p>{% endif %}
   {% for q in abertas %}
   <form class="resposta" data-pergunta="{{ q.id }}">
     <label for="r-{{ loop.index }}">{{ q.texto }}</label>

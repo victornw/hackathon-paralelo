@@ -394,16 +394,17 @@ def responder(
         )
 
     def mudar(q: Processo) -> None:
-        mudou_dado = False
         for resposta in respostas:
             pergunta = next(x for x in q.perguntas if x.id == resposta.id)
             aplicar = RESPOSTAS.get(pergunta.campo)
             if aplicar:
                 aplicar(q, resposta.resposta)
-                mudou_dado = True
             pergunta.resposta = resposta.resposta
             pergunta.respondida_em = repo.agora()
-        if mudou_dado and q.etapa == Etapa.EM_REVISAO:
+        # Toda resposta pode entrar nos documentos (ex.: DPS no memorial): na revisão,
+        # o pacote volta para a montagem e é gerado e conferido de novo.
+        mudou = any(not r.id.startswith("falha:") for r in respostas)
+        if mudou and q.etapa == Etapa.EM_REVISAO:
             q.etapa = Etapa.MONTAGEM
             q.revisado_por = None
             q.revisado_em = None

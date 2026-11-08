@@ -72,12 +72,7 @@ def _contexto(p: Processo) -> dict:
     ]
     falhas = [q for q in p.perguntas if q.id.startswith("falha:") and not q.resposta]
     respondidas = [q for q in p.perguntas if q.resposta]
-    trabalhando = (
-        p.etapa == Etapa.MONTAGEM
-        and (not p.campos or not p.documentos)
-        and not abertas
-        and not falhas
-    )
+    trabalhando = not abertas and not falhas and orquestrador.trabalhando(p)
     regras = []
     for r in p.regras:
         rotulo, cor = STATUS_REGRA.get(r.status.value, (r.status.value, "neutro"))

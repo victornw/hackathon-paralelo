@@ -383,21 +383,20 @@ def test_dado_do_kit_sem_kit_lido_422(cliente):
     assert responder(cliente, pid, "certificado_inmetro", "123").status_code == 422
 
 
-def test_resposta_que_muda_dado_na_revisao_volta_para_a_montagem(cliente):
+def test_resposta_na_revisao_volta_para_a_montagem(cliente):
+    """Toda resposta pode ir para os documentos (telefone no Anexo A, DPS no memorial)."""
     pid = cliente.post("/api/processos").json()["id"]
 
     def em_revisao(q):
         q.etapa = Etapa.EM_REVISAO
         q.revisado_por = "Eng."
 
-    repo.atualizar(pid, em_revisao)
-    perguntar(pid, "telefone")
-    responder(cliente, pid, "telefone", "1")
-    assert repo.carregar(pid).etapa == Etapa.EM_REVISAO
-    perguntar(pid, "bitola_ca_mm2")
-    responder(cliente, pid, "bitola_ca_mm2", "6")
-    p = repo.carregar(pid)
-    assert p.etapa == Etapa.MONTAGEM and p.revisado_por is None
+    for campo, valor in (("telefone", "1"), ("bitola_ca_mm2", "6")):
+        repo.atualizar(pid, em_revisao)
+        perguntar(pid, campo)
+        responder(cliente, pid, campo, valor)
+        p = repo.carregar(pid)
+        assert p.etapa == Etapa.MONTAGEM and p.revisado_por is None
 
 
 # --- revisão, relógio, documentos, trace --------------------------------------------------------------

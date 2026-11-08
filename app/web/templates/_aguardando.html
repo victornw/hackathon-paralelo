@@ -1,0 +1,36 @@
+{# Aviso de espera enquanto o agente trabalha. Consulta o processo a cada 2 s e
+   recarrega a página sozinha quando a etapa, as perguntas ou os documentos mudam. #}
+<div class="trabalhando aguardando" role="status" aria-live="polite" data-processo="{{ p.id }}">
+  <span class="girando" aria-hidden="true"></span>
+  <p><strong>{{ aguardando_titulo or "O agente está trabalhando." }}</strong>
+    <span class="aguardando-texto">{{ aguardando_texto or "Lendo os documentos e montando o pedido. Leva uns 30 segundos; a página se atualiza sozinha." }}</span></p>
+</div>
+<script>
+(function () {
+  var aviso = document.currentScript.previousElementSibling;
+  var pid = aviso.dataset.processo;
+  var inicio = Date.now();
+  var antes = null;
+  function assinatura(p) {
+    var abertas = p.perguntas.filter(function (q) { return !q.resposta; }).length;
+    var docs = p.documentos.map(function (d) { return d.nome_arquivo + d.gerado_em; }).join("|");
+    return [p.etapa, abertas, docs].join("#");
+  }
+  async function olhar() {
+    try {
+      var r = await fetch("/api/processos/" + encodeURIComponent(pid), { cache: "no-store" });
+      if (r.ok) {
+        var agora = assinatura(await r.json());
+        if (antes === null) { antes = agora; }
+        else if (agora !== antes) { location.reload(); return; }
+      }
+    } catch (e) {}
+    if (Date.now() - inicio > 120000) {
+      aviso.querySelector(".aguardando-texto").innerHTML =
+        'Está demorando mais que o normal. Continuo esperando; o que o agente fez até agora está na <a href="/processos/' + encodeURIComponent(pid) + '/timeline">timeline</a>.';
+    }
+    setTimeout(olhar, Date.now() - inicio > 120000 ? 5000 : 2000);
+  }
+  olhar();
+})();
+</script>

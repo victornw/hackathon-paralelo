@@ -11,6 +11,8 @@
   {% endif %}
 </section>
 
+{% if trabalhando %}{% with aguardando_titulo="Atualizando o pacote com a sua resposta.", aguardando_texto="O agente está gerando os documentos e conferindo as regras de novo. Leva uns 30 segundos; a página se atualiza sozinha." %}{% include "_aguardando.html" %}{% endwith %}{% endif %}
+
 <section class="rev-resumo" aria-labelledby="rev-resumo-t">
   <h2 id="rev-resumo-t">Resumo da conferência</h2>
   <ul class="rev-pills">

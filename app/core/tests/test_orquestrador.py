@@ -699,3 +699,29 @@ def test_sdk_recupera_falha_anterior_sem_prender_revisao(
     p = orquestrar(pid)
     assert p.etapa == Etapa.EM_REVISAO
     assert not any(q.id == "falha:agente_ai_sdk" for q in p.perguntas)
+
+
+def test_resposta_do_engenheiro_refaz_os_documentos(ferramentas):
+    """O DPS respondido na revisão vai para o memorial: o pacote é gerado de novo."""
+    pid = novo_processo()
+    orquestrar(pid)
+    assert not orquestrador.trabalhando(repo.carregar(pid))
+
+    def responder_dps(q):
+        q.perguntas.append(
+            Pergunta(
+                id="dps_especificacao",
+                campo="dps_especificacao",
+                texto="DPS?",
+                destinatario="engenheiro",
+                resposta="classe II, 275 V, 20 kA",
+            )
+        )
+        q.etapa = Etapa.MONTAGEM
+
+    repo.atualizar(pid, responder_dps)
+    assert orquestrador.trabalhando(repo.carregar(pid))
+    p = orquestrar(pid)
+    assert p.etapa == Etapa.EM_REVISAO
+    assert ferramentas.chamadas["gerar_documentos"] == 2
+    assert not orquestrador.trabalhando(p)

@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field
 
+from app.core import orquestrador
 from app.core import repositorio as repo
 from app.core.aprovacao import bloqueios_aprovacao
 from app.portal_sim.relogio import hoje
@@ -87,6 +88,7 @@ def revisao(request: Request, processo_id: str):
             "kwp": kwp,
             "etapa_rotulo": ROTULOS.get(p.etapa, p.etapa.value),
             "revisavel": p.etapa in (Etapa.EM_REVISAO, Etapa.PENDENCIA),
+            "trabalhando": orquestrador.trabalhando(p),
             "regras": [
                 {
                     "r": r,

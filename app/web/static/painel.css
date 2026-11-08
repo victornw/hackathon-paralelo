@@ -706,3 +706,14 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 }
 .bloco.noite dt, .bloco.noite .docs-nota { color: var(--painel-surface-82); }
 .bloco.noite .contagens div + div { border-top-color: var(--painel-surface-83); }
+
+/* Espera do agente: aviso com sol girando, página se atualiza sozinha. */
+.aguardando { display: flex; align-items: center; gap: 14px; }
+.aguardando p { margin: 0; }
+.girando {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  border: 3px solid var(--sol-suave); border-top-color: var(--sol-forte);
+  animation: girar 0.9s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .girando { animation-duration: 3s; } }
