@@ -581,9 +581,19 @@ async def _ao_subir(_app: FastAPI):
 app = FastAPI(title="Agente de homologação solar", lifespan=_ao_subir)
 app.include_router(painel.router)
 app.include_router(api)
+class _EstaticosRevalidados(StaticFiles):
+    """CSS e JS mudam a cada deploy: o navegador revalida (ETag) em vez de usar
+    uma cópia velha que não combina com o HTML novo."""
+
+    def file_response(self, *args, **kwargs):
+        resposta = super().file_response(*args, **kwargs)
+        resposta.headers["Cache-Control"] = "no-cache"
+        return resposta
+
+
 app.mount(
     "/static",
-    StaticFiles(directory=Path(painel.__file__).parent / "static"),
+    _EstaticosRevalidados(directory=Path(painel.__file__).parent / "static"),
     name="static",
 )
 

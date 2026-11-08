@@ -143,6 +143,8 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+/* Nada com o atributo hidden aparece, mesmo que outra regra dê display ao elemento. */
+[hidden] { display: none !important; }
 html { color-scheme: light; }
 body {
   margin: 0;
