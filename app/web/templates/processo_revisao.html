@@ -124,7 +124,7 @@
     <label for="apr-eng">Nome do engenheiro</label>
     <input id="apr-eng" name="engenheiro" required autocomplete="name"{% if bloqueios %} disabled{% endif %}>
     <div class="check"><input type="checkbox" id="apr-ciente" name="ciente" required{% if bloqueios %} disabled{% endif %}> <label for="apr-ciente">Revisei os documentos e as regras e assumo a responsabilidade técnica (ART)</label></div>
-    <button type="submit"{% if bloqueios %} disabled{% endif %}>Aprovar e assinar</button>
+    <button type="submit" class="destaque"{% if bloqueios %} disabled{% endif %}>Aprovar e assinar</button>
     <p class="erro-form" role="alert"></p>
   </form>
 </section>

@@ -54,5 +54,5 @@
 .rev-form .check { color: var(--tinta); font-size: 14px; display: flex; gap: 10px; align-items: flex-start; margin: 4px 0; }
 .rev-form .check label { font-size: 14px; color: var(--tinta); }
 .rev-form input:not([type=checkbox]) { min-width: 300px; max-width: 100%; width: auto; }
-.rev-aprovar { background: linear-gradient(150deg, oklch(1 0 0 / 0.72), oklch(0.96 0.045 68 / 0.6)); }
+.rev-aprovar { background: linear-gradient(150deg, rgb(255 255 255 / 0.8), rgb(221 241 248 / 0.6)); }
 .rev-aprovar .rev-form { background: none; box-shadow: none; padding: 0; }

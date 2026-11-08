@@ -1,27 +1,31 @@
 /*
   dia: gestão e homologação.
-  Linguagem: nascer do sol. Céu azul pastel no alto, luz pêssego e laranja
-  subindo do horizonte, superfícies de vidro claro por cima.
+  Linguagem: céu e luz solar. Três cores, em peso visual aproximado:
+  azul névoa #DDF1F8 (~70%: fundo, áreas amplas, degradês), azul profundo
+  #203548 (~25%: texto, ícones, títulos, selecionados) e laranja solar
+  #FF9B54 (~5%: só a ação prioritária, com texto azul profundo). Branco nos cartões.
 
   Sistema de forma: painéis de vidro 16px, campos 10px, botões e chips em pílula.
-  Um acento só (laranja do sol). O azul é o céu, não compete como acento.
+  O laranja fica concentrado em "Revisar e assinar" e "Aprovar e assinar";
+  o resto das ações usa o azul profundo.
   Tema claro travado: a identidade é a luz da manhã; escritório, luz do dia.
 */
 :root {
   /* céu e luz */
-  --ceu-alto: oklch(0.885 0.048 236);
-  --ceu: oklch(0.935 0.03 232);
-  --nevoa: oklch(0.975 0.012 85);
-  --pessego: oklch(0.9 0.065 62);
-  --sol: oklch(0.76 0.135 52);
-  --sol-forte: oklch(0.68 0.155 45);
-  --sol-suave: oklch(0.93 0.05 65);
+  --ceu-alto: #c6e5f2;
+  --ceu: #ddf1f8;
+  --nevoa: #eef8fb;
+  --pessego: #fdeee3;
+  --sol: #ff9b54;
+  --sol-forte: #f2843a;
+  --sol-suave: #ffe9d9;
 
   /* tinta: azul-ardósia profundo, nunca preto */
-  --tinta: oklch(0.27 0.035 252);
-  --tinta-2: oklch(0.44 0.03 250);
-  --tinta-3: oklch(0.56 0.025 248);
-  --azul: oklch(0.47 0.1 243);
+  --tinta: #203548;
+  --tinta-2: #44596b;
+  --tinta-3: #5f7384;
+  --azul: #2c5677;
+  --tinta-suave: #e3eef5;
 
   /* estados (texto ≥4.5:1 sobre vidro claro) */
   --ok: oklch(0.5 0.1 158);
@@ -71,18 +75,20 @@ body::before, body::after {
 }
 body::before {
   background:
-    radial-gradient(90% 55% at 78% 108%, oklch(0.84 0.11 50 / 0.85), transparent 62%),
-    radial-gradient(70% 45% at 8% 100%, oklch(0.9 0.08 30 / 0.55), transparent 70%),
-    radial-gradient(55% 40% at 92% 0%, oklch(0.97 0.02 220 / 0.9), transparent 70%),
-    linear-gradient(180deg, var(--ceu-alto) 0%, var(--ceu) 32%, var(--nevoa) 62%, var(--pessego) 100%);
+    radial-gradient(55% 45% at 88% 104%, rgb(255 155 84 / 0.2), transparent 70%),
+    radial-gradient(60% 50% at 12% 18%, rgb(255 255 255 / 0.85), transparent 70%),
+    radial-gradient(50% 45% at 70% 30%, rgb(255 255 255 / 0.55), transparent 70%),
+    radial-gradient(65% 55% at 30% 90%, rgb(198 229 242 / 0.9), transparent 70%),
+    radial-gradient(45% 40% at 95% 5%, rgb(184 222 239 / 0.8), transparent 70%),
+    linear-gradient(180deg, var(--ceu-alto) 0%, var(--ceu) 40%, var(--nevoa) 100%);
 }
 /* O sol: um disco desfocado logo acima do horizonte */
 body::after {
   inset: auto -10vmax -38vmax auto;
   width: 70vmax; height: 70vmax; border-radius: 50%;
   right: 4vw;
-  background: radial-gradient(circle, oklch(0.93 0.09 75 / 0.95) 0%, oklch(0.84 0.12 55 / 0.55) 38%, transparent 68%);
-  filter: blur(8px);
+  background: radial-gradient(circle, rgb(255 255 255 / 0.9) 0%, rgb(255 233 217 / 0.45) 35%, transparent 68%);
+  filter: blur(12px);
 }
 html.amanhecer body::after { animation: nascer 1.6s var(--ease-out) both; }
 @keyframes nascer {
@@ -92,8 +98,8 @@ html.amanhecer body::after { animation: nascer 1.6s var(--ease-out) both; }
 
 a { color: var(--azul); text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover { color: var(--tinta); }
-:focus-visible { outline: 2px solid var(--sol-forte); outline-offset: 2px; border-radius: 6px; }
-::selection { background: var(--sol-suave); }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; border-radius: 6px; }
+::selection { background: var(--ceu-alto); }
 
 h1, h2, h3 { text-wrap: balance; }
 .mono, .regra-id, time { font-family: var(--mono); font-variant-numeric: tabular-nums; }
@@ -138,14 +144,14 @@ h1, h2, h3 { text-wrap: balance; }
 .marca-sinal {
   position: relative; width: 26px; height: 26px; flex: none;
   border-radius: 50%; overflow: hidden;
-  background: linear-gradient(180deg, oklch(0.8 0.07 238), oklch(0.93 0.04 70) 80%);
+  background: linear-gradient(180deg, #b8deef, var(--ceu) 80%);
   box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.7), 0 1px 3px oklch(0.5 0.08 240 / 0.25);
 }
 .marca-sinal::after {
   content: ""; position: absolute; left: 50%; bottom: -8px;
   width: 18px; height: 18px; margin-left: -9px; border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, oklch(0.93 0.09 85), var(--sol-forte) 75%);
-  box-shadow: 0 0 8px 2px oklch(0.85 0.12 65 / 0.9);
+  background: radial-gradient(circle at 50% 35%, #ffd2b0, var(--sol) 75%);
+  box-shadow: 0 0 8px 2px rgb(255 155 84 / 0.55);
 }
 .marca-nome { font-weight: 650; font-size: 22px; letter-spacing: -0.035em; }
 .marca-sub { font-size: 12.5px; color: var(--tinta-2); letter-spacing: 0; font-weight: 450; }
@@ -250,14 +256,14 @@ aside .documentos {
 .linha { list-style: none; margin: 0; padding: 0 0 0 72px; position: relative; }
 .linha::before {
   content: ""; position: absolute; left: 72px; top: 8px; bottom: 8px; width: 2px; margin-left: -1px;
-  background: linear-gradient(180deg, oklch(0.75 0.06 240 / 0.6), oklch(0.82 0.1 55 / 0.7));
+  background: linear-gradient(180deg, rgb(32 53 72 / 0.15), rgb(32 53 72 / 0.35));
   border-radius: 2px;
 }
 .linha li { position: relative; padding: 0 0 22px 24px; max-width: 72ch; }
 .linha li::before {
   content: ""; position: absolute; left: -6px; top: 6px;
   width: 12px; height: 12px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, oklch(0.9 0.08 70), var(--sol));
+  background: radial-gradient(circle at 35% 30%, #fff, var(--ceu-alto) 40%, var(--azul));
   box-shadow: 0 0 0 4px oklch(1 0 0 / 0.75);
 }
 .linha li.agente::before { background: radial-gradient(circle at 35% 30%, oklch(0.95 0.03 230), oklch(0.66 0.08 240)); }
@@ -291,7 +297,7 @@ blockquote {
   box-shadow: inset 0 0 0 1px var(--linha);
   transition: background-color 180ms var(--ease-out);
 }
-.doc-links a:hover { background: var(--sol-suave); }
+.doc-links a:hover { background: var(--tinta-suave); }
 .doc-pendente { color: var(--tinta-3); font-size: 13px; }
 .docs-nota { color: var(--tinta-3); font-size: 12.5px; margin: 10px 0 0; }
 
@@ -300,7 +306,7 @@ blockquote {
 .chat-canal h2 { font-size: 18px; margin: 0 0 4px; }
 .chat-legenda { color: var(--tinta-2); font-size: 14px; margin: 0 0 14px; max-width: 60ch; }
 .chat-fio { display: flex; flex-direction: column; gap: 10px; padding: 16px; min-width: 0; }
-.chat-canal.cliente .chat-fio { background: linear-gradient(160deg, oklch(0.97 0.035 70 / 0.7), oklch(1 0 0 / 0.4)); }
+.chat-canal.cliente .chat-fio { background: linear-gradient(160deg, rgb(255 255 255 / 0.75), rgb(221 241 248 / 0.45)); }
 .bolha {
   max-width: 86%; padding: 10px 14px; border-radius: 16px;
   background: oklch(1 0 0 / 0.82); box-shadow: 0 1px 2px oklch(0.4 0.05 245 / 0.08);
@@ -331,34 +337,45 @@ input[type="email"], input[type="text"], input[type="file"], input:not([type]), 
 }
 input:hover, textarea:hover { background: oklch(1 0 0 / 0.9); }
 input:focus-visible, textarea:focus-visible {
-  outline: none; background: oklch(1 0 0 / 0.95); border-color: var(--sol);
-  box-shadow: 0 0 0 4px oklch(0.85 0.09 60 / 0.4);
+  outline: none; background: oklch(1 0 0 / 0.95); border-color: var(--azul);
+  box-shadow: 0 0 0 4px rgb(198 229 242 / 0.7);
 }
 input:disabled, textarea:disabled { opacity: 0.55; cursor: not-allowed; }
 input[type="file"] { padding: 6px; cursor: pointer; }
 input[type="file"]::file-selector-button {
   margin-right: 12px; padding: 7px 14px; border: 0; border-radius: var(--pilula);
   font: 600 13px/1.2 var(--fonte); color: var(--tinta); cursor: pointer;
-  background: var(--sol-suave);
+  background: var(--tinta-suave);
   transition: background-color 160ms var(--ease-out);
 }
-input[type="file"]:hover::file-selector-button { background: var(--pessego); }
-input[type="checkbox"] { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--sol-forte); flex: none; }
+input[type="file"]:hover::file-selector-button { background: var(--ceu-alto); }
+input[type="checkbox"] { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--tinta); flex: none; }
 
-/* Primário: o sol. Tinta escura sobre laranja claro, contraste alto. */
+/* Primário: azul profundo com texto branco. */
 button, .botao, .acoes a.destaque {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font: 600 14px/1.2 var(--fonte); letter-spacing: -0.005em;
   padding: 11px 20px; min-height: 42px; cursor: pointer; justify-self: start;
-  color: var(--tinta); text-decoration: none;
-  background: linear-gradient(180deg, oklch(0.88 0.09 68), oklch(0.79 0.13 55));
-  border: 1px solid oklch(0.72 0.13 50 / 0.55); border-radius: var(--pilula);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.6), 0 1px 2px oklch(0.5 0.12 50 / 0.2), 0 6px 16px -8px oklch(0.65 0.15 50 / 0.6);
+  color: #fff; text-decoration: none;
+  background: linear-gradient(180deg, #2b4560, var(--tinta));
+  border: 1px solid var(--tinta); border-radius: var(--pilula);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 1px 2px rgb(32 53 72 / 0.2), 0 6px 16px -8px rgb(32 53 72 / 0.55);
   transition: transform 140ms var(--ease-out), box-shadow 200ms var(--ease-out), filter 200ms var(--ease-out);
 }
 button:hover, .botao:hover, .acoes a.destaque:hover {
-  color: var(--tinta); filter: brightness(1.04) saturate(1.05);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.6), 0 1px 2px oklch(0.5 0.12 50 / 0.2), 0 10px 22px -10px oklch(0.65 0.15 50 / 0.7);
+  color: #fff; filter: brightness(1.12);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 1px 2px rgb(32 53 72 / 0.2), 0 10px 22px -10px rgb(32 53 72 / 0.6);
+}
+/* Impacto: laranja solar, só na ação prioritária. Texto azul profundo. */
+.acoes a.destaque, button.destaque {
+  color: var(--tinta);
+  background: linear-gradient(180deg, #ffb27d, var(--sol));
+  border-color: var(--sol-forte);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 1px 2px rgb(242 132 58 / 0.25), 0 8px 20px -8px rgb(242 132 58 / 0.65);
+}
+.acoes a.destaque:hover, button.destaque:hover {
+  color: var(--tinta); filter: brightness(1.04);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 1px 2px rgb(242 132 58 / 0.25), 0 12px 26px -10px rgb(242 132 58 / 0.75);
 }
 button:active, .botao:active, .acoes a.destaque:active { transform: scale(0.97); }
 button:disabled, button:disabled:hover {
@@ -368,10 +385,11 @@ button:disabled, button:disabled:hover {
 button[aria-busy="true"], form[aria-busy="true"] button { cursor: progress; }
 /* Secundário: vidro */
 button.secundario, .botao.secundario {
+  color: var(--tinta);
   background: oklch(1 0 0 / 0.7); border-color: oklch(1 0 0 / 0.9);
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 1), 0 1px 2px oklch(0.4 0.05 245 / 0.1);
 }
-button.secundario:hover { background: oklch(1 0 0 / 0.95); }
+button.secundario:hover, .botao.secundario:hover { color: var(--tinta); background: oklch(1 0 0 / 0.95); }
 
 .erro-form { margin: 0; color: var(--vencido); font-weight: 600; font-size: 14px; }
 .erro-form:empty { display: none; }
@@ -385,12 +403,12 @@ button.secundario:hover { background: oklch(1 0 0 / 0.95); }
 .operador .bloco p { color: var(--tinta-2); max-width: 75ch; }
 .operador .bloco p strong { color: var(--tinta); font-family: var(--mono); font-weight: 500; }
 .botoes { display: flex; flex-wrap: wrap; gap: 8px; }
-.operador .botoes button {
+.operador .botoes button { color: var(--tinta);
   background: oklch(1 0 0 / 0.7); border-color: oklch(1 0 0 / 0.9);
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 1), 0 1px 2px oklch(0.4 0.05 245 / 0.1);
   font-family: var(--mono); font-weight: 500;
 }
-.operador .botoes button:hover { background: var(--sol-suave); }
+.operador .botoes button:hover { color: var(--tinta); background: var(--tinta-suave); }
 .erro { margin: 0 0 12px; padding: 10px 14px; border-radius: 12px; color: var(--vencido); background: var(--vencido-fundo); font-weight: 600; }
 .erro[hidden] { display: none; }
 .ok { display: inline-block; padding: 6px 12px; border-radius: 12px; color: var(--ok); background: var(--ok-fundo); font-weight: 600; }
@@ -464,7 +482,7 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 .proc:active { transform: scale(0.985); }
 .proc[aria-current="true"] {
   background: var(--vidro-forte); border-color: oklch(1 0 0 / 0.95);
-  box-shadow: var(--vidro-brilho), 0 0 0 2px oklch(0.8 0.12 55 / 0.55), 0 12px 28px -18px oklch(0.6 0.14 50 / 0.6);
+  box-shadow: var(--vidro-brilho), 0 0 0 2px var(--tinta), 0 12px 28px -18px rgb(32 53 72 / 0.5);
   -webkit-backdrop-filter: var(--desfoque); backdrop-filter: var(--desfoque);
 }
 .proc-nome { font-weight: 600; font-size: 14.5px; letter-spacing: -0.01em; }
@@ -481,7 +499,7 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 .foco > .bloco, .foco .foco-par > * { margin: 0; max-width: none; }
 .foco-cabeca {
   padding: 22px 24px;
-  background: linear-gradient(150deg, oklch(1 0 0 / 0.72), oklch(0.95 0.035 232 / 0.5) 55%, oklch(0.96 0.05 68 / 0.55));
+  background: linear-gradient(150deg, rgb(255 255 255 / 0.8), rgb(221 241 248 / 0.55) 60%, rgb(255 255 255 / 0.6));
 }
 .kicker { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--tinta-3); letter-spacing: 0.06em; text-transform: uppercase; }
 .foco-titulo { margin: 0; font-size: clamp(24px, 2.4vw, 32px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
@@ -489,8 +507,8 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 .agora {
   display: inline-flex; gap: 6px; margin: 14px 0 0; padding: 6px 14px; border-radius: var(--pilula);
   font-size: 14px; font-weight: 500; color: var(--tinta);
-  background: linear-gradient(180deg, oklch(0.9 0.08 68), oklch(0.83 0.11 56));
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.6);
+  background: var(--tinta-suave);
+  box-shadow: inset 0 0 0 1px rgb(32 53 72 / 0.1);
 }
 .agora span { font-weight: 650; }
 .trilho { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
@@ -518,16 +536,16 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 .registro {
   padding: 20px 24px; border-radius: var(--raio);
   color: oklch(0.94 0.015 240);
-  background: linear-gradient(160deg, oklch(0.3 0.05 255 / 0.9), oklch(0.36 0.06 262 / 0.86) 60%, oklch(0.48 0.08 40 / 0.8));
+  background: linear-gradient(160deg, rgb(32 53 72 / 0.94), rgb(44 70 95 / 0.9));
   box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.18), 0 16px 36px -22px oklch(0.25 0.06 255 / 0.8);
   -webkit-backdrop-filter: var(--desfoque); backdrop-filter: var(--desfoque);
 }
-.registro h2 { color: oklch(0.86 0.04 70); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+.registro h2 { color: #b8deef; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
 .registro ol { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 8px; }
 .registro li { display: grid; grid-template-columns: 96px 1fr; gap: 14px; font-size: 14px; }
 .registro time { color: oklch(0.76 0.04 240); font-size: 12.5px; padding-top: 1px; }
 .registro li.erro span { color: oklch(0.85 0.09 30); }
-.registro a { color: oklch(0.9 0.08 70); font-size: 13.5px; font-weight: 500; }
+.registro a { color: var(--ceu); font-size: 13.5px; font-weight: 500; }
 .registro .vazio { color: oklch(0.82 0.03 240); }
 
 /* Conversa com o integrador */
@@ -540,7 +558,7 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 }
 .conversa-topo {
   padding: 16px 18px 14px; color: oklch(0.97 0.01 80);
-  background: linear-gradient(160deg, oklch(0.32 0.05 255 / 0.92), oklch(0.42 0.07 255 / 0.88));
+  background: linear-gradient(160deg, rgb(32 53 72 / 0.95), rgb(44 70 95 / 0.92));
 }
 .conversa-topo h2 { margin: 0; font-size: 15px; }
 .conversa-topo p { margin: 2px 0 0; font-size: 12.5px; color: oklch(0.85 0.03 240); }
@@ -578,8 +596,8 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 .destaque-num h2 { font-size: 12px; font-weight: 600; color: var(--tinta-3); letter-spacing: 0.04em; text-transform: uppercase; margin: 0 0 10px; }
 .destaque-num .num { margin: 0 0 6px; font-size: clamp(30px, 3vw, 40px); font-weight: 600; letter-spacing: -0.035em; line-height: 1.05; font-variant-numeric: tabular-nums; }
 .destaque-num p:last-child { margin: 0; color: var(--tinta-2); font-size: 13.5px; }
-.destaque-num.sol { background: linear-gradient(160deg, oklch(0.95 0.06 72 / 0.9), oklch(0.85 0.11 56 / 0.85)); }
-.destaque-num.sol h2, .destaque-num.sol p:last-child { color: oklch(0.36 0.06 50); }
+.destaque-num.sol { color: #fff; background: linear-gradient(160deg, rgb(32 53 72 / 0.95), rgb(44 70 95 / 0.92)); border-color: rgb(32 53 72 / 0.6); }
+.destaque-num.sol h2, .destaque-num.sol p:last-child { color: #c6e5f2; }
 
 .metricas-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: start; }
 .metricas-grade .avaliacao { grid-column: span 2; }
