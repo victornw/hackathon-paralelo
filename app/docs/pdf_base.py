@@ -59,6 +59,14 @@ def com_unidade(valor: float | None, unidade: str, casas: int | None = None) -> 
     return A_INFORMAR if valor is None else f"{num(valor, casas)} {unidade}"
 
 
+def resposta(processo: Processo, campo: str, padrao: str) -> str:
+    """Resposta dada a uma pergunta do agente, ou o marcador de campo pendente."""
+    return next(
+        (q.resposta for q in processo.perguntas if q.campo == campo and q.resposta),
+        padrao,
+    )
+
+
 def agora_simulado() -> datetime:
     from app.portal_sim.relogio import hoje
 

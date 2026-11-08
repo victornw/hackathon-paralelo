@@ -11,6 +11,7 @@ from app.docs.pdf_base import (
     campo_conta,
     com_unidade,
     num,
+    resposta,
     valor_campo,
 )
 from app.schemas import Processo
@@ -107,7 +108,8 @@ def gerar_memorial(processo: Processo, pasta: Path) -> Path:
     pdf.campo("Disjuntor CA do inversor", com_unidade(visita.disjuntor_ca_a, "A"))
     pdf.campo(
         "DPS (instalação interna)",
-        f"Obrigatório (NBR 5410/5419; norma Enel 7.6.1.6) - especificação {A_INFORMAR}",
+        "Obrigatório (NBR 5410/5419; norma Enel 7.6.1.6) - especificação "
+        + resposta(processo, "dps_especificacao", A_INFORMAR),
     )
     pdf.paragrafo(
         "As proteções de sub e sobretensão, sub e sobrefrequência e anti-ilhamento são "

@@ -226,6 +226,15 @@ EXIGENCIAS: tuple[Exigencia, ...] = (
         _sem_resposta("qtd_ucs_credito"),
     ),
     Exigencia(
+        "dps_especificacao",
+        _fixo(
+            "Qual é a especificação do DPS CA da instalação interna (classe, tensão máxima "
+            "de operação Uc e corrente de descarga In)? Exemplo: classe II, 275 V, 20 kA."
+        ),
+        "engenheiro",
+        lambda p: p.kit is not None and _sem_resposta("dps_especificacao")(p),
+    ),
+    Exigencia(
         "modalidade_compensacao",
         _fixo(
             "Qual é a modalidade de compensação dos créditos (por exemplo, na própria UC "

@@ -555,6 +555,7 @@ RESPOSTAS_DO_INTEGRADOR = {
     "qtd_ucs_credito": "1",
     "modalidade_compensacao": "autoconsumo local",
     "strings": "sim",
+    "dps_especificacao": "classe II, 275 V, 20 kA",
 }
 
 

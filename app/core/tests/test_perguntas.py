@@ -29,6 +29,7 @@ def respondida(campo: str, resposta: str = "ok") -> Pergunta:
 def completo(confirmado):
     """Processo sem nenhuma pendência de dado; só faltam as respostas do portal."""
     confirmado.visita.relacao_cargas = [Carga(descricao="chuveiro", potencia_w=5500)]
+    confirmado.perguntas = [respondida("dps_especificacao", "classe II, 275 V, 20 kA")]
     return confirmado
 
 
@@ -211,13 +212,13 @@ class TestPortal:
         assert set(por_campo(perguntas_pendentes(completo))) == CAMPOS_DO_PORTAL
 
     def test_resposta_chega_na_chave_que_o_portal_le(self, completo):
-        completo.perguntas = [respondida("telefone", "85999990000")]
+        completo.perguntas.append(respondida("telefone", "85999990000"))
         assert set(por_campo(perguntas_pendentes(completo))) == CAMPOS_DO_PORTAL - {
             "telefone"
         }
 
     def test_com_tudo_respondido_nao_sobra_nada(self, completo):
-        completo.perguntas = [respondida(c) for c in CAMPOS_DO_PORTAL]
+        completo.perguntas += [respondida(c) for c in CAMPOS_DO_PORTAL]
         assert perguntas_pendentes(completo) == []
 
     def test_chaves_batem_com_as_que_o_portal_le(self):
@@ -246,3 +247,8 @@ def test_registra_passo_de_trace(processo):
     (passo,) = listar_passos(processo.id)
     assert passo.passo == "perguntas_pendentes"
     assert passo.erro is None
+
+
+def test_dps_sem_especificacao_vira_pergunta_ao_engenheiro(confirmado):
+    pergunta = por_campo(perguntas_pendentes(confirmado))["dps_especificacao"]
+    assert pergunta.destinatario == "engenheiro"
