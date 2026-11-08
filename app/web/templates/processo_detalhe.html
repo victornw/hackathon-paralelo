@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+{% block titulo %}{{ titular }}{% endblock %}
+{% block conteudo %}
+<link rel="stylesheet" href="/static/processo.css">
+{% if not p %}
+<section class="cabeca">
+  <h1>Processo não encontrado</h1>
+  <p class="resumo">Esse processo não existe. <a href="/processos/novo">Criar um novo processo</a> ou voltar à <a href="/painel">carteira</a>.</p>
+</section>
+{% else %}
+{% if trabalhando %}<noscript><meta http-equiv="refresh" content="4"></noscript>
+<script>setTimeout(function () { location.reload(); }, 4000);</script>{% endif %}
+<section class="cabeca">
+  <h1>{{ titular }}</h1>
+  <p class="resumo">UC {{ uc }}. Etapa: <strong>{{ etapa_rotulo }}</strong>.</p>
+  <p class="acoes">
+    <a href="/processos/{{ p.id }}/timeline">Timeline</a>
+    <a href="/processos/{{ p.id }}/chat">Mensagens</a>
+    {% if em_revisao %}<a class="destaque" href="/processos/{{ p.id }}/revisao">Revisar e assinar</a>{% endif %}
+  </p>
+</section>
+
+{% if trabalhando %}
+<p class="trabalhando" role="status">O agente está trabalhando. Lendo os documentos e montando o pedido; esta página atualiza sozinha.</p>
+{% endif %}
+
+<section class="bloco" aria-labelledby="h-campos">
+  <h2 id="h-campos">Dados da conta de luz</h2>
+  {% if linhas %}
+  <div class="rolagem">
+  <table class="tabela-campos">
+    <thead><tr><th scope="col">Campo</th><th scope="col">Valor</th><th scope="col">Confiança</th><th scope="col">Fonte</th></tr></thead>
+    <tbody>
+    {% for l in linhas %}
+    <tr class="{{ 'incerto' if l.incerto }}">
+      <th scope="row">{{ l.rotulo }}</th>
+      <td>{{ l.valor }}</td>
+      <td>
+        <span class="barra" aria-hidden="true"><span style="width: {{ l.pct }}%"></span></span>
+        {{ l.pct }}%{% if l.incerto %} <span class="selo-incerto">Incerto</span>{% endif %}
+      </td>
+      <td class="trecho">{{ l.trecho }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="vazio">Os dados aparecem aqui quando o agente ler a conta de luz.</p>
+  {% endif %}
+</section>
+
+<section class="bloco" aria-labelledby="h-kit">
+  <h2 id="h-kit">Kit vendido</h2>
+  {% if kit %}
+  <dl class="kit">
+    <div><dt>Módulo</dt><dd>{{ kit.modulo.fabricante }} {{ kit.modulo.modelo }}, {{ kit.modulo.potencia_wp|round|int }} Wp</dd></div>
+    <div><dt>Quantidade</dt><dd>{{ kit.qtd_modulos }} módulos, total {{ kwp }} kWp</dd></div>
+    <div><dt>Inversor</dt><dd>{{ kit.inversor.fabricante }} {{ kit.inversor.modelo }}, {{ kit.inversor.potencia_nominal_w|round|int }} W</dd></div>
+    <div><dt>Registro INMETRO</dt><dd>{{ kit.inversor.certificado_inmetro or "—" }}</dd></div>
+  </dl>
+  {% if kit.strings %}
+  <ul class="strings">
+    {% for s in kit.strings %}
+    <li>MPPT {{ s.mppt }}: {{ s.modulos_em_serie }} módulos em série{% if s.sugerida %} <span class="tag">sugerida pelo agente</span>{% endif %}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% else %}
+  <p class="vazio">O kit aparece aqui quando o agente ler a proposta.</p>
+  {% endif %}
+</section>
+
+<section class="bloco" aria-labelledby="h-falta">
+  <h2 id="h-falta">O que falta</h2>
+  {% if not abertas and not falhas %}<p class="vazio">Nada pendente com você agora.</p>{% endif %}
+  {% for q in abertas %}
+  <form class="resposta" data-pergunta="{{ q.id }}">
+    <label for="r-{{ loop.index }}">{{ q.texto }}</label>
+    <textarea id="r-{{ loop.index }}" name="resposta" rows="2" required></textarea>
+    <button type="submit">Enviar resposta</button>
+    <p class="erro-form" role="alert"></p>
+  </form>
+  {% endfor %}
+  {% if falhas %}
+  <div class="falhas">
+    <h3>Passos que falharam</h3>
+    <ul>{% for q in falhas %}<li>{{ q.texto }}</li>{% endfor %}</ul>
+    <button type="button" id="tentar">Tentar de novo</button>
+    <p class="erro-form" id="erro-tentar" role="alert"></p>
+  </div>
+  {% endif %}
+  {% if respondidas %}
+  <details class="respondidas">
+    <summary>Perguntas respondidas ({{ respondidas|length }})</summary>
+    <ul>{% for q in respondidas %}<li><strong>{{ q.texto }}</strong><br>{{ q.resposta }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+</section>
+
+<section class="bloco" aria-labelledby="h-regras">
+  <h2 id="h-regras">Conferência</h2>
+  {% if regras %}
+  <ul class="regras">
+    {% for x in regras %}
+    <li><span class="regra-id">{{ x.r.regra_id }}</span> <span class="regra-desc">{{ x.r.descricao }}</span> <span class="pilula {{ x.cor }}">{{ x.rotulo }}</span></li>
+    {% endfor %}
+  </ul>
+  <p class="docs-nota">A análise detalhada fica na página de revisão.</p>
+  {% else %}
+  <p class="vazio">As regras são conferidas depois que o agente gerar o projeto.</p>
+  {% endif %}
+</section>
+
+{% include "_documentos.html" %}
+
+<script>
+  function detalheErro(d) {
+    var det = d && d.detail;
+    if (Array.isArray(det)) { det = det.map(function (x) { return x.msg; }).join("; "); }
+    return det;
+  }
+  document.querySelectorAll("form.resposta").forEach(function (form) {
+    form.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      var erro = form.querySelector(".erro-form");
+      erro.textContent = "";
+      var corpo = [{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }];
+      try {
+        var r = await fetch("/api/processos/{{ p.id }}/respostas", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(corpo),
+        });
+        if (r.ok) { location.reload(); return; }
+        var d = await r.json().catch(function () { return {}; });
+        erro.textContent = detalheErro(d) || "Não foi possível enviar a resposta.";
+      } catch (e) {
+        erro.textContent = "Não foi possível enviar a resposta.";
+      }
+    });
+  });
+  var tentar = document.getElementById("tentar");
+  if (tentar) {
+    tentar.addEventListener("click", async function () {
+      var erro = document.getElementById("erro-tentar");
+      erro.textContent = "";
+      tentar.disabled = true;
+      try {
+        var r = await fetch("/api/processos/{{ p.id }}/rodar?refazer=true", { method: "POST" });
+        if (r.ok) { location.reload(); return; }
+        var d = await r.json().catch(function () { return {}; });
+        erro.textContent = detalheErro(d) || "Não foi possível tentar de novo.";
+      } catch (e) {
+        erro.textContent = "Não foi possível tentar de novo.";
+      }
+      tentar.disabled = false;
+    });
+  }
+</script>
+{% endif %}
+{% endblock %}

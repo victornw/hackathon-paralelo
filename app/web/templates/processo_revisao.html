@@ -1,0 +1,203 @@
+{% extends "layout.html" %}
+{% block titulo %}Revisão do engenheiro: {{ titular }}{% endblock %}
+{% block conteudo %}
+<link rel="stylesheet" href="/static/revisao.css">
+<section class="cabeca rev">
+  <p class="rev-links"><a href="/processos/{{ p.id }}">Voltar ao processo</a> <a href="/processos/{{ p.id }}/timeline">Ver a timeline</a></p>
+  <h1>Revisão do engenheiro</h1>
+  <p class="resumo">{{ titular }} · UC {{ uc }} · {% if kwp is not none %}{{ '%.2f'|format(kwp) }} kWp{% else %}kWp não informado{% endif %} · Etapa: {{ etapa_rotulo }}</p>
+  {% if not revisavel %}
+  <p class="rev-aviso" role="note">Este processo não está aguardando revisão. O conteúdo abaixo é somente para consulta.</p>
+  {% endif %}
+</section>
+
+<section class="rev-resumo" aria-labelledby="rev-resumo-t">
+  <h2 id="rev-resumo-t">Resumo da conferência</h2>
+  <ul class="rev-pills">
+    <li class="pill aprovada">{{ contagem.aprovadas }} aprovadas</li>
+    <li class="pill premissa">{{ contagem.premissa }} com premissa</li>
+    <li class="pill alerta">{{ contagem.alertas }} com alertas</li>
+    <li class="pill incerta">{{ contagem.incertas }} incertas</li>
+    <li class="pill reprovada">{{ contagem.reprovadas }} reprovadas</li>
+    <li class="pill nao_verificada">{{ contagem.nao_verificadas }} não verificadas</li>
+  </ul>
+  {% if bloqueios %}
+  <h3>O que bloqueia a aprovação</h3>
+  <ul class="rev-bloqueios">
+    {% for b in bloqueios %}<li>{{ b }}</li>{% endfor %}
+  </ul>
+  {% else %}
+  <p class="rev-livre">Nada bloqueia a aprovação.</p>
+  {% endif %}
+</section>
+
+<section class="rev-regras" aria-labelledby="rev-regras-t">
+  <h2 id="rev-regras-t">Regras conferidas</h2>
+  {% for item in regras %}
+  {% set r = item.r %}
+  <article class="regra {{ r.status.value }}" id="regra-{{ r.regra_id }}">
+    <header>
+      <span class="pill {{ r.status.value }}">{{ item.rotulo }}</span>
+      <h3>{{ r.regra_id }} · {{ r.descricao }}</h3>
+    </header>
+    <p class="regra-msg">{{ r.mensagem }}</p>
+    {% if r.fonte_norma %}<p class="regra-fonte">Fonte: {{ r.fonte_norma }}</p>{% endif %}
+    {% if item.valores %}
+    <table class="regra-valores">
+      <tbody>
+        {% for k, v in item.valores %}<tr><th scope="row">{{ k }}</th><td>{{ v }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    {% if r.premissas %}
+    <div class="regra-premissas">
+      <h4>Premissas assumidas</h4>
+      <ul>{% for x in r.premissas %}<li>{{ x }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    {% if r.alertas %}
+    <div class="regra-alertas">
+      <h4>Alertas</h4>
+      <ul>{% for x in r.alertas %}<li>{{ x }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    {% if r.evidencias %}
+    <div class="regra-evidencias">
+      <h4>Evidências</h4>
+      <ul>
+        {% for e in r.evidencias %}
+        <li>
+          <span>{{ e.descricao }}</span>
+          <small>{{ e.fonte }}{% if e.consultado_em %} · consultado em {{ e.consultado_em.strftime('%d/%m/%Y') }}{% endif %}</small>
+          {% if e.url %}<a href="{{ e.url }}" target="_blank" rel="noopener">Abrir fonte</a>{% endif %}
+          {% if e.trecho %}<small class="trecho">{{ e.trecho }}</small>{% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+    {% if r.confirmado_por %}
+    <p class="regra-confirmada">Confirmado por {{ r.confirmado_por }}{% if r.confirmado_em %} em {{ r.confirmado_em.strftime('%d/%m/%Y') }}{% endif %}</p>
+    {% endif %}
+    {% if item.confirmavel and revisavel %}
+    <form class="rev-form confirmar-r05" data-url="/processos/{{ p.id }}/regras/R05/confirmar">
+      <p>Confirmo o registro INMETRO para 220 V e assumo.</p>
+      <label for="r05-eng">Seu nome</label>
+      <input id="r05-eng" name="engenheiro" required autocomplete="name">
+      <button type="submit">Confirmar R05</button>
+      <p class="erro-form" role="alert"></p>
+    </form>
+    {% endif %}
+  </article>
+  {% else %}
+  <p class="vazio">Nenhuma regra conferida ainda.</p>
+  {% endfor %}
+</section>
+
+{% if perguntas %}
+<section class="rev-perguntas" aria-labelledby="rev-perg-t">
+  <h2 id="rev-perg-t">Perguntas para o engenheiro</h2>
+  {% for q in perguntas %}
+  <form class="rev-form responder" data-pergunta="{{ q.id }}">
+    <p>{{ q.texto }}</p>
+    {% if q.campo == 'strings' %}
+    <p class="dica">Responda 'sim' para confirmar a configuração sugerida, ou informe os módulos por MPPT, ex.: 'MPPT1: 7, MPPT2: 6'.</p>
+    {% endif %}
+    <label for="resp-{{ loop.index }}">Sua resposta</label>
+    <input id="resp-{{ loop.index }}" name="resposta" required>
+    <button type="submit">Enviar resposta</button>
+    <p class="erro-form" role="alert"></p>
+  </form>
+  {% endfor %}
+</section>
+{% endif %}
+
+{% include "_documentos.html" %}
+
+{% if revisavel %}
+<section class="rev-aprovar" aria-labelledby="rev-apr-t">
+  <h2 id="rev-apr-t">Aprovar e assinar</h2>
+  {% if bloqueios %}
+  <p class="rev-aviso">A aprovação está desabilitada até resolver os bloqueios listados no resumo.</p>
+  {% endif %}
+  <form id="form-aprovar" class="rev-form">
+    <label for="apr-eng">Nome do engenheiro</label>
+    <input id="apr-eng" name="engenheiro" required autocomplete="name"{% if bloqueios %} disabled{% endif %}>
+    <div class="check"><input type="checkbox" id="apr-ciente" name="ciente" required{% if bloqueios %} disabled{% endif %}> <label for="apr-ciente">Revisei os documentos e as regras e assumo a responsabilidade técnica (ART)</label></div>
+    <button type="submit"{% if bloqueios %} disabled{% endif %}>Aprovar e assinar</button>
+    <p class="erro-form" role="alert"></p>
+  </form>
+</section>
+{% endif %}
+
+<script>
+(function () {
+  var pid = {{ p.id|tojson }};
+  var chave = "revisao-inicio-" + pid;
+  var inicio = Date.now();
+  try {
+    var salvo = parseInt(localStorage.getItem(chave), 10);
+    if (salvo && salvo <= inicio) { inicio = salvo; } else { localStorage.setItem(chave, String(inicio)); }
+  } catch (e) {}
+  function segundos() {
+    var s = Math.round((Date.now() - inicio) / 1000);
+    return Math.max(1, Math.min(s, 14400));
+  }
+  function detalhe(d, padrao) {
+    var det = d && d.detail;
+    if (Array.isArray(det)) { det = det.map(function (x) { return x.msg || x; }).join("; "); }
+    else if (det && typeof det === "object") { det = JSON.stringify(det); }
+    return det || padrao;
+  }
+  function ligar(seletor, enviar) {
+    document.querySelectorAll(seletor).forEach(function (form) {
+      form.addEventListener("submit", async function (ev) {
+        ev.preventDefault();
+        var erro = form.querySelector(".erro-form");
+        erro.textContent = "";
+        try { await enviar(form, erro); }
+        catch (e) { erro.textContent = "Não foi possível concluir. Tente de novo."; }
+      });
+    });
+  }
+  ligar("form.confirmar-r05", async function (form, erro) {
+    var r = await fetch(form.dataset.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ engenheiro: form.elements.engenheiro.value }),
+    });
+    if (r.ok) { location.reload(); return; }
+    erro.textContent = detalhe(await r.json().catch(function () { return {}; }), "Não foi possível confirmar a R05.");
+  });
+  ligar("form.responder", async function (form, erro) {
+    var r = await fetch("/api/processos/" + encodeURIComponent(pid) + "/respostas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify([{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }]),
+    });
+    if (r.ok) { location.reload(); return; }
+    erro.textContent = detalhe(await r.json().catch(function () { return {}; }), "Não foi possível enviar a resposta.");
+  });
+  ligar("#form-aprovar", async function (form, erro) {
+    var r = await fetch("/api/processos/" + encodeURIComponent(pid) + "/revisao", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ engenheiro: form.elements.engenheiro.value }),
+    });
+    if (!r.ok) {
+      erro.textContent = detalhe(await r.json().catch(function () { return {}; }), "Não foi possível aprovar.");
+      return;
+    }
+    try {
+      await fetch("/processos/" + encodeURIComponent(pid) + "/revisao/tempo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ segundos: segundos(), resultado: "aprovado" }),
+      });
+    } catch (e) {}
+    try { localStorage.removeItem(chave); } catch (e) {}
+    location.href = "/processos/" + encodeURIComponent(pid);
+  });
+})();
+</script>
+{% endblock %}

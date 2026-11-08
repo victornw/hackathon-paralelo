@@ -31,7 +31,7 @@
     <h2><span class="n">{{ loop.index }}</span> {{ col.rotulo }} <span class="qtd">{{ col.cartoes|length }}</span></h2>
     {% for k in col.cartoes %}
     <article class="cartao">
-      <a class="titular" href="/processos/{{ k.p.id }}/timeline">{{ k.titular }}</a>
+      <a class="titular" href="/processos/{{ k.p.id }}">{{ k.titular }}</a>
       <a class="link-mensagens" href="/processos/{{ k.p.id }}/chat">Mensagens</a>
       <p class="meta">UC {{ k.uc }}{% if k.kwp %}, {{ '%.2f'|format(k.kwp)|replace('.', ',') }} kWp{% endif %}</p>
       {% if k.incertas or k.perguntas %}
