@@ -4,13 +4,12 @@
 <link rel="stylesheet" href="/static/processo.css">
 <section class="cabeca">
   <h1>Novo processo</h1>
-  <p class="resumo">Envie a conta de luz e a proposta do kit. O agente lê os documentos, confere o arranjo, pergunta o que falta e monta o pedido para revisão do engenheiro.</p>
+  <p class="resumo">Conta de luz e proposta do kit. O agente monta o pedido para a revisão do engenheiro.</p>
 </section>
 
 <div class="novo-grade">
 <section class="exemplos vidro" aria-labelledby="ex-titulo">
   <h2 id="ex-titulo">Testar com um caso pronto</h2>
-  <p class="resumo">Sem conta de luz à mão? Use um exemplo com conta e proposta sintéticas, ou envie os seus arquivos ao lado.</p>
   <div class="exemplos-botoes">
     {% for n, legenda in ((1, "10 módulos, inversor de 5 kW: caminho completo até o protocolo"),
                           (3, "14 módulos, inversor de 8 kW, duas strings informadas na proposta"),
@@ -29,7 +28,6 @@
 
 <form id="form-novo" class="form-novo vidro" novalidate aria-labelledby="form-titulo">
   <h2 id="form-titulo">Enviar os seus arquivos</h2>
-  <p class="resumo">O agente começa assim que a conta e a proposta chegarem.</p>
   <div class="campo">
     <label for="email">E-mail de contato do titular <span class="opc">(opcional)</span></label>
     <input id="email" name="email" type="email" autocomplete="off">

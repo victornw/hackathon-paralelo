@@ -81,7 +81,6 @@ def test_rota_devolve_fragmento_com_tres_linhas_e_links(cliente, db_path):
     assert "05/11/2026 14:30" in r.text
     assert 'target="_blank" rel="noopener"' in r.text
     assert "Ainda não gerado" not in r.text
-    assert "Revise cada documento antes de aprovar e assinar." in r.text
 
 
 def test_sem_documentos_mostra_estado_vazio(cliente, db_path):

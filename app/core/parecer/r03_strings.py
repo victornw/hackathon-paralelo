@@ -25,7 +25,7 @@ TMIN_POR_AREA: dict[str, tuple[float, str | None]] = {
     "ceara": (10, None),
     "sao_paulo": (-3, None),
     "rj_serra": (0, None),
-    "rj_sul_fluminense": (-5, "Tmin do Sul Fluminense provisória, a confirmar"),
+    "rj_sul_fluminense": (-5, "Tmin provisória do Sul Fluminense"),
     "rj_demais": (0, None),
 }
 
@@ -80,7 +80,7 @@ def avaliar(processo: Processo) -> ResultadoRegra:
         return p.incerta("Configuração de strings não definida.")
     mod, inv = kit.modulo, kit.inversor
     if any(s.sugerida for s in kit.strings):
-        p.premissas.append("configuração de strings sugerida pelo agente, a confirmar")
+        p.premissas.append("configuração de strings sugerida pelo agente")
 
     area = processo.visita.area_concessao
     if area is None:

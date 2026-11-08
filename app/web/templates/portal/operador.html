@@ -3,7 +3,7 @@
 {% block conteudo %}
 <div class="operador">
 <h1>Operador do portal (simulado)</h1>
-<p>Esta tela representa a distribuidora na demonstração. Ela não faz parte do portal público.</p>
+<p>Faz o papel da distribuidora na demonstração.</p>
 
 <section class="bloco" aria-labelledby="h-rel">
   <h2 id="h-rel">Avançar o relógio</h2>
@@ -14,13 +14,12 @@
     <button type="button" data-dias="10">+10 dias</button>
   </div>
   <p id="erro-relogio" class="erro" role="alert" hidden></p>
-  <p>O relógio só anda para frente: os eventos e prazos ficam gravados com a data em que aconteceram. Para voltar ao começo, reinicie a demonstração.</p>
 </section>
 
 <section class="bloco" aria-labelledby="h-rei">
   <h2 id="h-rei">Reiniciar demonstração</h2>
   {% if reiniciado %}<p class="ok" role="status">Demonstração reiniciada. Relógio em {{ hoje.strftime('%d/%m/%Y') }}.</p>{% endif %}
-  <p>Recria os quatro casos prontos (em revisão, com pendência, com orçamento emitido e concluído), apaga o que foi feito neles e volta o relógio para {{ data_demo.strftime('%d/%m/%Y') }}. Processos criados por outras pessoas não são apagados.</p>
+  <p>Recria os quatro casos prontos e volta o relógio para {{ data_demo.strftime('%d/%m/%Y') }}. Processos novos não são apagados.</p>
   <form method="post" action="/portal-gd/operador/reiniciar" onsubmit="return confirm('Reiniciar a demonstração? O progresso dos quatro casos prontos será perdido.');">
     <button type="submit">Reiniciar demonstração</button>
   </form>

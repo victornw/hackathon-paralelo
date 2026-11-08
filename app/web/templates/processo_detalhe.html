@@ -77,7 +77,7 @@
   {% elif aguardando_protocolo %}
   <p class="pronto">Pacote aprovado. Falta protocolar no Portal GD e informar o número da solicitação.</p>
   <p><a class="botao destaque" href="/processos/{{ p.id }}/revisao#protocolo">Protocolar no portal</a></p>
-  {% elif trabalhando %}<p class="vazio">Nada pendente com você. O agente está terminando o pacote.</p>
+  {% elif trabalhando %}<p class="vazio">O agente está terminando o pacote.</p>
   {% elif not abertas and not falhas %}<p class="vazio">Nada pendente com você agora.</p>{% endif %}
   {% if abertas %}
   <form id="form-respostas" class="respostas">
@@ -123,7 +123,7 @@
     <li><span class="regra-id">{{ x.r.regra_id }}</span> <span class="regra-desc">{{ x.r.descricao }}</span> <span class="pilula {{ x.cor }}">{{ x.rotulo }}</span></li>
     {% endfor %}
   </ul>
-  <p class="docs-nota">A análise detalhada fica na página de revisão.</p>
+  <p class="docs-nota"><a href="/processos/{{ p.id }}/revisao">Ver a análise de cada regra</a></p>
   {% else %}
   <p class="vazio">As regras são conferidas depois que o agente gerar o projeto.</p>
   {% endif %}

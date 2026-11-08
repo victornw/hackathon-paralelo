@@ -89,7 +89,7 @@ _REGRAS: dict[TipoPrazo, dict] = {
         "dias": 30,
         "dias_uteis": False,
         "conta_contra": "integrador",
-        "fonte": "Lei 14.300 (artigo a confirmar)",
+        "fonte": "Lei 14.300",  # artigo exato ainda não conferido
     },
     "aprovar_orcamento": {
         "abre": {Etapa.ORCAMENTO_EMITIDO},

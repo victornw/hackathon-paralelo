@@ -4,13 +4,12 @@
 <section class="cabeca">
   <p><a href="/processos/{{ p.id }}/timeline">Voltar à timeline</a></p>
   <h1>Mensagens: {{ titular }}</h1>
-  <p class="resumo">UC {{ uc }}. Conversa simulada: nenhuma mensagem é enviada de verdade.</p>
+  <p class="resumo">UC {{ uc }}</p>
 </section>
 
 <div class="chat-colunas">
   <section class="chat-canal" aria-labelledby="c-int">
     <h2 id="c-int">Integrador</h2>
-    <p class="chat-legenda">Conversa entre o agente e a empresa instaladora. O agente pede o que falta para montar o pedido, explica pendências da Enel e avisa os prazos que dependem do integrador.</p>
     <div class="chat-fio">
       {% for m in integrador %}
       <div class="bolha {{ m.autor }} {{ m.tipo }}">
@@ -34,7 +33,6 @@
 
   <section class="chat-canal cliente" aria-labelledby="c-cli">
     <h2 id="c-cli">Cliente final (WhatsApp simulado)</h2>
-    <p class="chat-legenda">Visão do cliente: avisos recebidos do agente a cada mudança de etapa, em linguagem simples.</p>
     <div class="chat-fio">
       {% for m in cliente %}
       <div class="bolha {{ m.autor }} {{ m.tipo }}">

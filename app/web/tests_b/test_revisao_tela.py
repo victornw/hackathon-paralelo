@@ -37,7 +37,7 @@ def test_pagina_demo_01(cliente):
     assert "Nada bloqueia a aprovação" not in html
     assert 'class="rev-bloqueios"' in html
     assert re.search(r'<button type="submit"[^>]* disabled>Aprovar pacote assinado', html)
-    assert "demo:strings" in html and "configuração sugerida" in html
+    assert "demo:strings" in html and "MPPT1: 7" in html
     assert "Documentos gerados" in html
     assert "Premissas assumidas" in html or "Alertas" in html
 

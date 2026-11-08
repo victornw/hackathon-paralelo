@@ -3,7 +3,7 @@
 {% block conteudo %}
 <section class="cabeca">
   <h1>O que o agente fez</h1>
-  <p class="resumo">Números da carteira ao vivo, mais o que os evals mediram com IA real. Cada número diz de onde vem.</p>
+  <p class="resumo">Carteira ao vivo e resultados dos evals com IA real.</p>
 </section>
 
 <div class="destaques">
@@ -11,25 +11,25 @@
     <h2>Tempo de máquina por processo</h2>
     {% if completo %}
     <p class="num">{{ completo.segundos }} s</p>
-    <p>da conta de luz ao pacote pronto para revisão; média de {{ completo.execucoes }} execuções do eval com IA real</p>
+    <p>da conta de luz ao pacote pronto; média de {{ completo.execucoes }} execuções</p>
     {% else %}<p class="num">Sem medição</p><p>rode <span class="mono">evals/processo_completo.py</span></p>{% endif %}
   </article>
   <article class="destaque-num">
     <h2>Custo de IA por processo</h2>
     {% if completo %}
     <p class="num">&lt; R$ 0,02</p>
-    <p>{{ completo.chamadas }} chamadas e ~{{ completo.tokens }} mil tokens por processo; preço público de modelos da mesma classe (conta nossa)</p>
+    <p>{{ completo.chamadas }} chamadas, ~{{ completo.tokens }} mil tokens</p>
     {% else %}<p class="num">Sem medição</p>{% endif %}
   </article>
   <article class="destaque-num">
     <h2>Problemas pegos antes do envio</h2>
     <p class="num">{{ pegas_total }}</p>
-    <p>regras reprovadas ou incertas em {{ processos_com_pega }} de {{ total }} processos da carteira</p>
+    <p>em {{ processos_com_pega }} de {{ total }} processos</p>
   </article>
   <article class="destaque-num">
     <h2>Processos ativos</h2>
     <p class="num">{{ ativos }}</p>
-    <p>em {{ etapas_ativas }} etapa{{ 's' if etapas_ativas != 1 }} diferente{{ 's' if etapas_ativas != 1 }}; {{ total - ativos }} concluído{{ 's' if total - ativos != 1 }}</p>
+    <p>{{ total - ativos }} concluído{{ 's' if total - ativos != 1 }}</p>
   </article>
 </div>
 
@@ -43,7 +43,7 @@
         {% if pendencias %}
         <tr>
           <td>Classificação de pendência</td>
-          <td>{{ pendencias.n }} textos sintéticos rotulados antes de rodar o modelo</td>
+          <td>{{ pendencias.n }} textos rotulados</td>
           <td class="num-col"><strong>{{ pendencias.acerto }}%</strong>{% if pendencias.base %}<br><small>palavras-chave: {{ pendencias.base }}%</small>{% endif %}</td>
         </tr>
         <tr>
@@ -55,7 +55,7 @@
         {% if completo %}
         <tr>
           <td>Processo completo</td>
-          <td>Casos de exemplo 1 e 3, 3 repetições cada</td>
+          <td>Exemplos 1 e 3, 3 vezes cada</td>
           <td class="num-col"><strong>{{ completo.concluidas }} de {{ completo.execucoes }}</strong><br><small>concluídos até o medidor</small></td>
         </tr>
         {% endif %}
@@ -65,7 +65,6 @@
       </tbody>
     </table>
     </div>
-    <p class="docs-nota">Fonte: <span class="mono">evals/resultados_pendencias.md</span> e <span class="mono">evals/resultados_processo_completo.md</span>.</p>
   </section>
 
   <section class="bloco" aria-labelledby="h-prazos-m">
@@ -76,7 +75,6 @@
       <div><dt>Vencidos</dt><dd>{{ prazos.vencidos }}</dd></div>
       <div><dt>Vencidos pela distribuidora, com reclamação a preparar</dt><dd>{{ prazos.vencidos_enel }}</dd></div>
     </dl>
-    <p class="docs-nota">Prazos correndo agora nos processos ativos, no relógio simulado.</p>
   </section>
 
   <section class="bloco" aria-labelledby="h-regras-m">
@@ -100,7 +98,6 @@
       <div><dt>Revisões do engenheiro gravadas</dt><dd>{{ revisoes }}</dd></div>
       <div><dt>Tempo médio de revisão</dt>{% if revisao_media %}<dd>{{ revisao_media }} min</dd>{% else %}<dd class="texto">sem medição ainda</dd>{% endif %}</div>
     </dl>
-    <p class="docs-nota">Decidir e assinar fica com pessoas. O agente prepara e pergunta.</p>
   </section>
 
   <section class="bloco" aria-labelledby="h-etapas">

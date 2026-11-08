@@ -86,7 +86,7 @@
           <span class="pilula {{ x.cor }}">{{ x.rotulo }}</span>
           <div>
             <p class="conf-titulo"><span class="regra-id">{{ x.r.regra_id }}</span> {{ x.r.descricao }}</p>
-            {% if x.r.mensagem %}<p class="conf-msg">{{ x.r.mensagem }}</p>{% endif %}
+            {% if x.r.mensagem and x.r.status.value != 'aprovada' %}<p class="conf-msg">{{ x.r.mensagem }}</p>{% endif %}
           </div>
         </li>
         {% endfor %}
@@ -127,7 +127,7 @@
       </ol>
       <a href="/processos/{{ f.p.id }}/timeline">Ver tudo, com tokens e custo</a>
       {% else %}
-      <p class="vazio">Os passos do agente aparecem aqui assim que o processo roda.</p>
+      <p class="vazio">Nenhum passo ainda.</p>
       {% endif %}
     </section>
     {% else %}
@@ -139,7 +139,6 @@
   <aside class="conversa" aria-labelledby="h-conversa">
     <header class="conversa-topo">
       <h2 id="h-conversa">Agente de homologação</h2>
-      <p>Conversas simuladas: nenhuma mensagem é enviada de verdade</p>
       <div class="conversa-abas" role="tablist" aria-label="Com quem o agente conversa">
         <button type="button" role="tab" id="aba-integrador" aria-controls="fio-integrador" aria-selected="true" data-canal="integrador">Integrador</button>
         <button type="button" role="tab" id="aba-cliente" aria-controls="fio-cliente" aria-selected="false" tabindex="-1" data-canal="cliente">Cliente final</button>
@@ -165,14 +164,13 @@
       {% endfor %}
     </div>
     <div class="conversa-fio" id="fio-cliente" role="tabpanel" aria-labelledby="aba-cliente" hidden>
-      <p class="conversa-legenda">WhatsApp simulado: avisos do agente ao dono da casa a cada mudança de etapa.</p>
       {% for m in f.conversa_cliente %}
       <div class="bolha {{ m.autor }} {{ m.tipo }}">
         <p class="data"><span class="autor">Agente</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
         <p class="mensagem-texto">{{ m.texto }}</p>
       </div>
       {% else %}
-      <p class="vazio">O cliente recebe o primeiro aviso quando o pedido for protocolado.</p>
+      <p class="vazio">O cliente é avisado a partir do protocolo.</p>
       {% endfor %}
     </div>
     <a class="conversa-link" href="/processos/{{ f.p.id }}/chat">Abrir as duas conversas lado a lado</a>

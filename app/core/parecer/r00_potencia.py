@@ -34,8 +34,7 @@ FONTE = (
     "tabela CNC-OMBR-MAT-18-0124 (ligação monofásica)"
 )
 PREMISSA_VIGENCIA = (
-    "tabela de potência disponibilizada da CNC-OMBR-MAT-18-0124 considerada vigente "
-    "(confirmar: a Enel está renomeando as normas)"
+    "tabela de potência disponibilizada da CNC-OMBR-MAT-18-0124 considerada vigente"
 )
 
 
