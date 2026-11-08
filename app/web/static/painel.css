@@ -406,7 +406,6 @@ blockquote {
   align-self: flex-end; border-top-right-radius: 6px;
   background: linear-gradient(160deg, var(--painel-surface-34), var(--painel-surface-35));
 }
-.bolha.pendencia { background: linear-gradient(160deg, var(--painel-surface-36), var(--atencao-fundo)); }
 .bolha a { font-weight: 600; }
 .bolha form.resposta { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
 .bolha form.resposta label { font-size: 12px; color: var(--tinta-2); }
@@ -651,7 +650,6 @@ body.mesa-pagina main { width: min(1680px, calc(100% - 32px)); padding-top: 24px
 .conversa .bolha { max-width: 92%; font-size: 14px; }
 .conversa .bolha.agente { background: linear-gradient(160deg, var(--painel-surface-34), var(--painel-surface-35)); border-top-left-radius: 6px; }
 .conversa .bolha.integrador { background: var(--painel-surface-76); border-top-right-radius: 6px; border-top-left-radius: 16px; }
-.conversa .bolha.pendencia { background: linear-gradient(160deg, var(--painel-surface-36), var(--atencao-fundo)); }
 .conversa .bolha form.resposta button { min-height: 36px; padding: 7px 16px; }
 .conversa-link { padding: 12px 18px; font-size: 13px; font-weight: 500; border-top: 1px solid var(--linha); background: var(--painel-surface-77); }
 
