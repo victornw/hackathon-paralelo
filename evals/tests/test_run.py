@@ -65,7 +65,7 @@ def test_aneel(db, tmp_path):
     arq = tmp_path / "aneel.csv"
     arq.write_text("a,b\n1,2\n")
     texto = run.montar(db, arq)
-    assert "leitor da base ANEEL ainda não implementado" in texto
+    assert "colunas ausentes na base" in texto
     assert "base ANEEL não encontrada" not in texto
 
 
