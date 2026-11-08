@@ -1,6 +1,7 @@
 """Slide de números: uma tabela só, com valores medidos ou "não medido".
 
 Uso: .venv/bin/python -m evals.run [--db PATH] [--aneel PATH] [--saida evals/resultados.md]
+(--aneel aceita um arquivo da base ou a pasta com os ZIPs das cinco regiões)
 
 Regra: nenhum número é inventado ou estimado. Sem dado, a linha diz "não medido".
 O banco de --db é aberto só para leitura; classificador e relógio simulado usam
@@ -225,8 +226,40 @@ OBS_ANEEL = (
 
 
 def _ler_aneel(caminho: Path):
-    """Lê só as colunas usadas; devolve (DataFrame, colunas ausentes)."""
+    """Lê só as colunas usadas; devolve (DataFrame, colunas ausentes).
+
+    `caminho` pode ser um arquivo (parquet, ZIP ou CSV) ou uma pasta com os ZIPs
+    das cinco regiões; na pasta, cada arquivo é lido em blocos e já deduplicado,
+    porque o CSV do Sudeste tem vários gigabytes."""
     import pandas as pd
+
+    if caminho.is_dir():
+        arquivos = sorted(caminho.glob("*.zip")) or sorted(caminho.glob("*.parquet"))
+        partes = []
+        for arq in arquivos:
+            if arq.suffix == ".parquet":
+                partes.append(_ler_aneel(arq)[0])
+                continue
+            for bloco in pd.read_csv(
+                arq,
+                sep=";",
+                encoding="utf-8-sig",
+                dtype=str,
+                usecols=lambda c: c in COLUNAS_ANEEL,
+                compression="zip",
+                chunksize=2_000_000,
+            ):
+                if {"DatPrzEnvio", "SigAgenteDistribuicao", "NumProtocolo"} <= set(
+                    bloco.columns
+                ):
+                    bloco = bloco.sort_values(
+                        "DatPrzEnvio", kind="stable"
+                    ).drop_duplicates(
+                        ["SigAgenteDistribuicao", "NumProtocolo"], keep="last"
+                    )
+                partes.append(bloco)
+        df = pd.concat(partes, ignore_index=True) if partes else pd.DataFrame()
+        return df, [c for c in COLUNAS_ANEEL if c not in df.columns]
 
     if caminho.suffix == ".parquet":
         import pyarrow.parquet as pq
@@ -340,6 +373,12 @@ def cobertura_aneel(caminho: str | Path) -> list[dict]:
             )
         ]
     coorte = coorte_aneel(df)
+    if Path(caminho).is_dir():
+        # Base completa (cinco regiões): o país e as distribuidoras citadas no pitch.
+        linhas = _linhas_escopo("Brasil", coorte)
+        for dist in ("Cemig-D", "Equatorial AL", ENEL_CE):
+            linhas += _linhas_escopo(dist, coorte[coorte.SigAgenteDistribuicao == dist])
+        return linhas
     return _linhas_escopo(
         "Enel CE", coorte[coorte.SigAgenteDistribuicao == ENEL_CE]
     ) + _linhas_escopo("Nordeste", coorte)
@@ -347,7 +386,7 @@ def cobertura_aneel(caminho: str | Path) -> list[dict]:
 
 def secao_aneel(caminho: str | Path | None) -> list[dict]:
     metrica = "Cobertura das categorias ANEEL"
-    if not caminho or not Path(caminho).is_file():
+    if not caminho or not Path(caminho).exists():
         return [_linha(metrica, NAO_MEDIDO, "—", "base ANEEL não encontrada")]
     return cobertura_aneel(caminho)
 

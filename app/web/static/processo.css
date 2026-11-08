@@ -81,3 +81,5 @@ form.resposta label { font-weight: 600; }
 }
 
 .exemplos { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--linha); }
+.exemplo { display: grid; gap: 4px; max-width: 220px; }
+.exemplo-legenda { margin: 0; font-size: 13px; color: var(--tinta-2); }

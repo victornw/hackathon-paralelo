@@ -11,9 +11,12 @@
   <h2 id="ex-titulo">Testar com um caso pronto</h2>
   <p class="resumo">Sem conta de luz à mão? Use um exemplo com conta e proposta sintéticas, ou envie os seus arquivos abaixo.</p>
   <div class="exemplos-botoes">
-    {% for n in (1, 2, 3) %}
-    <form method="post" action="/processos/novo/exemplo/{{ n }}">
+    {% for n, legenda in ((1, "10 módulos, inversor de 5 kW: caminho completo até o protocolo"),
+                          (3, "14 módulos, inversor de 8 kW, duas strings informadas na proposta"),
+                          (2, "Microinversor: o agente para e explica que está fora do escopo")) %}
+    <form method="post" action="/processos/novo/exemplo/{{ n }}" class="exemplo">
       <button type="submit" class="secundario">Usar exemplo {{ n }}</button>
+      <p class="exemplo-legenda">{{ legenda }}</p>
     </form>
     {% endfor %}
   </div>
