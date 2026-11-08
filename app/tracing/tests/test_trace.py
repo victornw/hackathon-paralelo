@@ -33,7 +33,8 @@ def test_grava_passo_com_tokens_e_decisao_pelo_contexto():
     assert passo.tokens_saida == 300
     assert passo.decisao == "Conta lida."
     assert passo.erro is None
-    assert passo.custo_brl == 0.0  # sem preço no .env, custo zero, nunca inventado
+    # sem preço no .env vale o preço publicado: (1500 x 0,40 + 300 x 3,00) / 1e6 x 5,5013
+    assert passo.custo_brl == round((1500 * 0.40 + 300 * 3.00) / 1e6 * 5.5013, 6)
 
 
 def test_processo_id_vem_do_argumento_processo():

@@ -17,8 +17,8 @@ O processo_id do passo vem, em ordem: do argumento `processo_id=` da chamada,
 de um argumento que seja um Processo, ou do contexto aberto por processo_atual().
 
 Custo: registrar_uso aceita custo_brl explícito; sem ele, o custo sai dos tokens
-e dos preços do .env (LLM_PRECO_ENTRADA_USD_MTOK, LLM_PRECO_SAIDA_USD_MTOK,
-USD_BRL). Sem preço configurado, o custo fica 0 — nunca um preço inventado.
+e dos preços publicados da Featherless (sobrepostos por LLM_PRECO_ENTRADA_USD_MTOK,
+LLM_PRECO_SAIDA_USD_MTOK e USD_BRL no .env). Preço com fonte, nunca inventado.
 """
 
 from __future__ import annotations
@@ -57,13 +57,23 @@ def _float_env(nome: str) -> float | None:
     return float(valor) if valor else None
 
 
+# Preço publicado do modelo principal (Featherless, Qwen/Qwen3.8-27B, US$ por milhão
+# de tokens, consultado em 08/11/2026). O modelo reserva é mais barato (0,15/0,50),
+# então o custo mostrado é um teto. Câmbio: PTAX de venda de 06/11/2026 (Banco Central).
+PRECO_ENTRADA_USD_MTOK = 0.40
+PRECO_SAIDA_USD_MTOK = 3.00
+CAMBIO_USD_BRL = 5.5013
+
+
 def custo_por_tokens(tokens_entrada: int, tokens_saida: int) -> float:
-    """Custo em reais a partir dos preços por milhão de tokens do .env."""
+    """Custo em reais a partir dos preços por milhão de tokens. O .env sobrepõe os
+    preços publicados acima (valor vazio usa o publicado)."""
     preco_in = _float_env("LLM_PRECO_ENTRADA_USD_MTOK")
     preco_out = _float_env("LLM_PRECO_SAIDA_USD_MTOK")
     cambio = _float_env("USD_BRL")
-    if preco_in is None or preco_out is None or cambio is None:
-        return 0.0
+    preco_in = PRECO_ENTRADA_USD_MTOK if preco_in is None else preco_in
+    preco_out = PRECO_SAIDA_USD_MTOK if preco_out is None else preco_out
+    cambio = CAMBIO_USD_BRL if cambio is None else cambio
     usd = tokens_entrada / 1e6 * preco_in + tokens_saida / 1e6 * preco_out
     return round(usd * cambio, 6)
 
