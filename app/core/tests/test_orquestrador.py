@@ -417,19 +417,36 @@ def test_sdk_executa_apenas_ferramentas_liberadas(ferramentas, monkeypatch):
     assert (uso.tokens_entrada, uso.tokens_saida) == (12, 4)
 
 
-def test_falha_sdk_escala_sem_executar_loop_antigo(ferramentas, monkeypatch):
+def test_modelo_de_decisao_que_falha_nao_trava_o_processo(ferramentas, monkeypatch):
     monkeypatch.setenv("FEATHERLESS_API_KEY", "fake")
     monkeypatch.setenv("MODELO_DECISAO", "fake")
+    chamadas_sdk = []
 
     def falhar(*args):
-        raise orquestrador.ai_sdk.SDKError("falha")
+        chamadas_sdk.append(1)
+        raise orquestrador.ai_sdk.SDKError("modelo respondeu em texto")
 
     monkeypatch.setattr(orquestrador.ai_sdk, "run", falhar)
     pid = novo_processo()
     p = orquestrar(pid)
-    assert p.etapa == Etapa.MONTAGEM
-    assert any(q.id == "falha:agente_ai_sdk" for q in p.perguntas)
-    assert ferramentas.chamadas == {}
+    assert p.etapa == Etapa.EM_REVISAO
+    assert not any(q.id == "falha:agente_ai_sdk" for q in p.perguntas)
+    assert ferramentas.chamadas["conferir"] == 1
+    assert any("(ordem_padrao)" in d for d in decisoes(pid))
+
+
+def test_passo_unico_roda_sem_chamar_o_modelo(ferramentas, monkeypatch):
+    monkeypatch.setenv("FEATHERLESS_API_KEY", "fake")
+    monkeypatch.setenv("MODELO_DECISAO", "fake")
+    chamadas_sdk = []
+    monkeypatch.setattr(
+        orquestrador.ai_sdk, "run", lambda *a: chamadas_sdk.append(1) or {}
+    )
+    pid = novo_processo(com_arquivos=False)
+    repo.guardar_arquivo(pid, "conta", "conta.pdf", b"conta")
+    orquestrar(pid)
+    assert chamadas_sdk == []
+    assert decisoes(pid)[0].startswith("extrair_conta (unica_opcao)")
 
 
 def test_sem_llm_a_decisao_e_deterministica(ferramentas):

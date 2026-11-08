@@ -669,9 +669,9 @@ def _resumo_para_decisao(p: Processo, opcoes: list[Passo]) -> str:
 
 
 @trace("decidir_proximo_passo")
-def _decidir(p: Processo, opcoes: list[Passo]) -> Passo:
-    """Execução determinística quando nenhum modelo de decisão está configurado."""
-    quem = "unica_opcao" if len(opcoes) == 1 else "sem_modelo"
+def _decidir(p: Processo, opcoes: list[Passo], quem: str = "sem_modelo") -> Passo:
+    """Execução determinística: opção única, sem modelo de decisão ou modelo que não avançou."""
+    quem = "unica_opcao" if len(opcoes) == 1 else quem
     registrar_uso(decisao=f"{opcoes[0].value} ({quem}): {_DESCRICAO[opcoes[0]]}")
     return opcoes[0]
 
@@ -873,18 +873,37 @@ def _rodar(
         )
 
 
+def _estado_atual(processo_id: str) -> tuple[Processo, Arquivos, dict[str, str], list[Passo]]:
+    p = repo.carregar(processo_id)
+    arquivos = repo.arquivos(processo_id)
+    memoria = repo.memoria(processo_id)
+    return p, arquivos, memoria, passos_disponiveis(p, arquivos, memoria)
+
+
 def _laco(processo_id: str) -> None:
-    if llm.disponivel("decisao"):
-        _laco_sdk(processo_id)
-        return
     for _ in range(MAX_PASSOS):
-        p = repo.carregar(processo_id)
-        arquivos = repo.arquivos(processo_id)
-        memoria = repo.memoria(processo_id)
-        opcoes = passos_disponiveis(p, arquivos, memoria)
+        p, arquivos, memoria, opcoes = _estado_atual(processo_id)
         if not opcoes:
             return
-        passo = _decidir(p, opcoes)
+        quem = "sem_modelo"
+        if len(opcoes) > 1 and llm.disponivel("decisao"):
+            quem = "ordem_padrao"
+            _laco_sdk(processo_id)
+            if repo.memoria(processo_id) != memoria:
+                continue
+            # O modelo não executou nenhum passo: a ordem padrão garante que o processo anda.
+            repo.atualizar(
+                processo_id,
+                lambda q: setattr(
+                    q,
+                    "perguntas",
+                    [x for x in q.perguntas if x.id != "falha:agente_ai_sdk"],
+                ),
+            )
+            p, arquivos, memoria, opcoes = _estado_atual(processo_id)
+            if not opcoes:
+                return
+        passo = _decidir(p, opcoes, quem)
         _rodar(processo_id, passo, p, arquivos, memoria)
 
 
