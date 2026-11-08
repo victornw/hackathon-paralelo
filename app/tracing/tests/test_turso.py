@@ -10,8 +10,33 @@ from app.tracing import db
 @pytest.fixture
 def turso(tmp_path, monkeypatch):
     monkeypatch.setenv("TURSO_DATABASE_URL", str(tmp_path / "turso.db"))
-    monkeypatch.setattr(db, "_esquema_pronto", False)
+    monkeypatch.setattr(db, "_scripts_aplicados", set())
+    monkeypatch.setattr(db, "_por_thread", db.threading.local())
     return tmp_path
+
+
+def test_mesma_conexao_e_esquema_uma_vez_por_processo(turso):
+    primeira = db.conectar()
+    primeira.close()
+    assert db.conectar() is primeira
+    assert db._ESQUEMA in db._scripts_aplicados
+    real = primeira._c
+    primeira._c = None
+    try:
+        assert primeira.executescript(db._ESQUEMA) is None
+    finally:
+        primeira._c = real
+    with db.conectar() as con:
+        con.execute("INSERT INTO relogio (id, data) VALUES (1, '2026-11-08')")
+    assert [tuple(r) for r in db.conectar().execute("SELECT data FROM relogio")] == [
+        ("2026-11-08",)
+    ]
+
+
+def test_conexao_parada_ha_tempo_e_trocada(turso, monkeypatch):
+    primeira = db.conectar()
+    monkeypatch.setattr(db, "_REUSO_TURSO_S", 0.0)
+    assert db.conectar() is not primeira
 
 
 def test_conexao_turso_se_comporta_como_sqlite(turso):

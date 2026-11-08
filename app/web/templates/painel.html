@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block titulo %}Carteira{% endblock %}
 {% block corpo_classe %}mesa-pagina{% endblock %}
-{% block estilos %}<link rel="stylesheet" href="/static/processo.css">{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="/static/processo.css?v={{ v }}">{% endblock %}
 {% block conteudo %}
 <div class="mesa">
 
@@ -212,5 +212,5 @@
     window.addEventListener('load', posicionar, { once: true });
   })();
 </script>
-<script src="/static/horizonte.js" defer></script>
+<script src="/static/horizonte.js?v={{ v }}" defer></script>
 {% endblock %}

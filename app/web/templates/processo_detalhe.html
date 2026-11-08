@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block titulo %}{{ titular }}{% endblock %}
-{% block estilos %}<link rel="stylesheet" href="/static/processo.css">{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="/static/processo.css?v={{ v }}">{% endblock %}
 {% block conteudo %}
 {% if not p %}
 <section class="cabeca">

@@ -12,7 +12,9 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
+import time
 import unicodedata
 from collections.abc import Callable
 from contextlib import asynccontextmanager
@@ -587,13 +589,21 @@ async def _ao_subir(_app: FastAPI):
 app = FastAPI(title="Agente de homologação solar", lifespan=_ao_subir)
 app.include_router(painel.router)
 app.include_router(api)
-class _EstaticosRevalidados(StaticFiles):
-    """CSS e JS mudam a cada deploy: o navegador revalida (ETag) em vez de usar
-    uma cópia velha que não combina com o HTML novo."""
+VERSAO_ESTATICOS = (os.environ.get("RENDER_GIT_COMMIT") or "")[:12] or str(
+    int(time.time())
+)
 
-    def file_response(self, *args, **kwargs):
-        resposta = super().file_response(*args, **kwargs)
-        resposta.headers["Cache-Control"] = "no-cache"
+
+class _EstaticosRevalidados(StaticFiles):
+    """Com ?v= da versão do deploy, o navegador guarda o arquivo e não volta ao
+    servidor a cada página; sem ela, revalida (ETag) para não usar cópia velha."""
+
+    async def get_response(self, path: str, scope):
+        resposta = await super().get_response(path, scope)
+        versionado = b"v=" in scope.get("query_string", b"")
+        resposta.headers["Cache-Control"] = (
+            "public, max-age=31536000, immutable" if versionado else "no-cache"
+        )
         return resposta
 
 
@@ -602,6 +612,17 @@ app.mount(
     _EstaticosRevalidados(directory=Path(painel.__file__).parent / "static"),
     name="static",
 )
+
+
+def _versionar_templates() -> None:
+    from app.portal_sim import rotas
+    from app.web import chat, metricas, processo, revisao
+
+    for modulo in (painel, metricas, revisao, processo, chat, rotas):
+        modulo.templates.env.globals["v"] = VERSAO_ESTATICOS
+
+
+_versionar_templates()
 
 
 @app.exception_handler(repo.ProcessoNaoEncontrado)

@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import os
 import sqlite3
+import threading
+import time
 from pathlib import Path
 
 _ESQUEMA = """
@@ -102,10 +104,14 @@ class _ConexaoTurso:
             raise _erro_sqlite(exc) from exc
 
     def executescript(self, script: str):
+        if script in _scripts_aplicados:
+            return None
         try:
-            return self._c.executescript(script)
+            resultado = self._c.executescript(script)
         except ValueError as exc:
             raise _erro_sqlite(exc) from exc
+        _scripts_aplicados.add(script)
+        return resultado
 
     def __enter__(self):
         return self
@@ -117,6 +123,9 @@ class _ConexaoTurso:
         pass
 
     def close(self) -> None:
+        pass
+
+    def fechar_de_vez(self) -> None:
         try:
             self._c.close()
         except Exception:  # noqa: BLE001, S110 - conexão já encerrada pelo servidor
@@ -126,17 +135,34 @@ class _ConexaoTurso:
         return getattr(self._c, nome)
 
 
-_esquema_pronto = False
+_scripts_aplicados: set[str] = set()
+_por_thread = threading.local()
+_REUSO_TURSO_S = 5.0
+
+
+def _conexao_turso() -> _ConexaoTurso:
+    agora = time.monotonic()
+    url = os.environ["TURSO_DATABASE_URL"]
+    atual = getattr(_por_thread, "con", None)
+    if (
+        atual is not None
+        and _por_thread.url == url
+        and agora - _por_thread.usada_em < _REUSO_TURSO_S
+    ):
+        _por_thread.usada_em = agora
+        return atual
+    if atual is not None:
+        atual.fechar_de_vez()
+    con = _ConexaoTurso(_abrir_turso())
+    _por_thread.con, _por_thread.url, _por_thread.usada_em = con, url, agora
+    return con
 
 
 def conectar() -> sqlite3.Connection:
-    global _esquema_pronto
     if usa_turso():
-        con = _ConexaoTurso(_abrir_turso())
-        if not _esquema_pronto:  # cada comando é uma ida à rede: o esquema só uma vez
+        con = _conexao_turso()
+        if _ESQUEMA not in _scripts_aplicados:  # cada comando é uma ida à rede
             con.executescript(_ESQUEMA)
-            con.commit()
-            _esquema_pronto = True
         return con  # type: ignore[return-value]
     caminho = caminho_db()
     caminho.parent.mkdir(parents=True, exist_ok=True)

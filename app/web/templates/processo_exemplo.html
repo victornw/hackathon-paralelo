@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 {% block titulo %}Exemplo {{ n }}{% endblock %}
-{% block estilos %}<link rel="stylesheet" href="/static/processo.css">{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="/static/processo.css?v={{ v }}">{% endblock %}
 {% block conteudo %}
 <section class="cabeca">
   <p class="rev-links"><a href="/processos/novo">Voltar</a></p>

@@ -6,8 +6,8 @@
   <meta name="description" content="dia: gestão e homologação de projetos solares, documentos e prazos.">
   <meta name="theme-color" content="#ddf1f8">
   <title>{% block titulo %}Carteira{% endblock %} · dia</title>
-  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/static/favicon.png">
+  <link rel="icon" href="/static/favicon.svg?v={{ v }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/static/favicon.png?v={{ v }}">
   <script>
     /* O sol nasce uma vez por sessão; nas navegações seguintes a página só aparece. */
     try { if (!sessionStorage.getItem("dia-amanheceu")) { document.documentElement.classList.add("amanhecer"); sessionStorage.setItem("dia-amanheceu", "1"); } } catch (e) {}
@@ -15,10 +15,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/painel.css">
+  <link rel="stylesheet" href="/static/painel.css?v={{ v }}">
   {% block estilos %}{% endblock %}
-  <link rel="stylesheet" href="/static/horizonte.css">
+  <link rel="stylesheet" href="/static/horizonte.css?v={{ v }}">
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
+  <script type="speculationrules">
+    {"prefetch": [{"where": {"and": [{"href_matches": "/*"}, {"not": {"href_matches": "/api/*"}}, {"not": {"href_matches": "/*.zip"}}, {"not": {"href_matches": "/*.pdf"}}, {"not": {"href_matches": "/portal-gd/*/*"}}]}, "eagerness": "moderate"}]}
+  </script>
 </head>
 <body class="horizonte {% block corpo_classe %}{% endblock %}">
   <div class="luz-ambiente" aria-hidden="true"></div>
