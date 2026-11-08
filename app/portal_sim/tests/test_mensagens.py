@@ -45,7 +45,7 @@ def test_cliente_pendencia_e_reenvio():
     p.eventos.append(p.eventos[0].model_copy(update={"data": date(2026, 11, 14)}))
     cli = _canal(mensagens(p, date(2026, 11, 14)), "cliente")
     assert "enviamos o pedido de ligação" in cli[0].texto.lower()
-    assert "nada muda para você" in cli[1].texto
+    assert "antes de a análise continuar" in cli[1].texto
     assert "de novo" in cli[2].texto
 
 
@@ -162,3 +162,21 @@ def test_ordenado_por_data():
     for pid in ("proc-demo-005", "proc-demo-006", "proc-demo-007", "proc-exemplo-002"):
         datas = [m.data for m in mensagens(_carteira(pid), date(2026, 11, 13))]
         assert datas == sorted(datas)
+
+
+
+def test_integrador_avisado_quando_a_enel_estoura_o_prazo():
+    p = _carteira("proc-demo-006")  # vistoria pedida em 05/11; Enel tem até 12/11
+    no_prazo = _canal(mensagens(p, date(2026, 11, 10)), "integrador")
+    assert not any(m.tipo == "prazo_enel" for m in no_prazo)
+    vencido = [m for m in _canal(mensagens(p, date(2026, 11, 16)), "integrador") if m.tipo == "prazo_enel"]
+    assert len(vencido) == 1 and "venceu em 12/11/2026" in vencido[0].texto
+
+
+def test_integrador_acompanha_cada_etapa_ate_a_conclusao():
+    p = _carteira("proc-demo-007")
+    integ = _canal(mensagens(p, date(2026, 11, 13)), "integrador")
+    tipos = [m.tipo for m in integ]
+    assert tipos[0] == "protocolado" and tipos[-1] == "concluido"
+    assert integ[-1].link_texto == "Abrir no portal"
+    assert all(m.link is None for m in integ[:-1])

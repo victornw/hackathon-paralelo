@@ -14,8 +14,8 @@
     <div class="chat-fio">
       {% for m in integrador %}
       <div class="bolha {{ m.autor }} {{ m.tipo }}">
-        <p class="data"><span class="autor">{{ 'Agente' if m.autor == 'agente' else 'Integrador' }}</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
-        <p>{{ m.texto }}</p>
+        <p class="data"><span class="autor">{{ 'Agente' if m.autor == 'agente' else 'Você (integrador)' }}</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
+        <p class="mensagem-texto">{{ m.texto }}</p>
         {% if m.link %}<p><a href="{{ m.link }}">{{ m.link_texto or m.link }}</a></p>{% endif %}
         {% if m.tipo == 'pergunta' %}
         <form class="resposta" data-pergunta="{{ m.pergunta_id }}">
@@ -34,12 +34,12 @@
 
   <section class="chat-canal cliente" aria-labelledby="c-cli">
     <h2 id="c-cli">Cliente final (WhatsApp simulado)</h2>
-    <p class="chat-legenda">Avisos que o agente manda ao dono da casa a cada mudança de etapa, em linguagem simples.</p>
+    <p class="chat-legenda">Visão do cliente: avisos recebidos do agente a cada mudança de etapa, em linguagem simples.</p>
     <div class="chat-fio">
       {% for m in cliente %}
       <div class="bolha {{ m.autor }} {{ m.tipo }}">
-        <p class="data"><span class="autor">{{ 'Agente' if m.autor == 'agente' else 'Integrador' }}</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
-        <p>{{ m.texto }}</p>
+        <p class="data"><span class="autor">{{ 'Agente' if m.autor == 'agente' else 'Você (integrador)' }}</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
+        <p class="mensagem-texto">{{ m.texto }}</p>
         {% if m.link %}<p><a href="{{ m.link }}">{{ m.link_texto or m.link }}</a></p>{% endif %}
       </div>
       {% else %}
@@ -54,6 +54,8 @@
     form.addEventListener("submit", async function (ev) {
       ev.preventDefault();
       var erro = form.querySelector(".erro-form");
+      var botao = form.querySelector("button");
+      botao.disabled = true;
       erro.textContent = "";
       var corpo = [{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }];
       try {
@@ -69,6 +71,8 @@
         erro.textContent = det || "Não foi possível enviar a resposta.";
       } catch (e) {
         erro.textContent = "Não foi possível enviar a resposta.";
+      } finally {
+        botao.disabled = false;
       }
     });
   });

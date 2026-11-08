@@ -229,32 +229,7 @@
       "a_validar": false
     }
   ],
-  "perguntas": [
-    {
-      "id": "q1",
-      "campo": "relacao_cargas",
-      "texto": "Qual a relação de cargas da residência (aparelho, potência e quantidade)? É exigida no Anexo A.",
-      "destinatario": "integrador",
-      "resposta": null,
-      "respondida_em": null
-    },
-    {
-      "id": "q2",
-      "campo": "bitola_ca_mm2",
-      "texto": "Qual a bitola prevista do cabo CA entre o inversor e o quadro (mm²)?",
-      "destinatario": "integrador",
-      "resposta": null,
-      "respondida_em": null
-    },
-    {
-      "id": "q3",
-      "campo": "strings",
-      "texto": "Confirma 2 strings de 5 módulos, uma em cada MPPT?",
-      "destinatario": "engenheiro",
-      "resposta": null,
-      "respondida_em": null
-    }
-  ],
+  "perguntas": [],
   "documentos": [],
   "revisado_por": "Eng. Exemplo (CREA sintético)",
   "revisado_em": "2026-11-10T15:00:00",

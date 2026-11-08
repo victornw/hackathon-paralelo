@@ -92,7 +92,7 @@ def _cliente(
     if e == Etapa.PENDENCIA:
         return (
             f"{ola}. A Enel pediu um ajuste na documentação. "
-            "Nossa equipe já está corrigindo, nada muda para você."
+            "O ajuste precisa ser concluído antes de a análise continuar."
         )
     if e == Etapa.ORCAMENTO_EMITIDO:
         return (
@@ -161,9 +161,27 @@ def _texto_pendencia(ev: EventoPortal) -> str:
     )
 
 
+# Aviso ao integrador quando o portal muda de etapa (a pendência tem texto próprio).
+_AVISO_ETAPA = {
+    Etapa.PROTOCOLADO: "Pedido protocolado na Enel. Agora é aguardar a análise da distribuidora.",
+    Etapa.ORCAMENTO_EMITIDO: "A Enel emitiu o orçamento de conexão. Aprove no portal para o processo seguir.",
+    Etapa.ORCAMENTO_APROVADO: "Orçamento aprovado no portal.",
+    Etapa.VISTORIA_SOLICITADA: "Vistoria solicitada. Agora é aguardar a vistoria e a ligação pela distribuidora.",
+    Etapa.VISTORIA: "A Enel registrou a vistoria do sistema.",
+    Etapa.MEDIDOR: "A Enel registrou a instalação do medidor bidirecional.",
+    Etapa.CONCLUIDO: "Processo concluído. O sistema está liberado para gerar energia.",
+}
+
+
 def _canal_integrador(processo: Processo, hoje: date) -> list[Mensagem]:
     saida: list[Mensagem] = []
     for q in processo.perguntas:
+        if q.id.startswith("falha:") and not q.resposta:
+            saida.append(Mensagem(
+                "integrador", hoje, "agente", q.texto, "falha",
+                link=f"/processos/{processo.id}", link_texto="Ver erro e tentar de novo",
+            ))
+            continue
         if q.destinatario != "integrador":
             continue
         if not q.resposta:
@@ -195,7 +213,18 @@ def _canal_integrador(processo: Processo, hoje: date) -> list[Mensagem]:
                 )
             )
 
-    for ev in sorted(processo.eventos, key=lambda e: e.data):
+    if processo.etapa == Etapa.EM_REVISAO:
+        abertas = [q for q in processo.perguntas if not q.resposta]
+        texto = "O processo está em revisão. Confira os documentos antes de aprovar e assinar."
+        if abertas:
+            texto += " Ainda há confirmações pendentes; a revisão mostra o que falta."
+        saida.append(Mensagem(
+            "integrador", hoje, "agente", texto, "revisao",
+            link=f"/processos/{processo.id}/revisao", link_texto="Abrir revisão",
+        ))
+
+    eventos = sorted(processo.eventos, key=lambda e: e.data)
+    for ev in eventos:
         if ev.etapa == Etapa.PENDENCIA:
             saida.append(
                 Mensagem(
@@ -208,11 +237,34 @@ def _canal_integrador(processo: Processo, hoje: date) -> list[Mensagem]:
                     link_texto="Abrir no portal",
                 )
             )
+        elif texto := _AVISO_ETAPA.get(ev.etapa):
+            if ev.numero_solicitacao:
+                texto += f" Solicitação: {ev.numero_solicitacao}."
+            atual = ev is eventos[-1] and processo.etapa == ev.etapa
+            saida.append(Mensagem(
+                "integrador", ev.data, "agente", texto, ev.etapa.value,
+                link=_link_portal(processo, ev.numero_solicitacao) if atual else None,
+                link_texto="Abrir no portal" if atual else None,
+            ))
 
     for prazo in prazos_dos_eventos(processo.eventos):
-        if prazo.conta_contra != "integrador":
-            continue
         sit, restantes = situacao(prazo, hoje)
+        if prazo.conta_contra != "integrador":
+            # Prazo da Enel: só vira mensagem quando ela passa do limite.
+            if sit == "vencido":
+                rotulo = _ROTULO_PRAZO[prazo.tipo]
+                saida.append(
+                    Mensagem(
+                        "integrador", hoje, "agente",
+                        f"A Enel passou do prazo: {rotulo[0].lower()}{rotulo[1:]} "
+                        f"venceu em {_br(prazo.vencimento)}. Vale cobrar a distribuidora "
+                        f"citando o número da solicitação. Fonte: {prazo.fonte}.",
+                        "prazo_enel",
+                        link=_link_portal(processo, _numero(processo)),
+                        link_texto="Abrir no portal",
+                    )
+                )
+            continue
         unidade = "dia útil" if prazo.dias_uteis else "dia"
         if restantes != 1:
             unidade = "dias úteis" if prazo.dias_uteis else "dias"
@@ -233,7 +285,8 @@ def _canal_integrador(processo: Processo, hoje: date) -> list[Mensagem]:
                 texto = f"Atenção: {texto[0].lower()}{texto[1:]}"
         saida.append(
             Mensagem(
-                "integrador", hoje, "agente", f"{texto} Fonte: {prazo.fonte}.", "prazo"
+                "integrador", hoje, "agente", f"{texto} Fonte: {prazo.fonte}.", "prazo",
+                link=_link_portal(processo, _numero(processo)), link_texto="Abrir no portal"
             )
         )
 

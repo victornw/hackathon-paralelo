@@ -2,6 +2,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.schemas import Etapa
 from app.web import painel
 
 
@@ -38,7 +39,7 @@ def test_chat_form_por_pergunta_e_url_da_api(cliente):
 
 def test_chat_vazio_mostra_aviso(cliente, monkeypatch):
     vazio = painel.carregar_processos()[0].model_copy(
-        update={"perguntas": [], "eventos": []}
+        update={"perguntas": [], "eventos": [], "etapa": Etapa.MONTAGEM}
     )
     monkeypatch.setattr(painel, "carregar_processos", lambda: [vazio])
     r = cliente.get(f"/processos/{vazio.id}/chat")

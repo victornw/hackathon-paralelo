@@ -200,3 +200,30 @@ body.horizonte { font:400 14px/1.55 var(--h-font); color:var(--h-ink); backgroun
   .horizonte .trilho li.passagem::after,.horizonte .trilho li.chegada>span::after { animation:none; display:none; }
   .horizonte .trilho li.passagem::after { display:none; }
 }
+
+/* Chat perspective: integrator sends; agent messages are received. */
+.horizonte .conversa-fio,.horizonte .chat-fio { align-items:stretch; gap:12px; }
+.horizonte .conversa .bolha,.horizonte .chat-fio .bolha {
+  width:fit-content; max-width:88%; padding:12px 14px;
+  font-size:13px; line-height:1.6; min-width:0;
+}
+.horizonte .conversa .bolha.agente,.horizonte .chat-fio .bolha.agente {
+  align-self:flex-start; margin-right:auto; margin-left:0;
+  background:var(--h-glass-strong); border-radius:14px 14px 14px 4px;
+}
+.horizonte .conversa .bolha.integrador,.horizonte .chat-fio .bolha.integrador {
+  align-self:flex-end; margin-left:auto; margin-right:0;
+  background:var(--h-selected); border-radius:14px 14px 4px 14px;
+}
+.horizonte .conversa .bolha.pendencia,.horizonte .conversa .bolha.falha,
+.horizonte .chat-fio .bolha.pendencia,.horizonte .chat-fio .bolha.falha { background:var(--h-accent-soft); }
+.horizonte .bolha .data { gap:12px; flex-wrap:wrap; padding-bottom:4px; }
+.horizonte .mensagem-texto { white-space:pre-wrap; overflow-wrap:anywhere; }
+.horizonte .bolha form.resposta { margin:12px 0 0; }
+.horizonte .bolha form.resposta label { font-size:12px; }
+.horizonte .bolha form.resposta button { align-self:flex-end; justify-self:end; }
+.horizonte .chat-fio { padding:20px; }
+@media(max-width:800px) {
+  .horizonte .chat-colunas { grid-template-columns:minmax(0,1fr); }
+  .horizonte .conversa .bolha,.horizonte .chat-fio .bolha { max-width:90%; }
+}
