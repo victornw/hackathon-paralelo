@@ -11,7 +11,7 @@ from app.schemas import Carga, Etapa, Pergunta, Processo
 from app.web import painel
 
 FIXTURES = Path(__file__).resolve().parents[3] / "fixtures"
-BANNER = "Portal simulado para demonstração. Não é o portal da Enel; dados sintéticos."
+BANNER = "de portal de distribuidora para a demonstração do dia, testada com Enel e Equatorial. Dados sintéticos."
 
 
 @pytest.fixture(autouse=True)

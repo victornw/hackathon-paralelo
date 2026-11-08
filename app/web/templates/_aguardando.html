@@ -18,7 +18,7 @@
   var antes = aviso.dataset.assinatura;
   // Passo do agente -> nome no rastro e rótulo na tela, na ordem do pacote.
   var PASSOS = [
-    ["extrair_conta", "extrair_conta", "Ler a conta de luz"],
+    ["extrair_conta", "extrair_conta", "Ler a conta de luz", false],
     ["extrair_kit", "extrair_kit", "Ler a proposta, o kit e a ficha da visita"],
     ["extrair_padrao", "extrair_padrao", "Ler a foto do padrão de entrada"],
     ["verificar_arranjo", "verificar_arranjo", "Conferir o arranjo e o disjuntor"],
@@ -58,7 +58,7 @@
         detalhe = Math.round((Date.now() - correndoDesde[chave]) / 1000) + " s";
         algumCorrendo = true;
       } else if (feito) {
-        detalhe = feito.erro ? "Falhou: " + feito.erro : (feito.decisao || "");
+        detalhe = feito.erro ? "Falhou: " + feito.erro : (x[3] === false ? "" : (feito.decisao || ""));
       }
       html += '<li class="' + estado + '"><span class="marco" aria-hidden="true"></span>' +
         '<span class="rotulo">' + x[2] + '</span>' +

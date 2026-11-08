@@ -421,7 +421,7 @@ def extrair_conta(arquivo: Path) -> dict[str, CampoExtraido]:
     if sum(len(p.strip()) for p in paginas) >= MIN_CARACTERES_TEXTO:
         leitura = _ler_por_rotulos(paginas)
         if _completo(leitura) or not disponivel("extracao"):
-            resposta, via = leitura, "leitor determinístico (sem LLM)"
+            resposta, via = leitura, "sem IA"
         else:
             resposta = completar_json(
                 "extracao", _SISTEMA_CONTA, _texto_para_prompt(paginas), _ContaLLM
@@ -448,7 +448,7 @@ def extrair_conta(arquivo: Path) -> dict[str, CampoExtraido]:
 
     confiaveis = sum(1 for c in campos.values() if not c.incerto)
     registrar_uso(
-        decisao=f"Conta lida por {via}: {confiaveis} de {len(campos)} campos com confiança >= 0,8."
+        decisao=f"Conta lida ({via}): {confiaveis} de {len(campos)} campos legíveis."
     )
     return campos
 

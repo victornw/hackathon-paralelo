@@ -478,7 +478,7 @@ def test_conta_no_layout_da_enel_e_lida_sem_chamar_o_llm(monkeypatch, n):
         assert campos[chave].valor == c["valor"], chave
         assert campos[chave].confianca == 0.95, chave
     (passo,) = listar_passos(f"proc-leitor-{n}")
-    assert "sem LLM" in passo.decisao and passo.tokens_entrada == 0
+    assert "sem IA" in passo.decisao and passo.tokens_entrada == 0
 
 
 def test_layout_desconhecido_sem_llm_usa_o_que_o_leitor_achou(

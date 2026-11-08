@@ -9,9 +9,16 @@ body.portal {
   font: 16px/1.5 Arial, Helvetica, sans-serif;
 }
 .aviso-simulado {
-  margin: 0; padding: 8px 16px; text-align: center; font-weight: 700; font-size: 14px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 16px;
+  margin: 0; padding: 8px 16px; text-align: center; font-size: 14px;
   background: var(--p-aviso); color: #4a3b00; border-bottom: 2px solid #d9b92e;
 }
+.aviso-simulado p { margin: 0; }
+.portal .voltar-dia {
+  padding: 4px 12px; border-radius: 4px; font-weight: 700; text-decoration: none;
+  color: #fff; background: #203548;
+}
+.portal .voltar-dia:hover { background: #2c4a63; }
 .cabeca-portal {
   display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: baseline;
   padding: 14px 16px; background: #fff; border-bottom: 1px solid var(--p-linha);
