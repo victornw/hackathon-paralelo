@@ -35,8 +35,23 @@ CLIENTES = [
         "modulo": "HS-550M",
         "qtd_modulos": 10,
         "inversor": "SI-5000",
-        "strings": [],
+        "strings": [(1, 10)],
         "historico": [398, 405, 431, 389, 412, 420],
+        "visita": {
+            "disjuntor_padrao_a": 50,
+            "ramal": "aéreo",
+            "coordenadas": "-3.7368, -38.4931",
+            "area": "Ceará",
+            "distancia_m": 8,
+            "bitola_mm2": 6,
+            "cargas": [
+                ("Geladeira", 150, 1),
+                ("Chuveiro elétrico", 5500, 1),
+                ("Ar-condicionado 12.000 BTU", 1200, 1),
+                ("Televisor", 100, 2),
+                ("Lâmpada LED", 10, 12),
+            ],
+        },
     },
     {
         "titular": "JOÃO PEDRO ALBUQUERQUE",
@@ -52,6 +67,21 @@ CLIENTES = [
         "inversor": "MV-2000",
         "strings": [],
         "historico": [280, 301, 275, 296, 288, 290],
+        "visita": {
+            "disjuntor_padrao_a": 50,
+            "ramal": "aéreo",
+            "coordenadas": "-3.7356, -38.6531",
+            "area": "Ceará",
+            "distancia_m": 6,
+            "bitola_mm2": 4,
+            "cargas": [
+                ("Geladeira", 150, 1),
+                ("Chuveiro elétrico", 5500, 1),
+                ("Ar-condicionado 12.000 BTU", 1200, 1),
+                ("Televisor", 100, 2),
+                ("Lâmpada LED", 10, 12),
+            ],
+        },
     },
     {
         "titular": "ANA BEATRIZ CAVALCANTE",
@@ -67,6 +97,21 @@ CLIENTES = [
         "inversor": "SI-8000",
         "strings": [(1, 7), (2, 7)],
         "historico": [1190, 1302, 1255, 1240, 1288, 1225],
+        "visita": {
+            "disjuntor_padrao_a": 50,
+            "ramal": "aéreo",
+            "coordenadas": "-3.8102, -38.4423",
+            "area": "Ceará",
+            "distancia_m": 12,
+            "bitola_mm2": 16,
+            "cargas": [
+                ("Geladeira", 150, 1),
+                ("Chuveiro elétrico", 5500, 1),
+                ("Ar-condicionado 12.000 BTU", 1200, 3),
+                ("Televisor", 100, 2),
+                ("Lâmpada LED", 10, 12),
+            ],
+        },
     },
 ]
 
@@ -137,6 +182,25 @@ def gerar_conta(cliente: dict, caminho: Path) -> dict[str, str]:
     return trechos
 
 
+def _ficha_visita(pdf: FPDF, v: dict) -> None:
+    """Ficha da visita técnica no modelo do dia: rótulos fixos, que o agente lê sem IA."""
+    _linhas(
+        pdf,
+        [
+            "",
+            "FICHA DA VISITA TÉCNICA",
+            f"Disjuntor geral do padrão: {v['disjuntor_padrao_a']} A",
+            f"Ramal de ligação: {v['ramal']}",
+            f"Coordenadas do padrão: {v['coordenadas']}",
+            f"Área de concessão: {v['area']}",
+            f"Distância inversor-quadro: {v['distancia_m']} m",
+            f"Bitola do cabo CA: {v['bitola_mm2']} mm²",
+            "Relação de cargas:",
+            *(f"- {d} {w} W x{q}" for d, w, q in v["cargas"]),
+        ],
+    )
+
+
 def gerar_proposta(cliente: dict, catalogo: dict, caminho: Path) -> dict:
     c = cliente
     modulo = next(m for m in catalogo["modulos"] if m["modelo"] == c["modulo"])
@@ -173,6 +237,7 @@ def gerar_proposta(cliente: dict, catalogo: dict, caminho: Path) -> dict:
             "Prazo de instalação: 20 dias",
         ],
     )
+    _ficha_visita(pdf, c["visita"])
     pdf.output(str(caminho))
     return {
         "modelo_modulo": modulo["modelo"],

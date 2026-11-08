@@ -73,7 +73,7 @@ def test_detalhe_do_processo_exemplo(cliente):
     assert "Dados da conta de luz" in r.text and "Código da UC" in r.text
     assert "%" in r.text
     assert "Kit vendido" in r.text and "módulos em série" in r.text
-    assert "Enviar resposta" in r.text and "O que falta" in r.text
+    assert "Responder" in r.text and "O que falta" in r.text
     assert "Conferência" in r.text and "R01" in r.text
     assert "Documentos gerados" in r.text
     assert f"/processos/{p.id}/timeline" in r.text

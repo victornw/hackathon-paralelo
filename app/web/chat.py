@@ -9,6 +9,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.portal_sim.mensagens import mensagens
 from app.portal_sim.relogio import hoje
+from app.web.sugestoes import sugestoes
 
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 router = APIRouter()
@@ -34,6 +35,7 @@ def chat(request: Request, processo_id: str):
             "uc": uc.valor if uc and uc.valor else "—",
             "integrador": [m for m in todas if m.canal == "integrador"],
             "cliente": [m for m in todas if m.canal == "cliente"],
+            "sugestoes": sugestoes(proc),
             "hoje": dia,
         },
     )

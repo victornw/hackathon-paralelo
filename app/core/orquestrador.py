@@ -425,9 +425,18 @@ def _executar_extrair_conta(p: Processo, arquivos: Arquivos) -> Aplicar:
     return aplicar
 
 
+def _aplicar_visita(q: Processo, lidos: dict[str, object]) -> None:
+    """Grava o que foi lido da visita (foto ou ficha) sem passar por cima do que
+    o integrador já confirmou."""
+    for nome, valor in lidos.items():
+        if not _confirmado(getattr(q.visita, nome)):
+            setattr(q.visita, nome, valor)
+
+
 @_executor(Passo.extrair_kit)
 def _executar_extrair_kit(p: Processo, arquivos: Arquivos) -> Aplicar:
     enviados = [*arquivos["proposta"], *arquivos["datasheet"]]
+    ficha = extracao.ler_ficha_visita(arquivos["proposta"])
     try:
         kit = extracao.extrair_kit(enviados)
     except extracao.KitIncompleto as exc:
@@ -442,10 +451,15 @@ def _executar_extrair_kit(p: Processo, arquivos: Arquivos) -> Aplicar:
             )
             for campo in exc.faltando
         ]
-        return lambda q: _trocar_perguntas(q, "kit:", faltas)
+        def aplicar_faltas(q: Processo) -> None:
+            _aplicar_visita(q, ficha)
+            _trocar_perguntas(q, "kit:", faltas)
+
+        return aplicar_faltas
 
     def aplicar(q: Processo) -> None:
         q.kit = kit
+        _aplicar_visita(q, ficha)
         _trocar_perguntas(q, "kit:", [])
 
     return aplicar
@@ -464,12 +478,7 @@ def _executar_extrair_padrao(p: Processo, arquivos: Arquivos) -> Aplicar:
             }
         )
 
-    def aplicar(q: Processo) -> None:
-        for nome, valor in lidos.items():
-            if not _confirmado(getattr(q.visita, nome)):
-                setattr(q.visita, nome, valor)
-
-    return aplicar
+    return lambda q: _aplicar_visita(q, lidos)
 
 
 @_executor(Passo.verificar_arranjo)

@@ -20,6 +20,7 @@ from app.schemas import Etapa, PassoTrace, Processo, StatusRegra
 from app.tracing import listar_passos
 from app.tracing.trace import gravar_passo
 from app.web.painel import ROTULOS, contexto_documentos
+from app.web.sugestoes import sugestoes
 
 templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 router = APIRouter()
@@ -96,6 +97,7 @@ def revisao(request: Request, processo_id: str, tarefas: BackgroundTasks):
             or (p.etapa == Etapa.EM_REVISAO and not p.revisado_por),
             "trabalhando": trabalhando,
             "aguardando_protocolo": orquestrador.aguardando_protocolo(p),
+            "sugestoes": sugestoes(p),
             "regras": [
                 {
                     "r": r,

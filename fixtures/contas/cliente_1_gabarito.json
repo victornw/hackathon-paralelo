@@ -45,6 +45,11 @@
     "modelo_modulo": "HS-550M",
     "qtd_modulos": 10,
     "modelo_inversor": "SI-5000",
-    "strings": []
+    "strings": [
+      {
+        "mppt": 1,
+        "modulos_em_serie": 10
+      }
+    ]
   }
 }

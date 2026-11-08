@@ -1,35 +1,93 @@
-{# Aviso de espera enquanto o agente trabalha. Consulta o processo a cada 2 s e
-   recarrega a página sozinha quando a etapa, as perguntas ou os documentos mudam. #}
+{# Acompanhamento ao vivo enquanto o agente trabalha: cada passo aparece como
+   concluído (com o resumo do que o agente achou), em andamento (com cronômetro)
+   ou por vir. Lê o rastro a cada 1,5 s e recarrega a página quando a etapa ou as
+   perguntas abertas mudam. #}
 <div class="trabalhando aguardando" role="status" aria-live="polite" data-processo="{{ p.id }}"
      data-assinatura="{{ p.etapa.value }}#{{ p.perguntas|rejectattr('resposta')|list|length }}">
-  <span class="girando" aria-hidden="true"></span>
-  <p><strong>O agente está trabalhando.</strong> <span class="aguardando-texto"></span></p>
+  <p class="aguardando-titulo"><span class="girando" aria-hidden="true"></span> <strong>O agente está trabalhando</strong> <span class="aguardando-tempo"></span></p>
+  <ol class="passos-vivos"></ol>
+  <p class="aguardando-texto"></p>
 </div>
 <script>
 (function () {
   var aviso = document.currentScript.previousElementSibling;
   var pid = aviso.dataset.processo;
+  var lista = aviso.querySelector(".passos-vivos");
+  var tempo = aviso.querySelector(".aguardando-tempo");
   var inicio = Date.now();
-  // Compara com o que estava na tela quando a página abriu: se o agente terminou
-  // antes da primeira consulta, a mudança já é detectada nela.
   var antes = aviso.dataset.assinatura;
+  // Passo do agente -> nome no rastro e rótulo na tela, na ordem do pacote.
+  var PASSOS = [
+    ["extrair_conta", "extrair_conta", "Ler a conta de luz"],
+    ["extrair_kit", "extrair_kit", "Ler a proposta, o kit e a ficha da visita"],
+    ["extrair_padrao", "extrair_padrao", "Ler a foto do padrão de entrada"],
+    ["verificar_arranjo", "verificar_arranjo", "Conferir o arranjo e o disjuntor"],
+    ["perguntar", "perguntas_pendentes", "Levantar o que falta"],
+    ["gerar_documentos", "gerar_documentos", "Gerar Anexo A, memorial e unifilar"],
+    ["conferir", "conferir", "Conferir contra a norma da Enel"],
+    ["enviar_revisao", "enviar_revisao", "Enviar para a revisão do engenheiro"]
+  ];
+  var correndoDesde = {};
   function assinatura(p) {
     var abertas = p.perguntas.filter(function (q) { return !q.resposta; }).length;
     return p.etapa + "#" + abertas;
   }
+  function desenhar(passos) {
+    var feitos = {}, decidido = {}, ultimaDecisao = null;
+    passos.forEach(function (ps) {
+      var t = Date.parse(ps.em);
+      if (ps.passo === "decidir_proximo_passo") {
+        var nome = (ps.decisao || "").split(" ")[0];
+        decidido[nome] = t; ultimaDecisao = nome;
+      } else {
+        feitos[ps.passo] = ps;
+      }
+    });
+    var temFoto = !!feitos.extrair_padrao || ultimaDecisao === "extrair_padrao";
+    var html = "", algumCorrendo = false;
+    PASSOS.forEach(function (x) {
+      if (x[0] === "extrair_padrao" && !temFoto) { return; }
+      var feito = feitos[x[1]];
+      var correndo = ultimaDecisao === x[0] && (!feito || Date.parse(feito.em) < decidido[x[0]]);
+      var estado = correndo ? "correndo" : (feito ? (feito.erro ? "erro" : "feito") : "por-vir");
+      var detalhe = "";
+      if (estado === "correndo") {
+        // O rastro usa a data do relógio simulado: o cronômetro conta no navegador.
+        var chave = x[0] + "@" + decidido[x[0]];
+        correndoDesde[chave] = correndoDesde[chave] || Date.now();
+        detalhe = Math.round((Date.now() - correndoDesde[chave]) / 1000) + " s";
+        algumCorrendo = true;
+      } else if (feito) {
+        detalhe = feito.erro ? "Falhou: " + feito.erro : (feito.decisao || "");
+      }
+      html += '<li class="' + estado + '"><span class="marco" aria-hidden="true"></span>' +
+        '<span class="rotulo">' + x[2] + '</span>' +
+        (detalhe ? '<span class="detalhe">' + detalhe.replace(/</g, "&lt;") + "</span>" : "") + "</li>";
+    });
+    lista.innerHTML = html;
+    if (!algumCorrendo) {
+      // Entre um passo e outro o agente decide com o modelo: o próximo item pulsa.
+      var proximo = lista.querySelector("li.por-vir");
+      if (proximo) {
+        proximo.className = "proximo";
+        proximo.insertAdjacentHTML("beforeend", '<span class="detalhe">o agente está escolhendo o próximo passo</span>');
+      }
+    }
+  }
   async function olhar() {
     try {
       var r = await fetch("/api/processos/" + encodeURIComponent(pid), { cache: "no-store" });
-      if (r.ok) {
-        var agora = assinatura(await r.json());
-        if (agora !== antes) { location.reload(); return; }
-      }
+      if (r.ok && assinatura(await r.json()) !== antes) { location.reload(); return; }
+      var t = await fetch("/api/processos/" + encodeURIComponent(pid) + "/trace", { cache: "no-store" });
+      if (t.ok) { desenhar((await t.json()).passos); }
     } catch (e) {}
-    if (Date.now() - inicio > 120000) {
+    var s = Math.round((Date.now() - inicio) / 1000);
+    tempo.textContent = s >= 5 ? s + " s" : "";
+    if (Date.now() - inicio > 180000) {
       aviso.querySelector(".aguardando-texto").innerHTML =
-        'Está demorando mais que o normal. Continuo esperando; o que o agente fez até agora está na <a href="/processos/' + encodeURIComponent(pid) + '/timeline">timeline</a>.';
+        'Está demorando mais que o normal. O que o agente fez até agora está na <a href="/processos/' + encodeURIComponent(pid) + '/timeline">timeline</a>.';
     }
-    setTimeout(olhar, Date.now() - inicio > 120000 ? 5000 : 2000);
+    setTimeout(olhar, 1500);
   }
   olhar();
 })();

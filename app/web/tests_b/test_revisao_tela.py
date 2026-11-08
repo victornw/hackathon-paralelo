@@ -123,3 +123,18 @@ def test_tempo(cliente):
         ).status_code
         == 404
     )
+
+
+def test_scripts_da_revisao_sao_javascript_valido(cliente, tmp_path):
+    import shutil
+    import subprocess
+
+    if shutil.which("node") is None:
+        pytest.skip("node não instalado")
+    reiniciar_demo()
+    html = cliente.get("/processos/demo-01/revisao").text
+    for i, script in enumerate(re.findall(r"<script>(.*?)</script>", html, re.S)):
+        arquivo = tmp_path / f"s{i}.js"
+        arquivo.write_text(script)
+        r = subprocess.run(["node", "--check", str(arquivo)], capture_output=True, text=True)
+        assert r.returncode == 0, r.stderr

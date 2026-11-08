@@ -19,7 +19,7 @@
         {% if m.tipo == 'pergunta' %}
         <form class="resposta" data-pergunta="{{ m.pergunta_id }}">
           <label for="r-{{ m.pergunta_id }}">Sua resposta</label>
-          <textarea id="r-{{ m.pergunta_id }}" name="resposta" rows="2" required></textarea>
+          <textarea id="r-{{ m.pergunta_id }}" name="resposta" rows="2" required>{{ sugestoes.get(m.pergunta_id, '') }}</textarea>
           <button type="submit">Enviar resposta</button>
           <p class="erro-form" role="alert"></p>
         </form>

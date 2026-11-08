@@ -1,0 +1,47 @@
+{# Todas as perguntas abertas num formulário só, cada uma já preenchida com um
+   exemplo (app/web/sugestoes.py); "Responder" manda tudo de uma vez.
+   Contexto: processo_id, perguntas (list[Pergunta]), sugestoes (dict id -> texto). #}
+<form class="responder-todas" data-processo="{{ processo_id }}">
+  {% for q in perguntas %}
+  {% set valor = sugestoes.get(q.id, '') %}
+  <div class="campo-resposta">
+    <label for="resp-{{ processo_id }}-{{ loop.index }}">{{ q.texto }}</label>
+    {% if q.campo == 'strings' %}<small>'sim' para aceitar, ou por MPPT: 'MPPT1: 7, MPPT2: 6'.</small>{% endif %}
+    <textarea id="resp-{{ processo_id }}-{{ loop.index }}" name="{{ q.id }}" rows="{{ valor.count('\n') + 1 }}" required>{{ valor }}</textarea>
+  </div>
+  {% endfor %}
+  <p class="sugestao-nota">Preenchido com valores de exemplo. Ajuste o que precisar.</p>
+  <button type="submit">Responder</button>
+  <p class="erro-form" role="alert"></p>
+</form>
+<script>
+(function () {
+  var form = document.currentScript.previousElementSibling;
+  form.addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    var erro = form.querySelector(".erro-form");
+    var botao = form.querySelector("button[type=submit]");
+    erro.textContent = "";
+    var corpo = Array.prototype.map.call(form.querySelectorAll("textarea"), function (t) {
+      return { id: t.name, resposta: t.value.trim() };
+    }).filter(function (r) { return r.resposta; });
+    if (!corpo.length) { erro.textContent = "Preencha ao menos uma resposta."; return; }
+    botao.disabled = true;
+    try {
+      var r = await fetch("/api/processos/" + encodeURIComponent(form.dataset.processo) + "/respostas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo),
+      });
+      if (r.ok) { location.reload(); return; }
+      var d = await r.json().catch(function () { return {}; });
+      var det = d.detail;
+      if (Array.isArray(det)) { det = det.map(function (x) { return x.msg; }).join("; "); }
+      erro.textContent = det || "Não foi possível enviar as respostas.";
+    } catch (e) {
+      erro.textContent = "Não foi possível enviar as respostas.";
+    }
+    botao.disabled = false;
+  });
+})();
+</script>

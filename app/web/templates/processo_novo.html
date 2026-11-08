@@ -12,8 +12,8 @@
   <h2 id="ex-titulo">Testar com um caso pronto</h2>
   <div class="exemplos-botoes">
     {% for n, legenda in ((1, "10 módulos, inversor de 5 kW: caminho completo até o protocolo"),
-                          (3, "14 módulos, inversor de 8 kW, duas strings informadas na proposta"),
-                          (2, "Microinversor: o agente para e explica que está fora do escopo")) %}
+                          (2, "Microinversor: o agente para e explica que está fora do escopo"),
+                          (3, "14 módulos, inversor de 8 kW, duas strings informadas na proposta")) %}
     <form method="post" action="/processos/novo/exemplo/{{ n }}" class="exemplo">
       <button type="submit" class="secundario">
         <span class="exemplo-n" aria-hidden="true">{{ n }}</span>

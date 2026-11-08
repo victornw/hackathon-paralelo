@@ -89,7 +89,7 @@
     <form class="rev-form confirmar-r05" data-url="/processos/{{ p.id }}/regras/R05/confirmar">
       <p>Confirmo o registro INMETRO para 220 V e assumo.</p>
       <label for="r05-eng">Seu nome</label>
-      <input id="r05-eng" name="engenheiro" required autocomplete="name">
+      <input id="r05-eng" name="engenheiro" required autocomplete="name" value="Eng. Ana Exemplo">
       <button type="submit">Confirmar R05</button>
       <p class="erro-form" role="alert"></p>
     </form>
@@ -103,18 +103,7 @@
 {% if perguntas %}
 <section class="rev-perguntas" aria-labelledby="rev-perg-t">
   <h2 id="rev-perg-t">Perguntas para o engenheiro</h2>
-  {% for q in perguntas %}
-  <form class="rev-form responder" data-pergunta="{{ q.id }}">
-    <p>{{ q.texto }}</p>
-    {% if q.campo == 'strings' %}
-    <p class="dica">'sim' para aceitar, ou por MPPT: 'MPPT1: 7, MPPT2: 6'.</p>
-    {% endif %}
-    <label for="resp-{{ loop.index }}">Sua resposta</label>
-    <input id="resp-{{ loop.index }}" name="resposta" required>
-    <button type="submit">Enviar resposta</button>
-    <p class="erro-form" role="alert"></p>
-  </form>
-  {% endfor %}
+  {% with processo_id=p.id %}{% include "_responder.html" %}{% endwith %}
 </section>
 {% endif %}
 
@@ -140,7 +129,7 @@
       <h3>Aprove</h3>
       <form id="form-aprovar" class="rev-form">
         <label for="apr-eng">Nome do engenheiro</label>
-        <input id="apr-eng" name="engenheiro" required autocomplete="name"{% if bloqueios %} disabled{% endif %}>
+        <input id="apr-eng" name="engenheiro" required autocomplete="name" value="Eng. Ana Exemplo"{% if bloqueios %} disabled{% endif %}>
         <div class="check"><input type="checkbox" id="apr-ciente" name="ciente" required{% if bloqueios %} disabled{% endif %}> <label for="apr-ciente">Revisei, assinei e emiti a ART; assumo a responsabilidade técnica</label></div>
         <button type="submit" class="destaque"{% if bloqueios %} disabled{% endif %}>Aprovar pacote assinado</button>
         <p class="erro-form" role="alert"></p>
@@ -206,15 +195,6 @@
     });
     if (r.ok) { location.reload(); return; }
     erro.textContent = detalhe(await r.json().catch(function () { return {}; }), "Não foi possível confirmar a R05.");
-  });
-  ligar("form.responder", async function (form, erro) {
-    var r = await fetch("/api/processos/" + encodeURIComponent(pid) + "/respostas", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify([{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }]),
-    });
-    if (r.ok) { location.reload(); return; }
-    erro.textContent = detalhe(await r.json().catch(function () { return {}; }), "Não foi possível enviar a resposta.");
   });
   ligar("#form-aprovar", async function (form, erro) {
     var r = await fetch("/api/processos/" + encodeURIComponent(pid) + "/revisao", {

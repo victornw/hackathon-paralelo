@@ -150,18 +150,15 @@
         <p class="data"><span class="autor">{{ 'Agente' if m.autor == 'agente' else 'Você (integrador)' }}</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
         <p class="mensagem-texto">{{ m.texto }}</p>
         {% if m.link %}<p><a href="{{ m.link }}">{{ m.link_texto or m.link }}</a></p>{% endif %}
-        {% if m.tipo == 'pergunta' %}
-        <form class="resposta" data-pergunta="{{ m.pergunta_id }}">
-          <label for="r-{{ m.pergunta_id }}">Responder como integrador</label>
-          <textarea id="r-{{ m.pergunta_id }}" name="resposta" rows="2" required></textarea>
-          <button type="submit">Enviar</button>
-          <p class="erro-form" role="alert"></p>
-        </form>
-        {% endif %}
       </div>
       {% else %}
       <p class="vazio">Nenhuma mensagem ainda.</p>
       {% endfor %}
+      {% if f.abertas %}
+      <div class="conversa-resposta">
+        {% with processo_id=f.p.id, perguntas=f.abertas, sugestoes=f.sugestoes %}{% include "_responder.html" %}{% endwith %}
+      </div>
+      {% endif %}
     </div>
     <div class="conversa-fio" id="fio-cliente" role="tabpanel" aria-labelledby="aba-cliente" hidden>
       {% for m in f.conversa_cliente %}
@@ -177,30 +174,6 @@
   </aside>
 
   <script>
-    document.querySelectorAll(".conversa form.resposta").forEach(function (form) {
-      form.addEventListener("submit", async function (ev) {
-        ev.preventDefault();
-        var erro = form.querySelector(".erro-form");
-        var botao = form.querySelector("button");
-        erro.textContent = "";
-        botao.disabled = true;
-        try {
-          var r = await fetch("/api/processos/" + encodeURIComponent({{ f.p.id|tojson }}) + "/respostas", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify([{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }]),
-          });
-          if (r.ok) { location.reload(); return; }
-          var d = await r.json().catch(function () { return {}; });
-          var det = d.detail;
-          if (Array.isArray(det)) { det = det.map(function (x) { return x.msg; }).join("; "); }
-          erro.textContent = det || "Não foi possível enviar a resposta.";
-        } catch (e) {
-          erro.textContent = "Não foi possível enviar a resposta.";
-        }
-        botao.disabled = false;
-      });
-    });
     var abas = Array.prototype.slice.call(document.querySelectorAll(".conversa-abas [role=tab]"));
     function mostrar(canal, foco) {
       abas.forEach(function (a) {

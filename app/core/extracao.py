@@ -20,6 +20,7 @@ from pypdf import PdfReader
 from app.core.llm import completar_json, disponivel
 from app.schemas import (
     CampoExtraido,
+    Carga,
     DadosVisita,
     Fonte,
     Inversor,
@@ -569,6 +570,78 @@ def extrair_kit(arquivos: list[Path]) -> Kit:
         )
     )
     return kit
+
+
+# ---------------------------------------------------------------------------
+# Ficha da visita técnica (modelo do dia, rótulos fixos: lida sem IA)
+# ---------------------------------------------------------------------------
+
+_NUM = r"(-?\d+(?:[.,]\d+)?)"
+_FICHA = {
+    "disjuntor_padrao_a": re.compile(rf"disjuntor geral do padrao:\s*{_NUM}\s*a\b"),
+    "tipo_ramal": re.compile(r"ramal de ligacao:\s*(aereo|subterraneo)"),
+    "coordenadas": re.compile(rf"coordenadas do padrao:\s*{_NUM}\s*[,;]\s*{_NUM}"),
+    "area_concessao": re.compile(
+        r"area de concessao:\s*(ceara|sao paulo|rj serra|rj sul fluminense|rj demais)"
+    ),
+    "distancia_inversor_quadro_m": re.compile(rf"distancia inversor-quadro:\s*{_NUM}\s*m\b"),
+    "bitola_ca_mm2": re.compile(rf"bitola do cabo ca:\s*{_NUM}\s*mm"),
+}
+_CARGA_FICHA = re.compile(r"^-\s*(.+?)\s+(\d+(?:[.,]\d+)?)\s*w\s*x\s*(\d+)$", re.IGNORECASE)
+_AREA_FICHA = {
+    "ceara": "ceara",
+    "sao paulo": "sao_paulo",
+    "rj serra": "rj_serra",
+    "rj sul fluminense": "rj_sul_fluminense",
+    "rj demais": "rj_demais",
+}
+
+
+def _num_ficha(texto: str) -> float:
+    return float(texto.replace(",", "."))
+
+
+@trace("ler_ficha_visita")
+def ler_ficha_visita(arquivos: list[Path]) -> dict[str, object]:
+    """Campos de DadosVisita escritos na "Ficha da visita técnica" da proposta.
+    Só o que está na ficha; arquivo sem ficha (ou que não é PDF) não dá nada."""
+    lidos: dict[str, object] = {}
+    for arquivo in arquivos:
+        try:
+            linhas = "\n".join(_paginas_pdf(Path(arquivo))).splitlines()
+        except Exception:  # noqa: BLE001 - imagem ou PDF ilegível: a ficha só não é lida
+            continue
+        if not any(_norm(l).strip() == "ficha da visita tecnica" for l in linhas):
+            continue
+        cargas: list[Carga] = []
+        for linha in linhas:
+            normal = _norm(linha).strip()
+            for chave, padrao in _FICHA.items():
+                if not (m := padrao.search(normal)):
+                    continue
+                if chave == "disjuntor_padrao_a":
+                    lidos[chave] = CampoExtraido(
+                        valor=_num_ficha(m[1]),
+                        confianca=1,
+                        fonte=Fonte(documento=Path(arquivo).name, trecho=linha.strip()),
+                    )
+                elif chave == "coordenadas":
+                    lidos["latitude"], lidos["longitude"] = _num_ficha(m[1]), _num_ficha(m[2])
+                elif chave == "area_concessao":
+                    lidos[chave] = _AREA_FICHA[m[1]]
+                elif chave == "tipo_ramal":
+                    lidos[chave] = m[1]
+                else:
+                    lidos[chave] = _num_ficha(m[1])
+            if m := _CARGA_FICHA.match(linha.strip()):
+                cargas.append(
+                    Carga(descricao=m[1], potencia_w=_num_ficha(m[2]), quantidade=int(m[3]))
+                )
+        if cargas:
+            lidos["relacao_cargas"] = cargas
+    if lidos:
+        registrar_uso(decisao=f"Ficha da visita lida: {len(lidos)} campo(s), sem IA.")
+    return lidos
 
 
 # ---------------------------------------------------------------------------
