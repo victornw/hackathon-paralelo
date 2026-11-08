@@ -67,7 +67,7 @@ def diagnostico() -> dict:
             "papeis_disponiveis": papeis,
         },
         "node": {"versao": versao, "pacotes_do_agente": pacotes},
-        "banco": os.environ.get("DB_PATH", "data/app.db"),
+        "banco": "turso" if os.environ.get("TURSO_DATABASE_URL") else os.environ.get("DB_PATH", "data/app.db"),
     }
 
 
