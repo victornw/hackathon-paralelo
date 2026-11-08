@@ -3,6 +3,25 @@
 .inicio-pagina h1, .inicio-pagina h2, .inicio-pagina h3 { margin:0; color:var(--h-ink); }
 .inicio-pagina p { margin:0; }
 
+:root { --ceu-topo:#bdd9ec; --ceu-meio:#d5eaf6; --ceu-horizonte:#f9e0bc; --ceu-sol:#ffe6a6; --ceu-p:0; }
+.ini-ceu {
+  position:fixed; inset:0; z-index:-1; pointer-events:none;
+  background:
+    radial-gradient(circle at calc(86% - var(--ceu-p) * 36%) calc(8% + var(--ceu-p) * 92%), var(--ceu-sol), transparent calc(44% - var(--ceu-p) * 22%)),
+    linear-gradient(calc(150deg + var(--ceu-p) * 30deg), var(--ceu-topo), var(--ceu-meio) calc(38% + var(--ceu-p) * 22%), var(--ceu-horizonte) calc(82% + var(--ceu-p) * 14%));
+}
+.ini-ceu::after {
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(ellipse 120% 40% at 50% 112%, var(--ceu-horizonte), transparent 70%);
+  opacity:calc(.25 + var(--ceu-p) * .45);
+}
+.inicio-pagina .ini-secao-cabeca, .inicio-pagina .ini-humano-texto, .inicio-pagina .ini-resultados, .inicio-pagina .ini-rodape { transition:color .5s ease; }
+.inicio-pagina.ini-noite .ini-humano-texto h2, .inicio-pagina.ini-noite .ini-resultados h2, .inicio-pagina.ini-noite .ini-resultados dd, .inicio-pagina.ini-noite .ini-resultados dt { color:var(--h-paper); }
+.inicio-pagina.ini-noite .ini-humano-texto p, .inicio-pagina.ini-noite .ini-resultados .ini-sobrelinha, .inicio-pagina.ini-noite .ini-resultados small, .inicio-pagina.ini-noite .ini-nota, .inicio-pagina.ini-noite .ini-rodape { color:var(--h-selection); }
+.inicio-pagina.ini-noite .ini-nota a { color:var(--h-paper); }
+.inicio-pagina.ini-noite .ini-resultados .ini-metricas div { border-top-color:var(--h-reflection-soft); }
+@media(prefers-reduced-motion:reduce) { .inicio-pagina * { transition:none !important; } }
+
 .ini-sobrelinha { font-size:12px; font-weight:500; letter-spacing:.02em; color:var(--h-muted); }
 .ini-acoes { display:flex; flex-wrap:wrap; gap:10px; }
 .inicio-pagina .ini-acoes .botao { display:inline-flex; align-items:center; min-height:48px; padding:12px 22px; border-radius:14px; font-size:14px; font-weight:500; text-decoration:none; }
