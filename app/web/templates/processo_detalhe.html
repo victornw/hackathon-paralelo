@@ -76,14 +76,24 @@
   <p><a class="botao destaque" href="/processos/{{ p.id }}/revisao">Revisar e assinar</a></p>
   {% elif trabalhando %}<p class="vazio">Nada pendente com você. O agente está terminando o pacote.</p>
   {% elif not abertas and not falhas %}<p class="vazio">Nada pendente com você agora.</p>{% endif %}
-  {% for q in abertas %}
-  <form class="resposta" data-pergunta="{{ q.id }}">
-    <label for="r-{{ loop.index }}">{{ q.texto }}</label>
-    <textarea id="r-{{ loop.index }}" name="resposta" rows="2" required></textarea>
-    <button type="submit">Enviar resposta</button>
+  {% if abertas %}
+  <form id="form-respostas" class="respostas">
+    <p class="resumo">O agente precisa de {{ abertas|length }} informaç{{ 'ões' if abertas|length > 1 else 'ão' }} para montar o pedido. Responda o que souber e envie tudo de uma vez.</p>
+    {% if exemplo %}<p><button type="button" class="secundario" id="preencher">Preencher com os dados do exemplo</button> <small>Dados sintéticos, só para a demonstração.</small></p>{% endif %}
+    {% for q in abertas %}
+    <div class="campo">
+      <label for="r-{{ loop.index }}">{{ q.texto }}</label>
+      {% if q.campo == 'relacao_cargas' %}
+      <textarea id="r-{{ loop.index }}" data-pergunta="{{ q.id }}" data-campo="{{ q.campo }}" rows="2" placeholder="Ex.: Geladeira 250 W x1; Chuveiro 5500 W x1"></textarea>
+      {% else %}
+      <input id="r-{{ loop.index }}" data-pergunta="{{ q.id }}" data-campo="{{ q.campo }}" autocomplete="off">
+      {% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="destaque">Enviar respostas</button>
     <p class="erro-form" role="alert"></p>
   </form>
-  {% endfor %}
+  {% endif %}
   {% if falhas %}
   <div class="falhas">
     <h3>Passos que falharam</h3>
@@ -124,12 +134,29 @@
     if (Array.isArray(det)) { det = det.map(function (x) { return x.msg; }).join("; "); }
     return det;
   }
-  document.querySelectorAll("form.resposta").forEach(function (form) {
-    form.addEventListener("submit", async function (ev) {
+  var exemplo = {{ (exemplo or {})|tojson }};
+  var preencher = document.getElementById("preencher");
+  if (preencher) {
+    preencher.addEventListener("click", function () {
+      document.querySelectorAll("#form-respostas [data-campo]").forEach(function (c) {
+        if (!c.value && exemplo[c.dataset.campo]) { c.value = exemplo[c.dataset.campo]; }
+      });
+    });
+  }
+  var formResp = document.getElementById("form-respostas");
+  if (formResp) {
+    formResp.addEventListener("submit", async function (ev) {
       ev.preventDefault();
+      var form = formResp;
+      var botao = form.querySelector('button[type="submit"]');
       var erro = form.querySelector(".erro-form");
       erro.textContent = "";
-      var corpo = [{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }];
+      var corpo = [];
+      form.querySelectorAll("[data-pergunta]").forEach(function (c) {
+        if (c.value.trim()) { corpo.push({ id: c.dataset.pergunta, resposta: c.value.trim() }); }
+      });
+      if (!corpo.length) { erro.textContent = "Responda pelo menos uma pergunta."; return; }
+      botao.disabled = true;
       try {
         var r = await fetch("/api/processos/{{ p.id }}/respostas", {
           method: "POST",
@@ -138,12 +165,13 @@
         });
         if (r.ok) { location.reload(); return; }
         var d = await r.json().catch(function () { return {}; });
-        erro.textContent = detalheErro(d) || "Não foi possível enviar a resposta.";
+        erro.textContent = detalheErro(d) || "Não foi possível enviar as respostas.";
       } catch (e) {
-        erro.textContent = "Não foi possível enviar a resposta.";
+        erro.textContent = "Não foi possível enviar as respostas.";
       }
+      botao.disabled = false;
     });
-  });
+  }
   var tentar = document.getElementById("tentar");
   if (tentar) {
     tentar.addEventListener("click", async function () {

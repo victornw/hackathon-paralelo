@@ -23,7 +23,7 @@ def test_painel_mostra_carteira_por_etapa_e_selo(cliente):
 
 
 def test_timeline_com_prazo_e_eventos(cliente):
-    r = cliente.get("/processos/proc-demo-006/timeline")
+    r = cliente.get("/processos/proc-demo-006/timeline?detalhes=1")
     assert r.status_code == 200
     assert "Vence em 12/11/2026" in r.text  # 05/11 + 5 dias úteis
     assert "Sem execuções medidas ainda" in r.text
@@ -44,7 +44,7 @@ def test_timeline_mostra_prompt_usado(cliente):
 
     with processo_atual("proc-demo-006"):
         passo()
-    r = cliente.get("/processos/proc-demo-006/timeline")
+    r = cliente.get("/processos/proc-demo-006/timeline?detalhes=1")
     assert f"Prompt: classificar_pendencia v1 ({prompt.hash})" in r.text
 
 
@@ -77,7 +77,10 @@ def test_painel_foca_o_processo_escolhido(cliente):
 def test_painel_alterna_conversa_do_integrador_e_do_cliente(cliente):
     r = cliente.get("/painel?p=proc-demo-006")
     assert 'id="aba-integrador"' in r.text and 'id="aba-cliente"' in r.text
-    assert 'id="fio-cliente" role="tabpanel" aria-labelledby="aba-cliente" hidden' in r.text
+    assert (
+        'id="fio-cliente" role="tabpanel" aria-labelledby="aba-cliente" hidden'
+        in r.text
+    )
     assert "Olá, Lucia! Pedimos a vistoria à Enel." in r.text
 
 
@@ -93,3 +96,29 @@ def test_metricas_mostra_carteira_e_evals(cliente):
     assert "Processos ativos" in r.text
     assert "Regras que mais dispararam" in r.text
     assert "[X]" not in r.text and "[N]" not in r.text
+
+
+def test_timeline_padrao_mostra_so_marcos():
+    from datetime import datetime
+
+    from app.schemas import PassoTrace
+    from app.web.painel import _so_marcos
+
+    def ag(nome):
+        return {
+            "tipo": "agente",
+            "titulo": nome,
+            "passo": PassoTrace(processo_id="x", passo=nome, em=datetime(2026, 11, 8)),
+        }
+
+    itens = [
+        ag("decidir_proximo_passo"),
+        ag("gerar_documentos"),
+        ag("modelo_agente_ai_sdk"),
+        ag("gerar_documentos"),
+        ag("conferir"),
+    ]
+    assert [i["titulo"] for i in _so_marcos(itens)] == [
+        "Gerou os documentos",
+        "Conferiu contra a norma da Enel",
+    ]

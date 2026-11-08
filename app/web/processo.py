@@ -19,6 +19,21 @@ router = APIRouter()
 RAIZ = Path(__file__).resolve().parents[2]
 EMAIL_EXEMPLO = "integrador.exemplo@exemplo.com"
 
+# Respostas sintéticas para os processos de exemplo (botão "Preencher com os dados
+# do exemplo"). Só valem para os exemplos; ninguém responde por um cliente real.
+RESPOSTAS_EXEMPLO = {
+    "relacao_cargas": "Geladeira 250 W x1; Chuveiro elétrico 5500 W x1; TV 100 W x2; Lâmpadas 10 W x8",
+    "disjuntor_padrao_a": "40",
+    "bitola_ca_mm2": "6",
+    "distancia_inversor_quadro_m": "8",
+    "coordenadas_padrao": "-3.7319, -38.5267",
+    "area_concessao": "Ceará",
+    "tipo_ramal": "aéreo",
+    "telefone": "(85) 90000-0000",
+    "qtd_ucs_credito": "1",
+    "modalidade_compensacao": "Autoconsumo local",
+}
+
 ROTULOS_CAMPOS = {
     "uc": "Código da UC",
     "titular": "Titular",
@@ -94,6 +109,7 @@ def _contexto(p: Processo) -> dict:
         "kit": kit,
         "kwp": _numero(kit.potencia_total_wp / 1000) if kit else None,
         "abertas": abertas,
+        "exemplo": RESPOSTAS_EXEMPLO if p.email_contato == EMAIL_EXEMPLO else None,
         "falhas": falhas,
         "respondidas": respondidas,
         "regras": regras,

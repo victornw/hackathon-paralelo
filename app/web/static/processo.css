@@ -145,3 +145,4 @@ form.resposta label { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .trabalhando::after, .progresso:not(:empty)::before { animation: none; }
 }
+.respostas .campo { margin: 0 0 14px; } .respostas input, .respostas textarea { width: 100%; }

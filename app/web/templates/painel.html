@@ -18,6 +18,7 @@
         <a class="proc" href="/painel?p={{ k.p.id }}"{% if f and f.p.id == k.p.id %} aria-current="true"{% endif %}>
           <span class="proc-indice" aria-hidden="true">{{ "%02d"|format(loop.index) }}</span><span class="proc-nome">{{ k.titular }}</span>
           <span class="proc-meta">{% if k.kwp %}{{ '%.2f'|format(k.kwp)|replace('.', ',') }} kWp{% else %}kWp a definir{% endif %}, UC {{ k.uc }}</span>
+          <span class="proc-meta proc-id">{{ k.p.id }} · criado {{ k.p.criado_em.strftime('%d/%m %H:%M') }}</span>
           <span class="proc-etapa">{{ rotulos[k.p.etapa] }}</span>
           {% if k.incertas or k.perguntas %}
           <span class="proc-aviso">{% if k.incertas %}{{ k.incertas }} regra{{ 's' if k.incertas > 1 }} a olhar{% endif %}{% if k.incertas and k.perguntas %}, {% endif %}{% if k.perguntas %}{{ k.perguntas }} pergunta{{ 's' if k.perguntas > 1 }}{% endif %}</span>

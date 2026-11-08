@@ -10,6 +10,7 @@
 <div class="duas-colunas">
   <section aria-labelledby="t-linha">
     <h2 id="t-linha">O que aconteceu</h2>
+    <p class="resumo">{% if detalhes %}Todos os {{ total }} registros do agente, com as decisões internas. <a href="?">Ver só os marcos</a>{% else %}Os marcos do processo. <a href="?detalhes=1">Ver detalhes técnicos ({{ total }} registros)</a>{% endif %}</p>
     {% if itens %}
     <ol class="linha">
       {% for i in itens %}
@@ -26,8 +27,8 @@
           <h3>{{ i.titulo }}</h3>
           {% if i.passo.decisao %}<p>{{ i.passo.decisao }}</p>{% endif %}
           {% if i.passo.erro %}<p class="falha">Falhou: {{ i.passo.erro }}</p>{% endif %}
-          <p class="custo">{{ i.passo.ms }} ms, {{ i.passo.tokens_entrada + i.passo.tokens_saida }} tokens, R$ {{ '%.4f'|format(i.passo.custo_brl)|replace('.', ',') }}</p>
-          {% for p in i.prompts %}<p class="custo prompt">Prompt: {{ p.split('@v')[0] }} v{{ p.split('@v')[1].split('#')[0] }} ({{ p.split('#')[1] }})</p>{% endfor %}
+          {% if detalhes %}<p class="custo">{{ i.passo.ms }} ms, {{ i.passo.tokens_entrada + i.passo.tokens_saida }} tokens, R$ {{ '%.4f'|format(i.passo.custo_brl)|replace('.', ',') }}</p>
+          {% for p in i.prompts %}<p class="custo prompt">Prompt: {{ p.split('@v')[0] }} v{{ p.split('@v')[1].split('#')[0] }} ({{ p.split('#')[1] }})</p>{% endfor %}{% endif %}
         {% endif %}
       </li>
       {% endfor %}

@@ -241,8 +241,46 @@ def painel(request: Request, tarefas: BackgroundTasks, p: str | None = None):
     )
 
 
+# Marcos que a timeline mostra por padrão; o resto (decisões internas, chamadas ao
+# modelo, consultas repetidas ao portal) fica em "Ver detalhes técnicos".
+MARCOS = {
+    "extrair_conta": "Leu a conta de luz",
+    "extrair_kit": "Leu a proposta do kit",
+    "extrair_padrao": "Leu a foto do padrão de entrada",
+    "verificar_arranjo": "Conferiu o arranjo do kit",
+    "perguntar": "Perguntou o que faltava",
+    "gerar_documentos": "Gerou os documentos",
+    "conferir": "Conferiu contra a norma da Enel",
+    "enviar_revisao": "Enviou para a revisão do engenheiro",
+    "revisao_engenheiro": "Engenheiro revisou e assinou",
+    "protocolar": "Protocolou no portal da Enel",
+    "tratar_pendencia": "Tratou a pendência da Enel",
+    "reenviar": "Reenviou a correção",
+}
+
+
+def _so_marcos(itens: list[dict]) -> list[dict]:
+    """Marcos e falhas; de uma sequência do mesmo marco fica só a última vez."""
+    saida: list[dict] = []
+    for i in itens:
+        if i["tipo"] == "agente":
+            if i["passo"].passo not in MARCOS and not i["passo"].erro:
+                continue
+            i = {**i, "titulo": MARCOS.get(i["passo"].passo, i["titulo"])}
+            if (
+                saida
+                and saida[-1]["tipo"] == "agente"
+                and saida[-1]["passo"].passo == i["passo"].passo
+                and not i["passo"].erro
+            ):
+                saida[-1] = i
+                continue
+        saida.append(i)
+    return saida
+
+
 @router.get("/processos/{processo_id}/timeline")
-def timeline(request: Request, processo_id: str):
+def timeline(request: Request, processo_id: str, detalhes: bool = False):
     dia = hoje()
     proc = next((p for p in carregar_processos() if p.id == processo_id), None)
     if proc is None:
@@ -261,10 +299,15 @@ def timeline(request: Request, processo_id: str):
         for ps in listar_passos_detalhados(processo_id)
     ]
     itens.sort(key=lambda i: (i["quando"], i["tipo"] == "portal"))
+    total = len(itens)
+    if not detalhes:
+        itens = _so_marcos(itens)
     return templates.TemplateResponse(
         request,
         "timeline.html",
         {
+            "detalhes": detalhes,
+            "total": total,
             "c": _cartao(proc, dia),
             "itens": itens,
             "resumo": resumo_custo(processo_id),
