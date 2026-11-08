@@ -74,6 +74,13 @@ def test_painel_foca_o_processo_escolhido(cliente):
     assert "Agora:" in r.text
 
 
+def test_painel_alterna_conversa_do_integrador_e_do_cliente(cliente):
+    r = cliente.get("/painel?p=proc-demo-006")
+    assert 'id="aba-integrador"' in r.text and 'id="aba-cliente"' in r.text
+    assert 'id="fio-cliente" role="tabpanel" aria-labelledby="aba-cliente" hidden' in r.text
+    assert "Olá, Lucia! Pedimos a vistoria à Enel." in r.text
+
+
 def test_painel_com_id_desconhecido_cai_no_padrao(cliente):
     r = cliente.get("/painel?p=nao-existe")
     assert r.status_code == 200

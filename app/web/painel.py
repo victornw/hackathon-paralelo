@@ -192,6 +192,7 @@ def _foco(p: Processo, dia: date) -> dict:
         agora = "lendo os documentos e montando o pacote"
     elif ctx["abertas"]:
         agora = "esperando resposta do integrador"
+    msgs = mensagens(p, dia)
     return {
         **ctx,
         "c": _cartao(p, dia),
@@ -200,7 +201,8 @@ def _foco(p: Processo, dia: date) -> dict:
         "agora": agora,
         "trilho": _passos_etapa(p.etapa),
         "registro": listar_passos_detalhados(p.id)[-8:],
-        "conversa": [m for m in mensagens(p, dia) if m.canal == "integrador"],
+        "conversa": [m for m in msgs if m.canal == "integrador"],
+        "conversa_cliente": [m for m in msgs if m.canal == "cliente"],
     }
 
 

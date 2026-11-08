@@ -138,9 +138,13 @@
   <aside class="conversa" aria-labelledby="h-conversa">
     <header class="conversa-topo">
       <h2 id="h-conversa">Agente de homologação</h2>
-      <p>Conversa com o integrador, simulada</p>
+      <p>Conversas simuladas: nenhuma mensagem é enviada de verdade</p>
+      <div class="conversa-abas" role="tablist" aria-label="Com quem o agente conversa">
+        <button type="button" role="tab" id="aba-integrador" aria-controls="fio-integrador" aria-selected="true" data-canal="integrador">Integrador</button>
+        <button type="button" role="tab" id="aba-cliente" aria-controls="fio-cliente" aria-selected="false" tabindex="-1" data-canal="cliente">Cliente final</button>
+      </div>
     </header>
-    <div class="conversa-fio">
+    <div class="conversa-fio" id="fio-integrador" role="tabpanel" aria-labelledby="aba-integrador">
       {% for m in f.conversa %}
       <div class="bolha {{ m.autor }} {{ m.tipo }}">
         <p class="data"><span class="autor">{{ 'Agente' if m.autor == 'agente' else 'Você (integrador)' }}</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
@@ -159,7 +163,18 @@
       <p class="vazio">Nenhuma mensagem ainda.</p>
       {% endfor %}
     </div>
-    <a class="conversa-link" href="/processos/{{ f.p.id }}/chat">Ver também a conversa com o cliente</a>
+    <div class="conversa-fio" id="fio-cliente" role="tabpanel" aria-labelledby="aba-cliente" hidden>
+      <p class="conversa-legenda">WhatsApp simulado: avisos do agente ao dono da casa a cada mudança de etapa.</p>
+      {% for m in f.conversa_cliente %}
+      <div class="bolha {{ m.autor }} {{ m.tipo }}">
+        <p class="data"><span class="autor">Agente</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
+        <p class="mensagem-texto">{{ m.texto }}</p>
+      </div>
+      {% else %}
+      <p class="vazio">O cliente recebe o primeiro aviso quando o pedido for protocolado.</p>
+      {% endfor %}
+    </div>
+    <a class="conversa-link" href="/processos/{{ f.p.id }}/chat">Abrir as duas conversas lado a lado</a>
   </aside>
 
   <script>
@@ -187,8 +202,30 @@
         botao.disabled = false;
       });
     });
-    var fio = document.querySelector(".conversa-fio");
-    if (fio && matchMedia('(min-width: 801px)').matches) { fio.scrollTop = fio.scrollHeight; }
+    var abas = Array.prototype.slice.call(document.querySelectorAll(".conversa-abas [role=tab]"));
+    function mostrar(canal, foco) {
+      abas.forEach(function (a) {
+        var ativa = a.dataset.canal === canal;
+        a.setAttribute("aria-selected", ativa ? "true" : "false");
+        a.tabIndex = ativa ? 0 : -1;
+        document.getElementById(a.getAttribute("aria-controls")).hidden = !ativa;
+        if (ativa && foco) { a.focus(); }
+      });
+      try { sessionStorage.setItem("dia-canal", canal); } catch (e) {}
+      var aberto = document.getElementById("fio-" + canal);
+      if (aberto && matchMedia("(min-width: 801px)").matches) { aberto.scrollTop = aberto.scrollHeight; }
+    }
+    abas.forEach(function (a, i) {
+      a.addEventListener("click", function () { mostrar(a.dataset.canal); });
+      a.addEventListener("keydown", function (ev) {
+        if (ev.key !== "ArrowRight" && ev.key !== "ArrowLeft") { return; }
+        ev.preventDefault();
+        mostrar(abas[(i + (ev.key === "ArrowRight" ? 1 : abas.length - 1)) % abas.length].dataset.canal, true);
+      });
+    });
+    var salvo = null;
+    try { salvo = sessionStorage.getItem("dia-canal"); } catch (e) {}
+    mostrar(salvo === "cliente" ? "cliente" : "integrador");
   </script>
   {% endif %}
 </div>

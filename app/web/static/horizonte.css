@@ -227,3 +227,14 @@ body.horizonte { font:400 14px/1.55 var(--h-font); color:var(--h-ink); backgroun
   .horizonte .chat-colunas { grid-template-columns:minmax(0,1fr); }
   .horizonte .conversa .bolha,.horizonte .chat-fio .bolha { max-width:90%; }
 }
+
+/* Abas do painel de conversa: integrador | cliente final. */
+.horizonte .conversa-abas { display:inline-flex; gap:2px; margin-top:16px; padding:4px; border-radius:40px; background:var(--h-glass); box-shadow:inset 0 1px var(--h-edge), 0 0 0 1px var(--h-rule); }
+.horizonte .conversa-abas button {
+  min-height:32px; padding:6px 16px; border:0; border-radius:40px; box-shadow:none;
+  font:500 12px/1 var(--h-font); color:var(--h-muted); background:none; filter:none;
+}
+.horizonte .conversa-abas button:hover { color:var(--h-ink); background:var(--h-glass-strong); filter:none; }
+.horizonte .conversa-abas button[aria-selected="true"] { color:#fff; background:var(--h-ink); }
+.horizonte .conversa-fio[hidden] { display:none; }
+.horizonte .conversa-legenda { margin:0; font-size:11px; color:var(--h-muted); }
