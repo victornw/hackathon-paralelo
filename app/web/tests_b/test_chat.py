@@ -46,7 +46,11 @@ def test_chat_vazio_mostra_aviso(cliente, monkeypatch):
 
 
 def test_links_para_o_chat(cliente):
-    assert "/processos/proc-demo-006/chat" in cliente.get("/painel").text
+    # A conversa do processo em foco fica na coluna da direita do painel.
+    assert (
+        "/processos/proc-demo-006/chat"
+        in cliente.get("/painel?p=proc-demo-006").text
+    )
     assert (
         "/processos/proc-demo-006/chat"
         in cliente.get("/processos/proc-demo-006/timeline").text

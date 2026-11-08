@@ -1,57 +1,194 @@
 {% extends "layout.html" %}
-{% block titulo %}Carteira de homologação{% endblock %}
+{% block titulo %}Carteira{% endblock %}
+{% block corpo_classe %}mesa-pagina{% endblock %}
 {% block conteudo %}
-<section class="cabeca">
-  <h1>Carteira</h1>
-  <p class="resumo">{{ total }} processos na Enel{% if vencendo %}; <span class="alerta">{{ vencendo }} com prazo do integrador perto de vencer</span>{% endif %}.</p>
-</section>
+<link rel="stylesheet" href="/static/processo.css">
+<div class="mesa">
 
-{% if proximos %}
-<section class="prazos-vigiados" aria-labelledby="h-prazos">
-  <h2 id="h-prazos">Prazos que o agente está vigiando</h2>
-  <ul>
-    {% for i in proximos %}
-    <li class="prazo-linha {{ i.x.situacao }}">
-      <span class="quando">
-        {% if i.x.situacao == 'vencido' %}Venceu em {{ i.x.prazo.vencimento.strftime('%d/%m') }}
-        {% elif i.x.situacao == 'vence_hoje' %}Vence hoje
-        {% else %}{{ i.x.restantes }} dia{{ 's' if i.x.restantes != 1 }}{{ ' úteis' if i.x.prazo.dias_uteis }}{% endif %}
-      </span>
-      <span class="oque"><strong>{{ i.quem }}</strong> precisa {{ i.acao }} <a href="{{ i.link }}">{{ i.titular }}</a></span>
-      <span class="fonte">{{ i.x.prazo.fonte }}</span>
-    </li>
-    {% endfor %}
-  </ul>
-</section>
-{% endif %}
+  <aside class="carteira" aria-labelledby="h-carteira">
+    <div class="carteira-cabeca">
+      <h1 id="h-carteira">Carteira</h1>
+      <a class="botao secundario mini" href="/processos/novo">Novo processo</a>
+    </div>
+    <p class="resumo">{{ total }} processos na Enel{% if vencendo %}; <span class="alerta">{{ vencendo }} com prazo do integrador perto de vencer</span>{% endif %}.</p>
 
-<ol class="regua" aria-label="Etapas da homologação">
-  {% for col in colunas %}
-  <li class="etapa{% if not col.cartoes %} vazia{% endif %}">
-    <h2><span class="n">{{ loop.index }}</span> {{ col.rotulo }} <span class="qtd">{{ col.cartoes|length }}</span></h2>
-    {% for k in col.cartoes %}
-    <article class="cartao">
-      <a class="titular" href="/processos/{{ k.p.id }}">{{ k.titular }}</a>
-      <a class="link-mensagens" href="/processos/{{ k.p.id }}/chat">Mensagens</a>
-      <p class="meta">UC {{ k.uc }}{% if k.kwp %}, {{ '%.2f'|format(k.kwp)|replace('.', ',') }} kWp{% endif %}</p>
-      {% if k.incertas or k.perguntas %}
-      <p class="aviso">
-        {% if k.incertas %}{{ k.incertas }} regra{{ 's' if k.incertas > 1 }} a olhar{% endif %}{% if k.incertas and k.perguntas %}, {% endif %}{% if k.perguntas %}{{ k.perguntas }} pergunta{{ 's' if k.perguntas > 1 }} sem resposta{% endif %}
-      </p>
-      {% endif %}
-      {% for x in k.prazos %}
-      <div class="prazo {{ x.situacao }} {{ x.prazo.conta_contra }}">
-        <div class="pavio"><span style="width: {{ (x.fracao * 100)|round(0) }}%"></span></div>
-        <p>{{ x.rotulo }}:
-          {% if x.situacao == 'vencido' %}venceu em {{ x.prazo.vencimento.strftime('%d/%m') }}
-          {% elif x.situacao == 'vence_hoje' %}vence hoje
-          {% else %}{{ x.restantes }} dia{{ 's' if x.restantes != 1 }}{{ ' úteis' if x.prazo.dias_uteis }}{% endif %}
-        </p>
-      </div>
+    <ul class="lista-proc">
+      {% for k in cartoes %}
+      <li>
+        <a class="proc" href="/painel?p={{ k.p.id }}"{% if f and f.p.id == k.p.id %} aria-current="true"{% endif %}>
+          <span class="proc-nome">{{ k.titular }}</span>
+          <span class="proc-meta">{% if k.kwp %}{{ '%.2f'|format(k.kwp)|replace('.', ',') }} kWp{% else %}kWp a definir{% endif %}, UC {{ k.uc }}</span>
+          <span class="proc-etapa">{{ rotulos[k.p.etapa] }}</span>
+          {% if k.incertas or k.perguntas %}
+          <span class="proc-aviso">{% if k.incertas %}{{ k.incertas }} regra{{ 's' if k.incertas > 1 }} a olhar{% endif %}{% if k.incertas and k.perguntas %}, {% endif %}{% if k.perguntas %}{{ k.perguntas }} pergunta{{ 's' if k.perguntas > 1 }}{% endif %}</span>
+          {% endif %}
+        </a>
+      </li>
+      {% else %}
+      <li class="vazio">Nenhum processo ainda. Comece por um <a href="/processos/novo">novo processo</a>.</li>
       {% endfor %}
-    </article>
-    {% endfor %}
-  </li>
-  {% endfor %}
-</ol>
+    </ul>
+
+    {% if proximos %}
+    <section class="prazos-vigiados" aria-labelledby="h-prazos">
+      <h2 id="h-prazos">Prazos que o agente está vigiando</h2>
+      <ul>
+        {% for i in proximos %}
+        <li class="prazo-linha {{ i.x.situacao }}">
+          <span class="quando">
+            {% if i.x.situacao == 'vencido' %}Venceu em {{ i.x.prazo.vencimento.strftime('%d/%m') }}
+            {% elif i.x.situacao == 'vence_hoje' %}Vence hoje
+            {% else %}{{ i.x.restantes }} dia{{ 's' if i.x.restantes != 1 }}{{ ' úteis' if i.x.prazo.dias_uteis }}{% endif %}
+          </span>
+          <span class="oque"><strong>{{ i.quem }}</strong> precisa {{ i.acao }} <a href="{{ i.link }}">{{ i.titular }}</a></span>
+          <span class="fonte">{{ i.x.rotulo }}. {{ i.x.prazo.fonte }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </aside>
+
+  <section class="foco" aria-label="Processo em foco">
+    {% if f %}
+    {% if f.trabalhando %}<script>setTimeout(function () { location.reload(); }, 4000);</script>{% endif %}
+    <header class="foco-cabeca vidro">
+      <p class="kicker">Processo em foco</p>
+      <h2 class="foco-titulo">{{ f.titular }}{% if f.cidade %}, {{ f.cidade }}{% endif %}</h2>
+      <p class="foco-meta">
+        UC <span class="mono">{{ f.uc }}</span>{% if f.ligacao %}, ligação {{ f.ligacao }}{% endif %}{% if f.kit %}. {{ f.kit.qtd_modulos }} módulos {{ f.kit.modulo.fabricante }} {{ f.kit.modulo.potencia_wp|round|int }} Wp, inversor {{ f.kit.inversor.fabricante }} {{ f.kit.inversor.modelo }}, {{ f.kwp }} kWp{% endif %}.
+      </p>
+      <p class="agora"><span>Agora:</span> {{ f.agora }}</p>
+      <ol class="trilho" aria-label="Etapas do processo">
+        {% for t in f.trilho %}
+        <li class="{{ t.estado }}"{% if t.estado == 'atual' %} aria-current="step"{% endif %}>{{ t.rotulo }}</li>
+        {% endfor %}
+      </ol>
+      <p class="acoes">
+        {% if f.em_revisao %}<a class="destaque" href="/processos/{{ f.p.id }}/revisao">Revisar e assinar</a>{% endif %}
+        <a href="/processos/{{ f.p.id }}">Dados e kit</a>
+        <a href="/processos/{{ f.p.id }}/timeline">Timeline e custo</a>
+      </p>
+    </header>
+
+    {% if f.trabalhando %}
+    <p class="trabalhando" role="status">O agente está trabalhando. Lendo os documentos e montando o pedido; esta página atualiza sozinha.</p>
+    {% endif %}
+
+    <section class="bloco conferencia" aria-labelledby="h-conf">
+      <h2 id="h-conf">Conferência contra a norma da Enel</h2>
+      {% if f.regras %}
+      <ul class="conf-lista">
+        {% for x in f.regras %}
+        <li>
+          <span class="pilula {{ x.cor }}">{{ x.rotulo }}</span>
+          <div>
+            <p class="conf-titulo"><span class="regra-id">{{ x.r.regra_id }}</span> {{ x.r.descricao }}</p>
+            {% if x.r.mensagem %}<p class="conf-msg">{{ x.r.mensagem }}</p>{% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="vazio">As regras são conferidas depois que o agente gerar o projeto.</p>
+      {% endif %}
+    </section>
+
+    <div class="foco-par">
+      {% with processo_id=f.p.id, documentos=f.documentos %}{% include "_documentos.html" %}{% endwith %}
+
+      <section class="bloco" aria-labelledby="h-prazos-foco">
+        <h2 id="h-prazos-foco">Prazos vigiados</h2>
+        {% for x in f.c.prazos %}
+        <div class="prazo {{ x.situacao }} {{ x.prazo.conta_contra }}">
+          <p><strong>{{ x.rotulo }}</strong></p>
+          <div class="pavio"><span style="width: {{ (x.fracao * 100)|round(0) }}%"></span></div>
+          <p>Vence em {{ x.prazo.vencimento.strftime('%d/%m/%Y') }}{% if x.situacao != 'vencido' %} ({{ x.restantes }} dia{{ 's' if x.restantes != 1 }}{{ ' úteis' if x.prazo.dias_uteis }}){% endif %}. Conta contra {{ 'o integrador' if x.prazo.conta_contra == 'integrador' else 'a distribuidora' }}.</p>
+          <p class="fonte">{{ x.prazo.fonte }}</p>
+        </div>
+        {% else %}
+        <p class="vazio">Nenhum prazo correndo nesta etapa.</p>
+        {% endfor %}
+      </section>
+    </div>
+
+    <section class="registro" aria-labelledby="h-registro">
+      <h2 id="h-registro">Registro do agente</h2>
+      {% if f.registro %}
+      <ol>
+        {% for ps in f.registro %}
+        <li{% if ps.passo.erro %} class="erro"{% endif %}>
+          <time datetime="{{ ps.passo.em.isoformat() }}">{{ ps.passo.em.strftime('%d/%m %H:%M') }}</time>
+          <span>{% if ps.passo.erro %}Falhou em {{ ps.passo.passo }}: {{ ps.passo.erro }}{% else %}{{ ps.passo.decisao or ps.passo.passo }}{% endif %}</span>
+        </li>
+        {% endfor %}
+      </ol>
+      <a href="/processos/{{ f.p.id }}/timeline">Ver tudo, com tokens e custo</a>
+      {% else %}
+      <p class="vazio">Os passos do agente aparecem aqui assim que o processo roda.</p>
+      {% endif %}
+    </section>
+    {% else %}
+    <section class="bloco"><p class="vazio">Nenhum processo na carteira. <a href="/processos/novo">Criar o primeiro</a>.</p></section>
+    {% endif %}
+  </section>
+
+  {% if f %}
+  <aside class="conversa" aria-labelledby="h-conversa">
+    <header class="conversa-topo">
+      <h2 id="h-conversa">Agente de homologação</h2>
+      <p>Conversa com o integrador, simulada</p>
+    </header>
+    <div class="conversa-fio">
+      {% for m in f.conversa %}
+      <div class="bolha {{ m.autor }} {{ m.tipo }}">
+        <p class="data"><span class="autor">{{ 'Agente' if m.autor == 'agente' else 'Integrador' }}</span> <time datetime="{{ m.data.isoformat() }}">{{ m.data.strftime('%d/%m') }}</time></p>
+        <p>{{ m.texto }}</p>
+        {% if m.link %}<p><a href="{{ m.link }}">{{ m.link_texto or m.link }}</a></p>{% endif %}
+        {% if m.tipo == 'pergunta' %}
+        <form class="resposta" data-pergunta="{{ m.pergunta_id }}">
+          <label for="r-{{ m.pergunta_id }}">Responder como integrador</label>
+          <textarea id="r-{{ m.pergunta_id }}" name="resposta" rows="2" required></textarea>
+          <button type="submit">Enviar</button>
+          <p class="erro-form" role="alert"></p>
+        </form>
+        {% endif %}
+      </div>
+      {% else %}
+      <p class="vazio">Nenhuma mensagem ainda.</p>
+      {% endfor %}
+    </div>
+    <a class="conversa-link" href="/processos/{{ f.p.id }}/chat">Ver também a conversa com o cliente</a>
+  </aside>
+
+  <script>
+    document.querySelectorAll(".conversa form.resposta").forEach(function (form) {
+      form.addEventListener("submit", async function (ev) {
+        ev.preventDefault();
+        var erro = form.querySelector(".erro-form");
+        var botao = form.querySelector("button");
+        erro.textContent = "";
+        botao.disabled = true;
+        try {
+          var r = await fetch("/api/processos/" + encodeURIComponent({{ f.p.id|tojson }}) + "/respostas", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify([{ id: form.dataset.pergunta, resposta: form.elements.resposta.value }]),
+          });
+          if (r.ok) { location.reload(); return; }
+          var d = await r.json().catch(function () { return {}; });
+          var det = d.detail;
+          if (Array.isArray(det)) { det = det.map(function (x) { return x.msg; }).join("; "); }
+          erro.textContent = det || "Não foi possível enviar a resposta.";
+        } catch (e) {
+          erro.textContent = "Não foi possível enviar a resposta.";
+        }
+        botao.disabled = false;
+      });
+    });
+    var fio = document.querySelector(".conversa-fio");
+    if (fio) { fio.scrollTop = fio.scrollHeight; }
+  </script>
+  {% endif %}
+</div>
 {% endblock %}

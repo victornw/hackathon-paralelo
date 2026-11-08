@@ -152,35 +152,84 @@ def proximos_prazos(
     return itens[:limite]
 
 
-@router.get("/painel")
-def painel(request: Request):
-    dia = hoje()
-    processos = carregar_processos()
-    colunas = [
+AGORA = {
+    Etapa.MONTAGEM: "montando o pacote",
+    Etapa.EM_REVISAO: "esperando a revisão do engenheiro",
+    Etapa.PROTOCOLADO: "esperando a análise da Enel",
+    Etapa.PENDENCIA: "corrigindo a pendência da Enel",
+    Etapa.ORCAMENTO_EMITIDO: "esperando o integrador aprovar o orçamento",
+    Etapa.ORCAMENTO_APROVADO: "acompanhando os contratos",
+    Etapa.VISTORIA_SOLICITADA: "esperando a Enel vistoriar",
+    Etapa.VISTORIA: "acompanhando a vistoria",
+    Etapa.MEDIDOR: "esperando a troca do medidor",
+    Etapa.CONCLUIDO: "sistema conectado à rede",
+}
+
+
+def _passos_etapa(atual: Etapa) -> list[dict]:
+    """Trilho de etapas do processo em foco. Pendência é desvio: só aparece
+    quando o processo está nela."""
+    ordem = [e for e in Etapa if e != Etapa.PENDENCIA or atual == Etapa.PENDENCIA]
+    i = ordem.index(atual)
+    return [
         {
-            "etapa": e,
             "rotulo": ROTULOS[e],
-            "cartoes": [_cartao(p, dia) for p in processos if p.etapa == e],
+            "estado": "feito" if j < i else "atual" if j == i else "futuro",
         }
-        for e in Etapa
+        for j, e in enumerate(ordem)
     ]
+
+
+def _foco(p: Processo, dia: date) -> dict:
+    from app.portal_sim.mensagens import mensagens
+    from app.web.processo import _contexto
+
+    ctx = _contexto(p)
+    cidade = p.campos.get("cidade")
+    ligacao = p.campos.get("tipo_ligacao")
+    agora = AGORA[p.etapa]
+    if ctx["trabalhando"]:
+        agora = "lendo os documentos e montando o pacote"
+    elif ctx["abertas"]:
+        agora = "esperando resposta do integrador"
+    return {
+        **ctx,
+        "c": _cartao(p, dia),
+        "cidade": str(cidade.valor).title() if cidade and cidade.valor else None,
+        "ligacao": str(ligacao.valor) if ligacao and ligacao.valor else None,
+        "agora": agora,
+        "trilho": _passos_etapa(p.etapa),
+        "registro": listar_passos_detalhados(p.id)[-8:],
+        "conversa": [m for m in mensagens(p, dia) if m.canal == "integrador"],
+    }
+
+
+@router.get("/painel")
+def painel(request: Request, p: str | None = None):
+    dia = hoje()
+    processos = sorted(carregar_processos(), key=lambda x: list(Etapa).index(x.etapa))
+    cartoes = [_cartao(x, dia) for x in processos]
     vencendo = sum(
         1
-        for c in colunas
-        for k in c["cartoes"]
+        for k in cartoes
         for x in k["integrador"]
         if x.situacao in ("atencao", "vence_hoje", "vencido")
     )
-    proximos = proximos_prazos(processos, dia)
+    foco = next((x for x in processos if x.id == p), None) or next(
+        (x for x in processos if x.etapa == Etapa.EM_REVISAO),
+        processos[0] if processos else None,
+    )
     return templates.TemplateResponse(
         request,
         "painel.html",
         {
-            "colunas": colunas,
+            "cartoes": cartoes,
+            "rotulos": ROTULOS,
             "hoje": dia,
             "total": len(processos),
             "vencendo": vencendo,
-            "proximos": proximos,
+            "proximos": proximos_prazos(processos, dia),
+            "f": _foco(foco, dia) if foco else None,
         },
     )
 
@@ -289,3 +338,7 @@ router.include_router(_revisao_router)
 from app.web.saude import router as _saude_router
 
 router.include_router(_saude_router)
+
+from app.web.metricas import router as _metricas_router
+
+router.include_router(_metricas_router)

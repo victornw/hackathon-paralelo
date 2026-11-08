@@ -3,23 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block titulo %}Homologação solar{% endblock %}</title>
+  <meta name="theme-color" content="#d9e8f4">
+  <title>{% block titulo %}Carteira{% endblock %} · dia</title>
+  <script>
+    /* O sol nasce uma vez por sessão; nas navegações seguintes a página só aparece. */
+    try { if (!sessionStorage.getItem("dia-amanheceu")) { document.documentElement.classList.add("amanhecer"); sessionStorage.setItem("dia-amanheceu", "1"); } } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..750&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/painel.css">
   <script src="https://unpkg.com/htmx.org@1.9.12" defer></script>
 </head>
-<body>
+<body class="{% block corpo_classe %}{% endblock %}">
+  {% set caminho = request.url.path %}
   <header class="topo">
-    <a class="marca" href="/painel">Homologação solar</a>
-    <nav>
-      <a href="/painel">Carteira</a>
-      <a href="/processos/novo">Novo processo</a>
-      <a href="/portal-gd">Portal GD (simulado)</a>
-      <a href="/portal-gd/operador">Operador do portal</a>
+    <a class="marca" href="/painel" aria-label="dia, gestão e homologação: ir para a carteira">
+      <span class="marca-sinal" aria-hidden="true"></span>
+      <span class="marca-nome">dia</span>
+      <span class="marca-sub">gestão e homologação</span>
+    </a>
+    <nav aria-label="Principal">
+      <a href="/painel"{% if caminho == '/painel' or (caminho.startswith('/processos/') and caminho != '/processos/novo') %} aria-current="page"{% endif %}>Carteira</a>
+      <a href="/metricas"{% if caminho == '/metricas' %} aria-current="page"{% endif %}>Métricas</a>
+      <a href="/processos/novo"{% if caminho == '/processos/novo' %} aria-current="page"{% endif %}>Novo processo</a>
+      <a href="/portal-gd">Portal GD</a>
+      <a href="/portal-gd/operador"{% if caminho.startswith('/portal-gd/operador') %} aria-current="page"{% endif %}>Operador</a>
     </nav>
-    <p class="relogio">Hoje no relógio simulado: <strong>{{ hoje.strftime('%d/%m/%Y') }}</strong></p>
+    <div class="relogio" role="group" aria-label="Relógio simulado">
+      <span>Hoje <strong>{{ hoje.strftime('%d/%m/%Y') }}</strong></span>
+      <button type="button" class="secundario mini" data-avancar="1">Avançar 1 dia</button>
+      <button type="button" class="mini" data-avancar="20">Avançar 20 dias</button>
+    </div>
   </header>
+  <p id="erro-relogio" class="erro-form erro-flutuante" role="alert"></p>
+  <script>
+    document.querySelectorAll("[data-avancar]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var erro = document.getElementById("erro-relogio");
+        erro.textContent = "";
+        document.querySelectorAll("[data-avancar]").forEach(function (x) { x.disabled = true; });
+        fetch("/api/relogio/avancar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dias: parseInt(b.dataset.avancar, 10) }) })
+          .then(function (r) { if (!r.ok) { throw new Error(); } location.reload(); })
+          .catch(function () {
+            erro.textContent = "Não foi possível avançar o relógio. Tente de novo.";
+            document.querySelectorAll("[data-avancar]").forEach(function (x) { x.disabled = false; });
+          });
+      });
+    });
+  </script>
   <p class="selo-simulacao" role="note">Simulação: dados sintéticos e portal da Enel simulado</p>
   <main>{% block conteudo %}{% endblock %}</main>
 </body>

@@ -64,3 +64,25 @@ def test_faixa_de_prazos_vigiados_ordena_por_urgencia(cliente):
     r = cliente.get("/painel")
     assert "Prazos que o agente está vigiando" in r.text
     assert "Venceu em 12/11" in r.text  # vistoria da Lucia: Enel fora do prazo
+
+
+def test_painel_foca_o_processo_escolhido(cliente):
+    r = cliente.get("/painel?p=proc-demo-006")
+    assert r.status_code == 200
+    assert 'href="/painel?p=proc-demo-006" aria-current="true"' in r.text
+    assert "Processo em foco" in r.text
+    assert "Agora:" in r.text
+
+
+def test_painel_com_id_desconhecido_cai_no_padrao(cliente):
+    r = cliente.get("/painel?p=nao-existe")
+    assert r.status_code == 200
+    assert 'aria-current="true"' in r.text
+
+
+def test_metricas_mostra_carteira_e_evals(cliente):
+    r = cliente.get("/metricas")
+    assert r.status_code == 200
+    assert "Processos ativos" in r.text
+    assert "Regras que mais dispararam" in r.text
+    assert "[X]" not in r.text and "[N]" not in r.text

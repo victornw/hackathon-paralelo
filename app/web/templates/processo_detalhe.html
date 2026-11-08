@@ -12,7 +12,7 @@
 <script>setTimeout(function () { location.reload(); }, 4000);</script>{% endif %}
 <section class="cabeca">
   <h1>{{ titular }}</h1>
-  <p class="resumo">UC {{ uc }}. Etapa: <strong>{{ etapa_rotulo }}</strong>.</p>
+  <p class="resumo">UC <span class="mono">{{ uc }}</span>. Etapa: <strong>{{ etapa_rotulo }}</strong>.</p>
   <p class="acoes">
     <a href="/processos/{{ p.id }}/timeline">Timeline</a>
     <a href="/processos/{{ p.id }}/chat">Mensagens</a>
@@ -50,6 +50,7 @@
   {% endif %}
 </section>
 
+<div class="detalhe-grade">
 <section class="bloco" aria-labelledby="h-kit">
   <h2 id="h-kit">Kit vendido</h2>
   {% if kit %}
@@ -57,7 +58,7 @@
     <div><dt>Módulo</dt><dd>{{ kit.modulo.fabricante }} {{ kit.modulo.modelo }}, {{ kit.modulo.potencia_wp|round|int }} Wp</dd></div>
     <div><dt>Quantidade</dt><dd>{{ kit.qtd_modulos }} módulos, total {{ kwp }} kWp</dd></div>
     <div><dt>Inversor</dt><dd>{{ kit.inversor.fabricante }} {{ kit.inversor.modelo }}, {{ kit.inversor.potencia_nominal_w|round|int }} W</dd></div>
-    <div><dt>Registro INMETRO</dt><dd>{{ kit.inversor.certificado_inmetro or "—" }}</dd></div>
+    <div><dt>Registro INMETRO</dt><dd>{{ kit.inversor.certificado_inmetro or "Não informado" }}</dd></div>
   </dl>
   {% if kit.strings %}
   <ul class="strings">
@@ -97,6 +98,8 @@
   </details>
   {% endif %}
 </section>
+
+</div>
 
 <section class="bloco" aria-labelledby="h-regras">
   <h2 id="h-regras">Conferência</h2>

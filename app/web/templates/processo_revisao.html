@@ -5,7 +5,7 @@
 <section class="cabeca rev">
   <p class="rev-links"><a href="/processos/{{ p.id }}">Voltar ao processo</a> <a href="/processos/{{ p.id }}/timeline">Ver a timeline</a></p>
   <h1>Revisão do engenheiro</h1>
-  <p class="resumo">{{ titular }} · UC {{ uc }} · {% if kwp is not none %}{{ '%.2f'|format(kwp) }} kWp{% else %}kWp não informado{% endif %} · Etapa: {{ etapa_rotulo }}</p>
+  <p class="resumo">{{ titular }}, UC <span class="mono">{{ uc }}</span>, {% if kwp is not none %}{{ '%.2f'|format(kwp)|replace('.', ',') }} kWp{% else %}kWp não informado{% endif %}. Etapa: <strong>{{ etapa_rotulo }}</strong>.</p>
   {% if not revisavel %}
   <p class="rev-aviso" role="note">Este processo não está aguardando revisão. O conteúdo abaixo é somente para consulta.</p>
   {% endif %}

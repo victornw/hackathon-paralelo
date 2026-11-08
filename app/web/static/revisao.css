@@ -1,42 +1,58 @@
-.rev-links { display: flex; gap: 18px; margin: 0 0 8px; }
-.rev-aviso { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--atencao); background: #fff8ea; color: var(--tinta); max-width: 75ch; }
-.rev-resumo, .rev-regras, .rev-perguntas, .rev-aprovar { margin: 24px 0; max-width: 960px; }
-.rev-resumo h2, .rev-regras h2, .rev-perguntas h2, .rev-aprovar h2 { font-size: 20px; margin: 0 0 10px; font-stretch: 88%; }
-.rev-resumo h3 { font-size: 15px; margin: 12px 0 4px; }
+/* Revisão do engenheiro. Usa os tokens de painel.css. */
+.rev-aviso { margin: 14px 0 0; padding: 10px 14px; border-radius: 12px; background: var(--atencao-fundo); color: var(--tinta); max-width: 75ch; }
+.rev-resumo, .rev-regras, .rev-perguntas, .rev-aprovar { margin: 0 0 20px; max-width: 1080px; }
+.rev-resumo, .rev-perguntas, .rev-aprovar { padding: 20px 22px; }
+.rev-resumo h2, .rev-regras h2, .rev-perguntas h2, .rev-aprovar h2 { font-size: 18px; margin: 0 0 14px; }
+.rev-regras { margin-top: 32px; }
+.rev-resumo h3 { font-size: 14px; margin: 18px 0 6px; }
 .rev-pills { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
-.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--neutro); color: var(--neutro); background: #fff; }
-.pill.aprovada { color: var(--ok); border-color: var(--ok); }
-.pill.reprovada { color: var(--vencido); border-color: var(--vencido); }
-.pill.incerta, .pill.premissa, .pill.alerta { color: var(--atencao); border-color: var(--atencao); }
-.pill.nao_verificada { color: var(--neutro); border-color: var(--neutro); }
-.rev-bloqueios { margin: 4px 0 0; padding-left: 20px; color: var(--vencido); }
-.rev-livre { color: var(--ok); font-weight: 600; margin: 10px 0 0; }
 
-.regra { background: #fff; border: 1px solid var(--linha); border-left: 4px solid var(--neutro); border-radius: var(--raio); padding: 12px 14px; margin-bottom: 12px; }
-.regra.aprovada { border-left-color: var(--ok); }
-.regra.reprovada { border-left-color: var(--vencido); }
-.regra.incerta { border-left-color: var(--atencao); }
-.regra header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.regra h3 { margin: 0; font-size: 16px; }
-.regra-msg { margin: 6px 0 2px; }
-.regra-fonte, .trecho { font-size: 12px; color: var(--tinta-2); margin: 0; }
-.regra-valores { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
-.regra-valores th, .regra-valores td { text-align: left; padding: 2px 14px 2px 0; border-bottom: 1px solid var(--linha); }
+.pill {
+  display: inline-flex; align-items: center; padding: 4px 12px;
+  border-radius: var(--pilula); font-size: 13px; font-weight: 600;
+  background: var(--neutro-fundo); color: var(--neutro);
+}
+.pill.aprovada { color: var(--ok); background: var(--ok-fundo); }
+.pill.reprovada { color: var(--vencido); background: var(--vencido-fundo); }
+.pill.incerta, .pill.premissa, .pill.alerta { color: var(--atencao); background: var(--atencao-fundo); }
+.pill.nao_verificada { color: var(--neutro); background: var(--neutro-fundo); }
+
+.rev-bloqueios { margin: 0; padding: 12px 14px 12px 32px; border-radius: 12px; background: var(--vencido-fundo); color: var(--vencido); font-weight: 500; }
+.rev-livre { display: inline-block; margin: 16px 0 0; padding: 8px 14px; border-radius: 12px; background: var(--ok-fundo); color: var(--ok); font-weight: 600; }
+
+.regra { padding: 18px 20px; margin-bottom: 12px; }
+.regra.reprovada { background: linear-gradient(150deg, oklch(1 0 0 / 0.7), oklch(0.96 0.03 25 / 0.55)); }
+.regra.incerta { background: linear-gradient(150deg, oklch(1 0 0 / 0.7), oklch(0.97 0.04 75 / 0.55)); }
+.regra header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.regra h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.regra-msg { margin: 10px 0 4px; max-width: 80ch; }
+.regra-fonte, .regra .trecho { font-size: 12px; color: var(--tinta-3); margin: 0; }
+.regra-valores { border-collapse: collapse; margin: 12px 0 4px; font-size: 13px; }
+.regra-valores th, .regra-valores td { text-align: left; padding: 5px 18px 5px 0; }
+.regra-valores tr + tr > * { border-top: 1px solid var(--linha); }
 .regra-valores th { font-weight: 500; color: var(--tinta-2); }
-.regra h4 { margin: 8px 0 2px; font-size: 13px; }
-.regra ul { margin: 0; padding-left: 20px; font-size: 14px; }
-.regra-premissas { background: #fff8ea; padding: 4px 10px 6px; border-radius: var(--raio); margin-top: 8px; }
+.regra-valores td { font-family: var(--mono); }
+.regra h4 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.regra ul { margin: 0; padding-left: 18px; font-size: 14px; }
+.regra-premissas, .regra-alertas, .regra-evidencias { margin-top: 12px; }
+.regra-premissas, .regra-alertas { padding: 10px 14px; border-radius: 12px; background: oklch(1 0 0 / 0.55); }
+.regra-alertas { background: var(--atencao-fundo); }
 .regra-alertas h4 { color: var(--atencao); }
-.regra-evidencias li { margin-bottom: 4px; }
-.regra-evidencias small { display: block; color: var(--tinta-2); font-size: 12px; }
-.regra-confirmada { margin: 8px 0 0; color: var(--ok); font-weight: 600; font-size: 14px; }
+.regra-evidencias li { margin-bottom: 6px; }
+.regra-evidencias small { display: block; color: var(--tinta-3); font-size: 12px; }
+.regra-confirmada { display: inline-block; margin: 12px 0 0; padding: 5px 12px; border-radius: var(--pilula); color: var(--ok); background: var(--ok-fundo); font-weight: 600; font-size: 13px; }
 
-.rev-form { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--linha); border-radius: var(--raio); }
+.rev-form {
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
+  margin-top: 14px; padding: 14px 16px; border-radius: 14px;
+  background: oklch(1 0 0 / 0.5); box-shadow: inset 0 0 0 1px oklch(1 0 0 / 0.85);
+}
+.rev-aprovar .rev-form, .rev-perguntas .rev-form:first-of-type { margin-top: 0; }
 .rev-form p { margin: 0; }
 .rev-form .dica { font-size: 13px; color: var(--tinta-2); }
 .rev-form label { font-size: 13px; color: var(--tinta-2); }
-.rev-form .check { color: var(--tinta); font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
-.rev-form input:not([type=checkbox]) { font: inherit; padding: 6px 8px; border: 1px solid var(--linha); border-radius: var(--raio); min-width: 280px; max-width: 100%; }
-.rev-form button { font: inherit; padding: 6px 14px; background: var(--prancha); color: #fff; border: 0; border-radius: var(--raio); cursor: pointer; }
-.rev-form button:disabled { background: var(--neutro); cursor: not-allowed; }
-.rev-form button:focus-visible, .rev-form input:focus-visible { outline: 2px solid var(--prancha); outline-offset: 2px; }
+.rev-form .check { color: var(--tinta); font-size: 14px; display: flex; gap: 10px; align-items: flex-start; margin: 4px 0; }
+.rev-form .check label { font-size: 14px; color: var(--tinta); }
+.rev-form input:not([type=checkbox]) { min-width: 300px; max-width: 100%; width: auto; }
+.rev-aprovar { background: linear-gradient(150deg, oklch(1 0 0 / 0.72), oklch(0.96 0.045 68 / 0.6)); }
+.rev-aprovar .rev-form { background: none; box-shadow: none; padding: 0; }
