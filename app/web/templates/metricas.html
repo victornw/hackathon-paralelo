@@ -17,7 +17,7 @@
   <article class="destaque-num">
     <h2>Custo de IA por processo</h2>
     {% if completo %}
-    <p class="num">&lt; R$ 0,02</p>
+    <p class="num">R$ {{ completo.custo }}</p>
     <p>{{ completo.chamadas }} chamadas, ~{{ completo.tokens }} mil tokens</p>
     {% else %}<p class="num">Sem medição</p>{% endif %}
   </article>

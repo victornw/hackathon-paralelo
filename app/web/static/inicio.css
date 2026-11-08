@@ -67,6 +67,17 @@
 .ini-numeros dt, .ini-metricas dt { font-size:14px; line-height:1.5; }
 .ini-numeros small, .ini-metricas small { font-size:11px; color:var(--h-muted); }
 .ini-numeros div:first-child dd { color:var(--h-accent); }
+.ini-numeros.dois { grid-template-columns:repeat(2,minmax(0,1fr)); max-width:760px; }
+.ini-preco { padding:120px 0 0; }
+.ini-preco .ini-secao-cabeca p:not(.ini-sobrelinha) { max-width:52ch; color:var(--h-ink); }
+.ini-preco .ini-sobrelinha { color:var(--h-ink); }
+.ini-comparativo { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; max-width:760px; margin-top:32px; }
+.ini-comparativo div { display:flex; flex-direction:column; gap:6px; padding:24px; border-radius:20px; background:var(--h-glass); box-shadow:inset 0 1px var(--h-edge); }
+.ini-comparativo span { font-size:13px; color:var(--h-ink); }
+.ini-comparativo strong { font-size:clamp(28px,3vw,40px); font-weight:500; letter-spacing:-.04em; line-height:1.05; }
+.ini-comparativo small { font-size:11px; color:var(--h-ink); opacity:.75; }
+.ini-comparativo .nosso { background:var(--h-paper); box-shadow:0 24px 64px -40px var(--h-shadow); }
+.ini-comparativo .nosso strong { color:var(--h-accent); }
 
 .ini-secao-cabeca { display:grid; gap:12px; margin-bottom:40px; }
 .ini-secao-cabeca h2, .ini-humano h2, .ini-chamada h2 { max-width:24ch; font-size:clamp(28px,3.4vw,44px); line-height:1.1; letter-spacing:-.04em; font-weight:500; }
@@ -116,7 +127,7 @@
   .ini-lead { font-size:15px; }
   .ini-dossie { padding:20px; border-radius:22px; }
   .ini-problema { padding:32px 20px; border-radius:24px; }
-  .ini-numeros, .ini-metricas, .ini-colunas, .ini-passos { grid-template-columns:1fr; gap:20px; }
-  .ini-como, .ini-humano, .ini-resultados { padding-top:80px; }
+  .ini-numeros, .ini-numeros.dois, .ini-metricas, .ini-colunas, .ini-passos, .ini-comparativo { grid-template-columns:1fr; gap:20px; }
+  .ini-como, .ini-humano, .ini-preco, .ini-resultados { padding-top:80px; }
   .ini-chamada { margin-top:80px; padding:56px 20px; border-radius:24px; }
 }

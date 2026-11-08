@@ -1,6 +1,6 @@
 # Medição do tempo de revisão humana
 
-Objetivo: obter o número que sustenta o argumento central do pitch, quantos pacotes um engenheiro revisa por dia quando o agente monta e confere. A referência de mercado é a Tellar, com 14 engenheiros e cerca de 350 projetos por mês, pouco mais de 1 projeto por engenheiro por dia útil (pv magazine, 26/11/2024; conta nossa em `docs/pesquisa/ponto-de-venda.md`, seção 3b).
+Objetivo: obter o número que sustenta o argumento central do pitch, quantos pacotes um engenheiro revisa por dia quando o agente monta e confere. A referência de mercado é a Tellar, com 14 engenheiros e cerca de 350 projetos por mês, pouco mais de 1 projeto por engenheiro por dia útil (pv magazine, 26/11/2024; conta nossa).
 
 ## O que medir
 

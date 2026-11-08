@@ -18,7 +18,7 @@
 
 **Resultados medidos (dados sintéticos).**
 - Classificação de pendências: 93,8% de acerto em 48 textos rotulados antes de rodar o modelo, contra 50% de uma linha de base por palavras-chave.
-- Processo completo com o modelo real: cerca de 3 mil tokens e 30 a 40 segundos de LLM por processo, cerca de R$ 0,005 a preço de referência de mercado.
+- Processo completo com o modelo real, da conta ao protocolo: 8 chamadas, cerca de 13 mil tokens e 90 segundos de máquina por processo, cerca de R$ 0,07 ao preço publicado da Featherless (média de 6 execuções).
 - [Tempo de revisão humana por pacote: preencher com a medição de `docs/medicao-revisao.md`.]
 
 Os dados de clientes, contas e kits da demonstração são sintéticos.

@@ -74,10 +74,9 @@
 
 <section class="ini-problema" aria-labelledby="ini-h-problema">
   <h2 id="ini-h-problema">Homologar ainda é trabalho manual, processo por processo.</h2>
-  <dl class="ini-numeros">
+  <dl class="ini-numeros dois">
     <div><dt>pedidos residenciais negados por documentação incompleta em Alagoas</dt><dd>1 em 6</dd><small>ANEEL, pedidos de conexão 2022–2023</small></div>
     <div><dt>dos integradores terceirizam projeto e engenharia</dt><dd>37%</dd><small>Greener, 2025</small></div>
-    <div><dt>pagos a homologadoras por processo</dt><dd>R$ 400–690</dd><small>preço de mercado</small></div>
   </dl>
 </section>
 
@@ -122,15 +121,29 @@
   </div>
 </section>
 
+<section class="ini-preco" aria-labelledby="ini-h-preco">
+  <div class="ini-secao-cabeca">
+    <p class="ini-sobrelinha">Preço</p>
+    <h2 id="ini-h-preco">Mais barato que terceirizar.</h2>
+    <p>Pacote montado e conferido pelo agente, revisado e assinado por engenheiro.</p>
+  </div>
+  <div class="ini-comparativo">
+    <div class="nosso"><span>dia, por processo</span><strong>até R$ 350</strong></div>
+    <div><span>Homologadoras hoje, por processo</span><strong>R$ 400 a 690</strong><small>preços públicos de mercado, residencial</small></div>
+  </div>
+</section>
+
 <section class="ini-resultados" aria-labelledby="ini-h-res">
   <div class="ini-secao-cabeca">
     <p class="ini-sobrelinha">Medido com o modelo real</p>
     <h2 id="ini-h-res">Rápido, barato e com rastro auditável.</h2>
   </div>
   <dl class="ini-metricas">
-    <div><dt>de acerto na classificação de pendências</dt><dd>93,8%</dd><small>48 textos rotulados; palavras-chave: 50%</small></div>
-    <div><dt>de LLM por processo completo</dt><dd>30–40 s</dd><small>cerca de 3 mil tokens</small></div>
-    <div><dt>de custo de IA por processo</dt><dd>~R$ 0,005</dd><small>preço de referência de mercado</small></div>
+    {% if pendencias %}<div><dt>de acerto na classificação de pendências</dt><dd>{{ pendencias.acerto }}%</dd><small>{{ pendencias.n }} textos rotulados{% if pendencias.base %}; palavras-chave: {{ pendencias.base }}%{% endif %}</small></div>{% endif %}
+    {% if completo %}
+    <div><dt>de máquina por processo, da conta ao protocolo</dt><dd>{{ completo.segundos }} s</dd><small>média de {{ completo.execucoes }} execuções com o modelo real</small></div>
+    <div><dt>de custo de IA por processo</dt><dd>R$ {{ completo.custo }}</dd><small>{{ completo.chamadas }} chamadas, ~{{ completo.tokens }} mil tokens, preço publicado da Featherless</small></div>
+    {% endif %}
   </dl>
   <p class="ini-nota">Dados de clientes, contas e kits da demonstração são sintéticos. <a href="/metricas">Ver as métricas ao vivo</a></p>
 </section>

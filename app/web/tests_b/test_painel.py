@@ -122,3 +122,15 @@ def test_timeline_padrao_mostra_so_marcos():
         "Gerou os documentos",
         "Conferiu contra a norma da Enel",
     ]
+
+
+def test_custo_medido_vem_do_resultado_do_eval():
+    from app.web.metricas import eval_processo_completo
+
+    texto = (
+        "Médias de 6 execução(ões), 6 concluída(s): 8.0 chamadas LLM, 10033 tokens in, "
+        "3017 tokens out, 90.4 s de relógio.\nCusto médio por processo: R$ 0.0719\n"
+    )
+    r = eval_processo_completo(texto)
+    assert r["custo"] == "0,07" and r["chamadas"] == "8" and r["segundos"] == "90,4"
+    assert r["tokens"] == "13,1"

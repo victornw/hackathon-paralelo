@@ -5,3 +5,7 @@ __pycache__/
 data/
 .env
 node_modules/
+
+# Fora do repositório: configuração local do Claude e pesquisa de mercado
+.claude/
+docs/pesquisa/

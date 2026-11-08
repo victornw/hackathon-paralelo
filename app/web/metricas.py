@@ -18,6 +18,7 @@ from fastapi.templating import Jinja2Templates
 from app.portal_sim.prazos import calcular_prazos
 from app.portal_sim.relogio import hoje
 from app.schemas import Etapa
+from app.tracing.trace import custo_por_tokens
 from app.web.painel import ROTULOS, PrazoTela, carregar_processos
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -32,18 +33,24 @@ def _br(v: float, casas: int = 1) -> str:
 def eval_processo_completo(texto: str) -> dict | None:
     m = re.search(
         r"Médias de (\d+) execução\(ões\), (\d+) concluída\(s\): ([\d.]+) chamadas LLM, "
-        r"(\d+) tokens in, (\d+) tokens out, ([\d.]+) s de LLM, ([\d.]+) s de relógio",
+        r"(\d+) tokens in, (\d+) tokens out, (?:[\d.]+ s de LLM, )?([\d.]+) s de relógio",
         texto,
     )
     if not m:
         return None
-    execucoes, concluidas, chamadas, tin, tout, _, relogio = m.groups()
+    execucoes, concluidas, chamadas, tin, tout, relogio = m.groups()
+    # O custo medido vem escrito no resultado (preço da data da medição); sem ele,
+    # sai dos tokens pelo mesmo preço do rastro.
+    medido = re.search(r"Custo médio por processo: R\$ ([\d.]+)", texto)
+    custo = float(medido[1]) if medido else custo_por_tokens(int(tin), int(tout))
     return {
         "execucoes": int(execucoes),
         "concluidas": int(concluidas),
         "chamadas": _br(float(chamadas), 0),
         "tokens": _br((int(tin) + int(tout)) / 1000),
         "segundos": _br(float(relogio)),
+        # Mesmo preço do rastro (publicado da Featherless, ou o do .env).
+        "custo": _br(custo, 2) if custo >= 0.01 else "< 0,01",
     }
 
 

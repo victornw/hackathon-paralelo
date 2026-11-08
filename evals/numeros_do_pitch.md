@@ -29,7 +29,7 @@ Dizer sempre "segundo a ANEEL, em 2022 e 2023". Não há base mais recente com e
 | Integradores que terceirizam projeto e engenharia | 37% | Greener, set/2025 |
 | Conexões novas por ano | ~600 mil | pv magazine (ritmo de 2026) |
 | Processos terceirizados por ano | **~222 mil** | 600 mil × 37% (conta nossa) |
-| Preço que o integrador paga hoje | R$ 400 a 690 avulso; R$ 250 a 400 em assinatura | páginas das homologadoras (`docs/pesquisa/anexos/homologadoras.md`) |
+| Preço que o integrador paga hoje | R$ 400 a 690 avulso; R$ 250 a 400 em assinatura | páginas públicas das homologadoras (Raio, Spinatec, Solardesc) |
 | Referência de produtividade | Tellar: 14 engenheiros, ~350 projetos/mês, ~1 projeto por engenheiro por dia útil | pv magazine, nov/2024 |
 
 ## O produto, medido
@@ -37,15 +37,15 @@ Dizer sempre "segundo a ANEEL, em 2022 e 2023". Não há base mais recente com e
 | Número | Valor | Fonte |
 |---|---|---|
 | Classificador de pendências, acerto geral | **93,8%** (95,2% em paráfrases), contra 50,0% de palavras-chave | `evals/resultados_pendencias.md` (Qwen real, 48 textos sintéticos rotulados antes) |
-| Processo completo com IA real | **6 de 6 concluídos**, da conta ao medidor | `evals/resultados_processo_completo.md` |
-| Chamadas de IA por processo | 2 (a conta é lida sem IA) | idem |
-| Tokens por processo | ~3,2 mil | idem |
-| Tempo de máquina por processo | ~44 s | idem |
-| Custo de IA por processo | menos de R$ 0,02 (conta nossa, preço público de modelos da mesma classe) | idem |
+| Processo completo com IA real | **6 de 6 concluídos**, da conta ao protocolo | `evals/resultados_processo_completo.md` |
+| Chamadas de IA por processo | 8 (o agente decide cada passo e a IA confere a conta) | idem |
+| Tokens por processo | ~13 mil | idem |
+| Tempo de máquina por processo | ~90 s | idem |
+| Custo de IA por processo | ~R$ 0,07 (preço publicado da Featherless, US$ 0,40/3,00 por milhão de tokens) | idem |
 | Revisão do engenheiro | 15 a 20 min por pacote (hipótese da equipe; a tela grava o tempo real de cada revisão) | `app/web/revisao.py` |
 
 ## Frases
 
 - "Segundo a ANEEL, em um ano, 127 mil pedidos residenciais de energia solar foram negados ou pararam na vistoria. 60% deles, 76 mil, em problemas que o agente previne: documentação e vistoria esquecida."
 - "Hoje um engenheiro de homologadora monta cerca de um projeto por dia. Com o agente, ele revisa um pacote já conferido em 15 a 20 minutos."
-- "O agente gasta menos de 2 centavos de IA por processo; o custo que importa é o tempo do engenheiro, e é ele que reduzimos."
+- "O agente gasta uns 7 centavos de IA por processo; o custo que importa é o tempo do engenheiro, e é ele que reduzimos."

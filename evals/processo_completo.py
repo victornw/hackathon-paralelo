@@ -7,8 +7,8 @@ Uso (carregue o .env antes, sem imprimir a chave):
 
 Dirige o app FastAPI em processo (TestClient) como um usuário: cria o processo,
 envia a conta e a proposta, responde as perguntas do integrador (tabela
-RESPOSTAS, chaveada por Pergunta.campo), aprova como engenheiro, deixa o
-agente protocolar e avança o relógio e o portal simulados até onde a API deixa.
+RESPOSTAS, chaveada por Pergunta.campo), aprova como engenheiro, protocola
+como ele (o protocolo simulado da revisão) e avança o relógio e o portal simulados até onde a API deixa.
 Nenhuma regra do produto é contornada: se a aprovação bloqueia, a execução
 registra onde e por quê e segue para a próxima.
 
@@ -346,6 +346,10 @@ class Usuario:
             for r in self.processo().regras
         )
 
+    def protocolar(self) -> None:
+        """Depois de assinar, o engenheiro protocola (aqui, o protocolo simulado)."""
+        self._chamar("POST", f"/api/processos/{self.ex.processo_id}/protocolo/simular")
+
     def rodar(self, refazer: bool = False) -> None:
         self._chamar(
             "POST",
@@ -374,7 +378,7 @@ class Usuario:
 
 # O que fazer em cada etapa do portal para o processo andar.
 ACOES: dict[Etapa, Callable[[Usuario], None]] = {
-    Etapa.EM_REVISAO: Usuario.rodar,
+    Etapa.EM_REVISAO: Usuario.protocolar,
     Etapa.PROTOCOLADO: Usuario.avancar_relogio,
     Etapa.PENDENCIA: Usuario.reaprovar_pendencia,
     Etapa.ORCAMENTO_EMITIDO: lambda u: u.portal("aprovar-orcamento"),

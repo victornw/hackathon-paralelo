@@ -60,8 +60,8 @@ Rodapé: `evals/resultados_pendencias.md`; Qwen3.8-27B na Featherless.
 |---|---|---|
 | Trabalho do engenheiro | Monta o projeto | Revisa e assina |
 | Projetos por engenheiro por dia | Pouco mais de 1 | [N, medido] |
-| Custo de IA por processo | — | R$ 0,005 (cerca de 3 mil tokens) |
-| Preço ao integrador | R$ 400 a 690 | abaixo de R$ 400 |
+| Custo de IA por processo | — | ~R$ 0,07 (cerca de 13 mil tokens) |
+| Preço ao integrador | R$ 400 a 690 | até R$ 350 |
 
 Versão sem medição: trocar "[N, medido]" por "medição de revisão em andamento" e não citar múltiplo.
 

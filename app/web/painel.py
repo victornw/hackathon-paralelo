@@ -210,8 +210,17 @@ def _foco(p: Processo, dia: date) -> dict:
 
 @router.get("/", include_in_schema=False)
 def inicio(request: Request):
+    from app.web.metricas import _ler, eval_pendencias, eval_processo_completo
+
     return templates.TemplateResponse(
-        request, "inicio.html", {"hoje": hoje(), "total": len(carregar_processos())}
+        request,
+        "inicio.html",
+        {
+            "hoje": hoje(),
+            "total": len(carregar_processos()),
+            "completo": eval_processo_completo(_ler("resultados_processo_completo.md")),
+            "pendencias": eval_pendencias(_ler("resultados_pendencias.md")),
+        },
     )
 
 
