@@ -60,9 +60,31 @@ def _erro_sqlite(exc: Exception) -> sqlite3.Error:
     return sqlite3.OperationalError(msg)
 
 
+def _abrir_turso():
+    import libsql
+
+    # Autocommit: cada comando confirma sozinho. O Turso encerra a conexão que fica
+    # ~10 s parada no meio de uma transação (ou até depois de uma leitura), e o agente
+    # faz trabalho lento (PDFs, modelo) entre um comando e outro.
+    return libsql.connect(
+        # O painel do Turso dá libsql://; o acesso remoto é por HTTPS.
+        database=os.environ["TURSO_DATABASE_URL"].replace("libsql://", "https://", 1),
+        auth_token=os.environ.get("TURSO_AUTH_TOKEN", ""),
+        isolation_level=None,
+    )
+
+
+def _expirou(exc: Exception) -> bool:
+    msg = str(exc)
+    return (
+        "STREAM_EXPIRED" in msg or "stream was idle" in msg or "stream" in msg.lower()
+    )
+
+
 class _ConexaoTurso:
     """Conexão do Turso com a interface do sqlite3 que o app usa: execute iterável,
-    `with` que confirma ou desfaz, e os mesmos tipos de erro do sqlite3."""
+    `with` que confirma ou desfaz, e os mesmos tipos de erro do sqlite3. Se o
+    servidor encerrou a conexão por inatividade, reconecta e repete o comando."""
 
     def __init__(self, con) -> None:
         self._c = con
@@ -71,6 +93,12 @@ class _ConexaoTurso:
         try:
             return _Cursor(self._c.execute(*args))
         except ValueError as exc:
+            if _expirou(exc):
+                self._c = _abrir_turso()
+                try:
+                    return _Cursor(self._c.execute(*args))
+                except ValueError as exc2:
+                    raise _erro_sqlite(exc2) from exc2
             raise _erro_sqlite(exc) from exc
 
     def executescript(self, script: str):
@@ -83,11 +111,16 @@ class _ConexaoTurso:
         return self
 
     def __exit__(self, tipo, valor, tb) -> bool:
-        if tipo is None:
-            self._c.commit()
-        else:
-            self._c.rollback()
-        return False
+        return False  # autocommit: cada comando já foi confirmado
+
+    def commit(self) -> None:
+        pass
+
+    def close(self) -> None:
+        try:
+            self._c.close()
+        except Exception:  # noqa: BLE001, S110 - conexão já encerrada pelo servidor
+            pass
 
     def __getattr__(self, nome: str):
         return getattr(self._c, nome)
@@ -99,17 +132,7 @@ _esquema_pronto = False
 def conectar() -> sqlite3.Connection:
     global _esquema_pronto
     if usa_turso():
-        import libsql
-
-        con = _ConexaoTurso(
-            libsql.connect(
-                # O painel do Turso dá libsql://; o acesso remoto é por HTTPS.
-                database=os.environ["TURSO_DATABASE_URL"].replace(
-                    "libsql://", "https://", 1
-                ),
-                auth_token=os.environ.get("TURSO_AUTH_TOKEN", ""),
-            )
-        )
+        con = _ConexaoTurso(_abrir_turso())
         if not _esquema_pronto:  # cada comando é uma ida à rede: o esquema só uma vez
             con.executescript(_ESQUEMA)
             con.commit()
