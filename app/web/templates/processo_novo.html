@@ -1,0 +1,111 @@
+{% extends "layout.html" %}
+{% block titulo %}Novo processo{% endblock %}
+{% block conteudo %}
+<link rel="stylesheet" href="/static/processo.css">
+<section class="cabeca">
+  <h1>Novo processo</h1>
+  <p class="resumo">Envie a conta de luz e a proposta do kit. O agente lê os documentos, confere o arranjo, pergunta o que falta e monta o pedido para revisão do engenheiro.</p>
+</section>
+
+<section class="exemplos" aria-labelledby="ex-titulo">
+  <h2 id="ex-titulo">Testar com um caso pronto</h2>
+  <p class="resumo">Sem conta de luz à mão? Use um exemplo com conta e proposta sintéticas, ou envie os seus arquivos abaixo.</p>
+  <div class="exemplos-botoes">
+    {% for n in (1, 2, 3) %}
+    <form method="post" action="/processos/novo/exemplo/{{ n }}">
+      <button type="submit" class="secundario">Usar exemplo {{ n }}</button>
+    </form>
+    {% endfor %}
+  </div>
+</section>
+
+
+<form id="form-novo" class="form-novo" novalidate>
+  <div class="campo">
+    <label for="email">E-mail de contato do titular <span class="opc">(opcional)</span></label>
+    <input id="email" name="email" type="email" autocomplete="off">
+  </div>
+  <div class="campo">
+    <label for="conta">Conta de luz <span class="obrig">(obrigatório)</span></label>
+    <input id="conta" name="conta" type="file" accept="application/pdf,image/*" required>
+    <small>PDF ou imagem.</small>
+  </div>
+  <div class="campo">
+    <label for="proposta">Proposta com o kit <span class="obrig">(obrigatório)</span></label>
+    <input id="proposta" name="proposta" type="file" accept="application/pdf" required>
+    <small>PDF.</small>
+  </div>
+  <div class="campo">
+    <label for="datasheet">Datasheets do módulo e do inversor <span class="opc">(opcional)</span></label>
+    <input id="datasheet" name="datasheet" type="file" accept="application/pdf" multiple>
+    <small>Um ou mais PDFs.</small>
+  </div>
+  <div class="campo">
+    <label for="padrao">Foto do padrão de entrada <span class="opc">(opcional)</span></label>
+    <input id="padrao" name="padrao" type="file" accept="image/*">
+  </div>
+  <button type="submit" id="enviar">Criar processo</button>
+  <p id="progresso" class="progresso" aria-live="polite"></p>
+  <p id="erro" class="erro-form" role="alert"></p>
+</form>
+
+
+
+<script>
+  (function () {
+    var form = document.getElementById("form-novo");
+    var botao = document.getElementById("enviar");
+    var progresso = document.getElementById("progresso");
+    var erro = document.getElementById("erro");
+    function detalhe(d) {
+      var det = d && d.detail;
+      if (Array.isArray(det)) { det = det.map(function (x) { return x.msg; }).join("; "); }
+      return det;
+    }
+    async function falhar(r, padrao) {
+      var d = await r.json().catch(function () { return {}; });
+      throw new Error(detalhe(d) || padrao);
+    }
+    form.addEventListener("submit", async function (ev) {
+      ev.preventDefault();
+      erro.textContent = "";
+      var conta = form.elements.conta.files[0];
+      var proposta = form.elements.proposta.files[0];
+      if (!conta || !proposta) {
+        erro.textContent = "Envie a conta de luz e a proposta com o kit.";
+        return;
+      }
+      var envios = [["conta", "conta de luz", conta], ["proposta", "proposta", proposta]];
+      Array.prototype.forEach.call(form.elements.datasheet.files, function (f) { envios.push(["datasheet", "datasheet " + f.name, f]); });
+      if (form.elements.padrao.files[0]) { envios.push(["padrao", "foto do padrão", form.elements.padrao.files[0]]); }
+      botao.disabled = true;
+      try {
+        progresso.textContent = "Criando o processo…";
+        var corpo = {};
+        if (form.elements.email.value.trim()) { corpo.email_contato = form.elements.email.value.trim(); }
+        var r = await fetch("/api/processos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(corpo),
+        });
+        if (!r.ok) { await falhar(r, "Não foi possível criar o processo."); }
+        var proc = await r.json();
+        for (var i = 0; i < envios.length; i++) {
+          progresso.textContent = "Enviando " + envios[i][1] + "…";
+          var fd = new FormData();
+          fd.append("tipo", envios[i][0]);
+          fd.append("file", envios[i][2]);
+          var ra = await fetch("/api/processos/" + proc.id + "/arquivos", { method: "POST", body: fd });
+          if (!ra.ok) { await falhar(ra, "Não foi possível enviar " + envios[i][1] + "."); }
+        }
+        progresso.textContent = "Pronto. Abrindo o processo…";
+        location = "/processos/" + proc.id;
+      } catch (e) {
+        progresso.textContent = "";
+        erro.textContent = e.message || "Não foi possível enviar os arquivos.";
+        botao.disabled = false;
+      }
+    });
+  })();
+</script>
+{% endblock %}

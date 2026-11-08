@@ -1,0 +1,42 @@
+.rev-links { display: flex; gap: 18px; margin: 0 0 8px; }
+.rev-aviso { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--atencao); background: #fff8ea; color: var(--tinta); max-width: 75ch; }
+.rev-resumo, .rev-regras, .rev-perguntas, .rev-aprovar { margin: 24px 0; max-width: 960px; }
+.rev-resumo h2, .rev-regras h2, .rev-perguntas h2, .rev-aprovar h2 { font-size: 20px; margin: 0 0 10px; font-stretch: 88%; }
+.rev-resumo h3 { font-size: 15px; margin: 12px 0 4px; }
+.rev-pills { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
+.pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--neutro); color: var(--neutro); background: #fff; }
+.pill.aprovada { color: var(--ok); border-color: var(--ok); }
+.pill.reprovada { color: var(--vencido); border-color: var(--vencido); }
+.pill.incerta, .pill.premissa, .pill.alerta { color: var(--atencao); border-color: var(--atencao); }
+.pill.nao_verificada { color: var(--neutro); border-color: var(--neutro); }
+.rev-bloqueios { margin: 4px 0 0; padding-left: 20px; color: var(--vencido); }
+.rev-livre { color: var(--ok); font-weight: 600; margin: 10px 0 0; }
+
+.regra { background: #fff; border: 1px solid var(--linha); border-left: 4px solid var(--neutro); border-radius: var(--raio); padding: 12px 14px; margin-bottom: 12px; }
+.regra.aprovada { border-left-color: var(--ok); }
+.regra.reprovada { border-left-color: var(--vencido); }
+.regra.incerta { border-left-color: var(--atencao); }
+.regra header { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.regra h3 { margin: 0; font-size: 16px; }
+.regra-msg { margin: 6px 0 2px; }
+.regra-fonte, .trecho { font-size: 12px; color: var(--tinta-2); margin: 0; }
+.regra-valores { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.regra-valores th, .regra-valores td { text-align: left; padding: 2px 14px 2px 0; border-bottom: 1px solid var(--linha); }
+.regra-valores th { font-weight: 500; color: var(--tinta-2); }
+.regra h4 { margin: 8px 0 2px; font-size: 13px; }
+.regra ul { margin: 0; padding-left: 20px; font-size: 14px; }
+.regra-premissas { background: #fff8ea; padding: 4px 10px 6px; border-radius: var(--raio); margin-top: 8px; }
+.regra-alertas h4 { color: var(--atencao); }
+.regra-evidencias li { margin-bottom: 4px; }
+.regra-evidencias small { display: block; color: var(--tinta-2); font-size: 12px; }
+.regra-confirmada { margin: 8px 0 0; color: var(--ok); font-weight: 600; font-size: 14px; }
+
+.rev-form { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; margin-top: 10px; padding: 10px 12px; border: 1px dashed var(--linha); border-radius: var(--raio); }
+.rev-form p { margin: 0; }
+.rev-form .dica { font-size: 13px; color: var(--tinta-2); }
+.rev-form label { font-size: 13px; color: var(--tinta-2); }
+.rev-form .check { color: var(--tinta); font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
+.rev-form input:not([type=checkbox]) { font: inherit; padding: 6px 8px; border: 1px solid var(--linha); border-radius: var(--raio); min-width: 280px; max-width: 100%; }
+.rev-form button { font: inherit; padding: 6px 14px; background: var(--prancha); color: #fff; border: 0; border-radius: var(--raio); cursor: pointer; }
+.rev-form button:disabled { background: var(--neutro); cursor: not-allowed; }
+.rev-form button:focus-visible, .rev-form input:focus-visible { outline: 2px solid var(--prancha); outline-offset: 2px; }
