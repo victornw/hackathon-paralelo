@@ -102,7 +102,15 @@ def gerar_anexo_a(processo: Processo, pasta: Path) -> Path:
     pdf.campo(
         "Potência instalada de geração", f"{num(potencia_instalada_kw(kit), 2)} kW"
     )
-    pdf.campo("Modalidade de compensação", A_INFORMAR)
+    modalidade = next(
+        (
+            q.resposta
+            for q in processo.perguntas
+            if q.campo == "modalidade_compensacao" and q.resposta
+        ),
+        A_INFORMAR,
+    )
+    pdf.campo("Modalidade de compensação", modalidade)
 
     pdf.secao("4. Dados do inversor")
     pdf.campo("Fabricante", inv.fabricante)

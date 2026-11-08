@@ -78,3 +78,18 @@ def test_sem_kit_falha_com_mensagem(processo, tmp_path):
             assert "Kit ausente" in str(e)
         else:
             raise AssertionError("deveria falhar sem kit")
+
+
+def test_anexo_a_imprime_a_modalidade_respondida(processo, tmp_path):
+    from app.schemas import Pergunta
+
+    processo.perguntas.append(
+        Pergunta(
+            id="modalidade_compensacao",
+            campo="modalidade_compensacao",
+            texto="?",
+            resposta="Autoconsumo local",
+        )
+    )
+    t = texto(gerar_anexo_a(processo, tmp_path))
+    assert "Autoconsumo local" in t
