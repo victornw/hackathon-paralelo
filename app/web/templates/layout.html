@@ -6,6 +6,8 @@
   <meta name="description" content="dia: gestão e homologação de projetos solares, documentos e prazos.">
   <meta name="theme-color" content="#ddf1f8">
   <title>{% block titulo %}Carteira{% endblock %} · dia</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/static/favicon.png">
   <script>
     /* O sol nasce uma vez por sessão; nas navegações seguintes a página só aparece. */
     try { if (!sessionStorage.getItem("dia-amanheceu")) { document.documentElement.classList.add("amanhecer"); sessionStorage.setItem("dia-amanheceu", "1"); } } catch (e) {}
